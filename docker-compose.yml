@@ -1,0 +1,26 @@
+services:
+  relay:
+    build:
+      context: .
+      dockerfile: packages/relay/Dockerfile
+    image: aethelos/relay:latest
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      PORT: "8787"
+      MAX_BUFFER: "10000"
+      BUFFER_TTL_MS: "86400000"
+      RATE_LIMIT: "100"
+      MAX_CONNECTIONS: "5000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:8787/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 3s
+      retries: 3

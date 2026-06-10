@@ -1,0 +1,83 @@
+import { useEffect } from "react";
+import { useStore, type View } from "./app/store.js";
+import { Onboarding } from "./features/Onboarding.js";
+import { CellView } from "./features/CellView.js";
+import { GovernanceView } from "./features/GovernanceView.js";
+import { ProposalsView } from "./features/ProposalsView.js";
+import { IdentityView } from "./features/IdentityView.js";
+import { ToastHost } from "./components/ToastHost.js";
+import { SyncIndicator } from "./components/SyncIndicator.js";
+
+const NAV: { id: View; label: string }[] = [
+  { id: "cell", label: "Community" },
+  { id: "governance", label: "Governance" },
+  { id: "proposals", label: "Proposals" },
+  { id: "identity", label: "Identity" },
+];
+
+export function App() {
+  const init = useStore((s) => s.init);
+  const phase = useStore((s) => s.phase);
+
+  useEffect(() => {
+    void init();
+  }, [init]);
+
+  return (
+    <>
+      {phase === "loading" ? (
+        <div className="app-main center" style={{ paddingTop: "var(--sp-8)" }}>
+          <p className="muted">Loading…</p>
+        </div>
+      ) : phase === "ready" ? (
+        <MainApp />
+      ) : (
+        <Onboarding />
+      )}
+      <ToastHost />
+    </>
+  );
+}
+
+function MainApp() {
+  const view = useStore((s) => s.view);
+  const setView = useStore((s) => s.setView);
+  const pool = useStore((s) => s.pool);
+
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <span className="brand">
+          Aethel<span>OS</span>
+          {pool?.cellName ? <span className="muted"> · {pool.cellName}</span> : null}
+        </span>
+        <SyncIndicator />
+      </header>
+      <main className="app-main">
+        <nav className="app-nav" aria-label="Sections">
+          {NAV.map((n) => (
+            <button
+              key={n.id}
+              className={`tab ${view === n.id ? "active" : ""}`}
+              aria-current={view === n.id ? "page" : undefined}
+              onClick={() => setView(n.id)}
+            >
+              {n.label}
+            </button>
+          ))}
+        </nav>
+        {!pool ? (
+          <p className="muted">Syncing community state…</p>
+        ) : view === "cell" ? (
+          <CellView pool={pool} />
+        ) : view === "governance" ? (
+          <GovernanceView pool={pool} />
+        ) : view === "proposals" ? (
+          <ProposalsView pool={pool} />
+        ) : (
+          <IdentityView />
+        )}
+      </main>
+    </div>
+  );
+}

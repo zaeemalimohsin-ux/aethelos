@@ -1,0 +1,129 @@
+/**
+ * Invite links encode everything Person B needs to join Person A's Cell:
+ * relay URLs, namespace ID, inviter public key, and cell name. No central
+ * service is involved; the link is self-contained and shared peer-to-peer.
+ *
+ * When `sig` is present it is an Ed25519 signature over the canonical invite
+ * body by `inviter`, so recipients can detect tampered relay URLs or namespace IDs.
+ */
+import {
+  canonicalJson,
+  signMessage,
+  verifySignatureSync,
+  type KeyPair,
+} from "@aethelos/core";
+import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
+
+export interface InvitePayload {
+  v: 1;
+  ns: string;
+  inviter: string;
+  cell: string;
+  relays: string[];
+  /** Hex Ed25519 signature by inviter over the canonical body (optional for legacy links). */
+  sig?: string;
+}
+
+const HASH_PREFIX = "#/join?d=";
+
+function toBase64Url(s: string): string {
+  return btoa(unescape(encodeURIComponent(s)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function fromBase64Url(s: string): string {
+  const pad = s.length % 4 === 0 ? "" : "=".repeat(4 - (s.length % 4));
+  const b64 = s.replace(/-/g, "+").replace(/_/g, "/") + pad;
+  return decodeURIComponent(escape(atob(b64)));
+}
+
+export function inviteCanonicalBody(payload: Omit<InvitePayload, "sig">): string {
+  return canonicalJson({
+    v: payload.v,
+    ns: payload.ns,
+    inviter: payload.inviter,
+    cell: payload.cell,
+    relays: [...payload.relays].sort(),
+  });
+}
+
+export async function signInvitePayload(
+  payload: Omit<InvitePayload, "sig">,
+  keyPair: KeyPair,
+): Promise<InvitePayload> {
+  const body = inviteCanonicalBody({ ...payload, v: 1 });
+  const sigBytes = await signMessage(keyPair.privateKey, utf8ToBytes(body));
+  return { ...payload, v: 1, sig: bytesToHex(sigBytes) };
+}
+
+export function verifyInviteSignature(payload: InvitePayload): boolean {
+  if (!payload.sig) return false;
+  const { sig: _sig, ...rest } = payload;
+  const message = utf8ToBytes(inviteCanonicalBody(rest));
+  return verifySignatureSync(payload.inviter, message, payload.sig);
+}
+
+export function encodeInvite(payload: InvitePayload): string {
+  return toBase64Url(JSON.stringify(payload));
+}
+
+export function buildInviteLink(payload: InvitePayload): string {
+  const base = `${window.location.origin}${window.location.pathname}`;
+  return `${base}${HASH_PREFIX}${encodeInvite(payload)}`;
+}
+
+export function decodeInvite(encoded: string): InvitePayload | null {
+  try {
+    const parsed = JSON.parse(fromBase64Url(encoded)) as Partial<InvitePayload>;
+    if (
+      parsed.v !== 1 ||
+      typeof parsed.ns !== "string" ||
+      typeof parsed.inviter !== "string" ||
+      !Array.isArray(parsed.relays)
+    ) {
+      return null;
+    }
+    return {
+      v: 1,
+      ns: parsed.ns,
+      inviter: parsed.inviter,
+      cell: typeof parsed.cell === "string" ? parsed.cell : "",
+      relays: parsed.relays.filter((r) => typeof r === "string"),
+      ...(typeof parsed.sig === "string" ? { sig: parsed.sig } : {}),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Parse invite from URL hash, pasted link, or raw encoded payload. */
+export function parseInviteInput(raw: string): InvitePayload | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  const marker = "#/join?d=";
+  const idx = trimmed.indexOf(marker);
+  if (idx >= 0) {
+    const encoded = trimmed.slice(idx + marker.length).split(/[#&?\s]/)[0] ?? "";
+    return decodeInvite(encoded);
+  }
+  if (trimmed.startsWith(marker)) {
+    return decodeInvite(trimmed.slice(marker.length));
+  }
+  return decodeInvite(trimmed);
+}
+
+/** Parse an invite from the current URL hash, if present. */
+export function parseInviteFromUrl(): InvitePayload | null {
+  const hash = window.location.hash;
+  if (!hash.startsWith(HASH_PREFIX)) return null;
+  return decodeInvite(hash.slice(HASH_PREFIX.length));
+}
+
+export function clearInviteFromUrl(): void {
+  if (window.location.hash.startsWith(HASH_PREFIX)) {
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
+}
