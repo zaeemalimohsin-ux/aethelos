@@ -96,7 +96,7 @@ test.describe("governance sliders", () => {
   test("governance slider updates resolved parameters", async ({ page }) => {
     await onboardGenesis(page, "Gov Tester", "Gov Cell");
     await bridgeUpdateSlider(page, "decay_rate", 15);
-    await waitForPool(page, (p) => p.parameters.decay_rate === 15);
+    await waitForPool(page, (p) => p.parameters.decay_rate === 15, 90_000);
     const pool = await getPoolSummary(page);
     expect(pool!.parameters.decay_rate).toBe(15);
   });

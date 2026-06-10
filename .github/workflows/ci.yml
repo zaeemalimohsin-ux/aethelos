@@ -69,8 +69,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Tauri Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
       - name: Build core
         run: pnpm --filter @aethelos/core build
+
+      - name: Generate Tauri icons
+        run: pnpm --filter @aethelos/client-tauri exec tauri icon ../client/public/favicon.svg
 
       - name: Build relay for sidecar check
         run: pnpm --filter @aethelos/relay build

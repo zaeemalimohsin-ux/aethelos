@@ -60,7 +60,7 @@ test.describe("federation seam", () => {
 
     await bridgeVoteProposal(pageChild, proposal.id, false);
     await pageChild.waitForTimeout(1500);
-    let pool = await getPoolSummary(pageChild);
+    const pool = await getPoolSummary(pageChild);
     expect(pool!.proposals!.find((p) => p.id === proposal.id)?.executed).toBe(false);
 
     await bridgeVoteProposal(pageChild, proposal.id, true);
