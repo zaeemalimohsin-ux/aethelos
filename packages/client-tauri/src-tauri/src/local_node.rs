@@ -38,14 +38,16 @@ fn relay_script_path() -> Option<std::path::PathBuf> {
 }
 
 fn extract_https_url(line: &str) -> Option<String> {
-    for word in line.split_whitespace() {
-        if word.starts_with("https://") {
-            let trimmed = word.trim_end_matches(|c: char| {
+    if let Some(idx) = line.find("https://") {
+        let rest = &line[idx..];
+        let end = rest
+            .find(|c: char| {
                 !c.is_ascii_alphanumeric() && c != '-' && c != '.' && c != ':' && c != '/'
-            });
-            if trimmed.len() > "https://".len() {
-                return Some(trimmed.to_string());
-            }
+            })
+            .unwrap_or(rest.len());
+        let url = &rest[..end];
+        if url.contains(".trycloudflare.com") && url.len() > "https://".len() {
+            return Some(url.to_string());
         }
     }
     None
@@ -58,6 +60,25 @@ fn wait_for_relay_health() {
         }
         thread::sleep(Duration::from_millis(250));
     }
+}
+
+fn spawn_tunnel_url_reader(
+    stream: impl std::io::Read + Send + 'static,
+    slot: std::sync::Arc<Mutex<Option<String>>>,
+) {
+    thread::spawn(move || {
+        let reader = BufReader::new(stream);
+        for line in reader.lines().map_while(Result::ok) {
+            if let Some(url) = extract_https_url(&line) {
+                if let Ok(mut guard) = slot.lock() {
+                    if guard.is_none() {
+                        *guard = Some(url);
+                    }
+                }
+                break;
+            }
+        }
+    });
 }
 
 fn wait_for_public_url(
@@ -107,7 +128,6 @@ pub fn start_local_node() -> Result<LocalNodeStatus, String> {
     wait_for_relay_health();
 
     let public_url_slot = std::sync::Arc::new(Mutex::new(None::<String>));
-    let slot_for_reader = public_url_slot.clone();
 
     let tunnel_spawn = Command::new("cloudflared")
         .args(["tunnel", "--url", &format!("http://127.0.0.1:{LOCAL_PORT}")])
@@ -119,19 +139,11 @@ pub fn start_local_node() -> Result<LocalNodeStatus, String> {
     let mut tunnel_handle = None;
 
     if let Ok(mut child) = tunnel_spawn {
-        let stderr = child.stderr.take();
-        if let Some(stderr) = stderr {
-            thread::spawn(move || {
-                let reader = BufReader::new(stderr);
-                for line in reader.lines().map_while(Result::ok) {
-                    if let Some(url) = extract_https_url(&line) {
-                        if let Ok(mut slot) = slot_for_reader.lock() {
-                            *slot = Some(url);
-                        }
-                        break;
-                    }
-                }
-            });
+        if let Some(stdout) = child.stdout.take() {
+            spawn_tunnel_url_reader(stdout, public_url_slot.clone());
+        }
+        if let Some(stderr) = child.stderr.take() {
+            spawn_tunnel_url_reader(stderr, public_url_slot.clone());
         }
         tunnel_handle = Some(child);
     }
@@ -178,5 +190,34 @@ pub fn local_node_status() -> Result<LocalNodeStatus, String> {
             tunnel_ready: false,
             cloudflared_available: false,
         }),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extract_https_url_parses_trycloudflare_line() {
+        let line = "|  https://earthquake-comparative-wisdom-forth.trycloudflare.com  |";
+        let url = extract_https_url(line).expect("url");
+        assert!(url.contains("trycloudflare.com"));
+    }
+
+    #[test]
+    fn start_local_node_exposes_public_tunnel() {
+        let _ = stop_local_node();
+        let status = start_local_node().expect("start_local_node");
+        assert!(status.running, "relay should be running");
+        assert!(
+            status.cloudflared_available,
+            "cloudflared should be on PATH for desktop remote proof"
+        );
+        assert!(
+            status.public_url.as_ref().is_some_and(|u| u.contains("trycloudflare.com")),
+            "expected public trycloudflare URL, got {:?}",
+            status.public_url
+        );
+        stop_local_node().expect("stop_local_node");
     }
 }

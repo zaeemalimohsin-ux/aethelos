@@ -21,8 +21,12 @@ fn cmd_local_node_status() -> Result<LocalNodeStatus, String> {
 }
 
 fn main() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_updater::Builder::new().build())
+    let mut builder = tauri::Builder::default();
+    #[cfg(not(debug_assertions))]
+    {
+        builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
+    }
+    builder
         .invoke_handler(tauri::generate_handler![
             cmd_start_local_node,
             cmd_stop_local_node,

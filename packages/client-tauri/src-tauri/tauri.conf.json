@@ -36,7 +36,7 @@
   },
   "plugins": {
     "updater": {
-      "active": true,
+      "active": false,
       "endpoints": [
         "https://releases.example.org/aethelos/{{target}}/{{current_version}}"
       ],
