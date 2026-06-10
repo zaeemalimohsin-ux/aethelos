@@ -51,7 +51,7 @@ export function formatPointsAmount(
 
   const scale = POINTS_SCALE;
   const whole = amount / scale;
-  let frac = amount % scale;
+  const frac = amount % scale;
   if (frac === 0n) return whole.toString();
 
   let fracStr = frac.toString().padStart(POINTS_DECIMALS, "0");

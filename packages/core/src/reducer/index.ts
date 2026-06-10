@@ -893,7 +893,7 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
         return { ok: false, reason: "invalid_relay_url", state };
       }
       const authors = { ...(state.communityRelayAuthors ?? {}) };
-      let relays = (state.communityRelays ?? []).filter(
+      const relays = (state.communityRelays ?? []).filter(
         (existing) => authors[existing] !== event.author,
       );
       for (const existing of Object.keys(authors)) {

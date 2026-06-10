@@ -430,7 +430,7 @@ describe("federation governance gaps", () => {
       },
       parentHead.privateKey,
     );
-    let parent = reduceEvents(parentNs, [g, linkCreate, linkVote]);
+    const parent = reduceEvents(parentNs, [g, linkCreate, linkVote]);
     expect(parent.bridges).toContain(childBridge.publicKeyHex);
 
     const relay = await signEvent(
