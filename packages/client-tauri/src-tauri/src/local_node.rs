@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 
 const LOCAL_PORT: u16 = 8787;
 const LOCAL_WS: &str = "ws://127.0.0.1:8787";
-const TUNNEL_WAIT_MS: u64 = 15000;
+const TUNNEL_WAIT_MS: u64 = 120_000;
 
 #[derive(serde::Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -130,7 +130,12 @@ pub fn start_local_node() -> Result<LocalNodeStatus, String> {
     let public_url_slot = std::sync::Arc::new(Mutex::new(None::<String>));
 
     let tunnel_spawn = Command::new("cloudflared")
-        .args(["tunnel", "--url", &format!("http://127.0.0.1:{LOCAL_PORT}")])
+        .args([
+            "tunnel",
+            "--url",
+            &format!("http://127.0.0.1:{LOCAL_PORT}"),
+            "--no-autoupdate",
+        ])
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn();
@@ -168,7 +173,7 @@ pub fn start_local_node() -> Result<LocalNodeStatus, String> {
 
 pub fn stop_local_node() -> Result<(), String> {
     let mut guard = NODE.lock().map_err(|e| e.to_string())?;
-    if let Some(mut state) = guard.take() {
+    if let Some(state) = guard.take() {
         if let Some(mut child) = state.tunnel_child {
             let _ = child.kill();
         }

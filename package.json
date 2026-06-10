@@ -17,6 +17,7 @@
     "test:e2e": "pnpm --filter @aethelos/client test:e2e",
     "setup:e2e": "pnpm --filter @aethelos/client setup:e2e",
     "playground": "pnpm --filter @aethelos/client playground",
+    "desktop:proof": "node scripts/desktop-proof.mjs",
     "typecheck": "pnpm -r typecheck"
   },
   "engines": {

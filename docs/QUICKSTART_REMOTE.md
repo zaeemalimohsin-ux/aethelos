@@ -75,7 +75,10 @@ Friends with the desktop app can toggle **Sharing from this computer** under Con
 ## Verify locally (developers)
 
 ```bash
+pnpm desktop:proof
 pnpm --filter @aethelos/client test
 pnpm --filter @aethelos/core test
 pnpm --filter @aethelos/client test:e2e -- onboarding community
 ```
+
+`pnpm desktop:proof` runs tunnel-smoke, Tauri `local_node` tests, and the two-person E2E join spec.

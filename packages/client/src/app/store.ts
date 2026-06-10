@@ -259,7 +259,7 @@ export const useStore = create<AppStore>((set, get) => ({
       const node = await startLocalNode();
       if (node?.localUrl) {
         relays = [node.localUrl];
-        const withTunnel = node.publicUrl ? node : await waitForPublicTunnel(15000);
+        const withTunnel = node.publicUrl ? node : await waitForPublicTunnel(120_000);
         publicRelayUrl = withTunnel?.publicUrl;
         tunnelStatus = tunnelStatusFromLocalNode(
           true,
@@ -528,7 +528,7 @@ export const useStore = create<AppStore>((set, get) => ({
       if (!controller.getSessionRelays().includes(node.localUrl)) {
         controller.addRelay(node.localUrl);
       }
-      const withTunnel = node.publicUrl ? node : await waitForPublicTunnel(15000);
+      const withTunnel = node.publicUrl ? node : await waitForPublicTunnel(120_000);
       const publicUrl = withTunnel?.publicUrl;
       if (publicUrl) {
         await controller.contributeRelay(httpsToWssRelayUrl(publicUrl));

@@ -9,7 +9,7 @@ All notable changes to AethelOS are documented here. The format is based on
 ### Verified
 
 - Post-v0.1.0 remote path (automated, 2026-06-10): `check:local-node` (relay + cloudflared OK), `scripts/tunnel-smoke.mjs` (public trycloudflare URL in invite relays; localhost excluded), E2E two-person genesis/join (3/3).
-- Desktop remote path (2026-06-10): fixed Tauri `local_node` tunnel URL capture (read cloudflared stdout+stderr; accept `.trycloudflare.com` only). Disabled updater plugin in debug builds and set `plugins.updater.active: false` so `desktop:dev` starts without release keys. Verified via `scripts/desktop-proof.mjs` (tunnel-smoke + `cargo test local_node::tests` + two-person E2E), `desktop:dev` launch, and [QUICKSTART_REMOTE.md](./docs/QUICKSTART_REMOTE.md) criteria (Connection **Ready for friends abroad**, trycloudflare invite links, friend join sync).
+- Desktop remote path (2026-06-10): fixed Tauri `local_node` tunnel URL capture (read cloudflared stdout+stderr; accept `.trycloudflare.com` only; `--no-autoupdate`). Disabled updater plugin in debug builds and set `plugins.updater.active: false` so `desktop:dev` starts without release keys. Tunnel wait aligned to 120s (Rust + client). Verified via `pnpm desktop:proof` (tunnel-smoke + two-person E2E + `cargo test local_node::tests`), `desktop:dev` launch, and [QUICKSTART_REMOTE.md](./docs/QUICKSTART_REMOTE.md) criteria (Connection **Ready for friends abroad**, trycloudflare invite links, friend join sync).
 
 ## [0.1.0] - 2026-06-10
 

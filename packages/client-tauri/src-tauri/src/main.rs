@@ -21,17 +21,27 @@ fn cmd_local_node_status() -> Result<LocalNodeStatus, String> {
 }
 
 fn main() {
-    let mut builder = tauri::Builder::default();
     #[cfg(not(debug_assertions))]
     {
-        builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
+        tauri::Builder::default()
+            .plugin(tauri_plugin_updater::Builder::new().build())
+            .invoke_handler(tauri::generate_handler![
+                cmd_start_local_node,
+                cmd_stop_local_node,
+                cmd_local_node_status,
+            ])
+            .run(tauri::generate_context!())
+            .expect("error while running AethelOS desktop");
     }
-    builder
-        .invoke_handler(tauri::generate_handler![
-            cmd_start_local_node,
-            cmd_stop_local_node,
-            cmd_local_node_status,
-        ])
-        .run(tauri::generate_context!())
-        .expect("error while running AethelOS desktop");
+    #[cfg(debug_assertions)]
+    {
+        tauri::Builder::default()
+            .invoke_handler(tauri::generate_handler![
+                cmd_start_local_node,
+                cmd_stop_local_node,
+                cmd_local_node_status,
+            ])
+            .run(tauri::generate_context!())
+            .expect("error while running AethelOS desktop");
+    }
 }
