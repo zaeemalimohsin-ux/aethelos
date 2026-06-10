@@ -187,7 +187,7 @@ export function IdentityView() {
           <li>
             <span className="muted">User guide</span>
             <a
-              href="https://github.com/aethelos/aethelos/blob/main/docs/USER_GUIDE.md"
+              href="https://github.com/zaeemalimohsin-ux/aethelos/blob/main/docs/USER_GUIDE.md"
               target="_blank"
               rel="noreferrer"
             >

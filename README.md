@@ -8,6 +8,13 @@ relay anyone can run.
 
 Built on the principles in [Higher-Level-Philosophy.md](./Higher-Level-Philosophy.md).
 
+**Repository:** https://github.com/zaeemalimohsin-ux/aethelos (private — request access or clone if you have permission)
+
+```bash
+git clone https://github.com/zaeemalimohsin-ux/aethelos.git
+cd aethelos
+```
+
 ## Highlights
 
 - **Local-first PWA** — installable on any desktop or mobile browser, no app

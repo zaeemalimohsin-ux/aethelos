@@ -6,6 +6,10 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ## [Unreleased]
 
+### Verified
+
+- Post-v0.1.0 remote path (automated, 2026-06-10): `check:local-node` (relay + cloudflared OK), `scripts/tunnel-smoke.mjs` (public trycloudflare URL in invite relays; localhost excluded), E2E two-person genesis/join (3/3). Full desktop GUI walkthrough per [QUICKSTART_REMOTE.md](./docs/QUICKSTART_REMOTE.md) remains the manual confirmation step.
+
 ## [0.1.0] - 2026-06-10
 
 ### Added
