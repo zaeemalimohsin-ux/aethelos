@@ -129,7 +129,8 @@ export const MIN_EPOCH_INTERVAL_MINUTES = 0.25;
 
 export function circulationIntervalMinutes(state: PoolState): number {
   const raw = resolveGovernanceParameter(state, "epoch_interval");
-  const stepped = Math.round(raw / MIN_EPOCH_INTERVAL_MINUTES) * MIN_EPOCH_INTERVAL_MINUTES;
+  const stepped =
+    Math.round(raw / MIN_EPOCH_INTERVAL_MINUTES) * MIN_EPOCH_INTERVAL_MINUTES;
   return Math.max(MIN_EPOCH_INTERVAL_MINUTES, stepped);
 }
 
@@ -375,8 +376,7 @@ export function resolveGovernanceParameter(
 
   for (const childId of childIds) {
     const pop = Math.max(1, state.childPopulation?.[childId] ?? 1);
-    const relayed =
-      state.childSliderRelay?.[childId]?.[param] ?? state.parameters[param];
+    const relayed = state.childSliderRelay?.[childId]?.[param] ?? state.parameters[param];
     weightedSum += relayed * pop;
     totalWeight += pop;
   }
@@ -427,7 +427,9 @@ export function resolveRedistributionTargets(
   // Each soul carries identical weight (one live, vouched human, one weight). Only
   // eligible souls may receive; bonds and abandoned/unvouched souls cannot be farmed.
   const voters = state.members.filter((m) => !isFrozen(state, m));
-  const eligible = state.members.filter((m) => isEligibleRecipient(state, m, asOfTimestamp));
+  const eligible = state.members.filter((m) =>
+    isEligibleRecipient(state, m, asOfTimestamp),
+  );
   if (eligible.length === 0) return {};
   const eligibleSet = new Set(eligible);
 

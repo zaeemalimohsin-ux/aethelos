@@ -153,9 +153,7 @@ function allocateProportionalDecay(
       if (headroom <= 0n) continue;
 
       let share =
-        i === pool.length - 1
-          ? remaining - distributed
-          : (remaining * e.num) / weightSum;
+        i === pool.length - 1 ? remaining - distributed : (remaining * e.num) / weightSum;
       if (share > headroom) share = headroom;
       if (share > 0n) {
         result.set(e.member, allocated + share);
@@ -283,10 +281,7 @@ export function mintPoints(
 }
 
 /** Clear a pending or active lien (invite cancel/update). Nothing moves — liens never left the wallet. */
-export function releaseVouchLien(
-  state: PoolState,
-  invitee: PublicKeyHex,
-): PoolState {
+export function releaseVouchLien(state: PoolState, invitee: PublicKeyHex): PoolState {
   const lien = state.vouchLiens[invitee];
   if (!lien) return state;
 

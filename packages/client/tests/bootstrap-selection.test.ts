@@ -49,7 +49,9 @@ describe("relay bootstrap selection", () => {
     expect(isValidRelayUrl("https://relay.example.org")).toBe(false);
     expect(relayHealthUrl("ws://localhost:8787")).toBe("http://localhost:8787/healthz");
 
-    const relays = await resolveRelaysForCommunity("ns-probe-off", { poolOverride: POOL });
+    const relays = await resolveRelaysForCommunity("ns-probe-off", {
+      poolOverride: POOL,
+    });
     expect(relays).toHaveLength(3);
   });
 });

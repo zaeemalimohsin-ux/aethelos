@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { generateKeyPair, signEvent, DEFAULT_PARAMETERS } from "@aethelos/core";
-import { appendEvent, loadEvents, exportEventLog, importEventLog } from "../src/storage/event-log.js";
+import {
+  appendEvent,
+  loadEvents,
+  exportEventLog,
+  importEventLog,
+} from "../src/storage/event-log.js";
 
 describe("event log storage", () => {
   it("appends and loads events by namespace", async () => {

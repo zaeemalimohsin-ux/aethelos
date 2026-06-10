@@ -2,7 +2,8 @@ import type { KeyPair, PoolState, SignedEvent } from "@aethelos/core";
 import { isBridge } from "@aethelos/core";
 import { SyncEngine } from "../sync/engine.js";
 
-const mirroredStorageKey = (namespaceId: string) => `aethelos-bridge-mirrored-${namespaceId}`;
+const mirroredStorageKey = (namespaceId: string) =>
+  `aethelos-bridge-mirrored-${namespaceId}`;
 
 const MIRROR_EVENT_TYPES = new Set(["bridge_transaction", "relay_cell_governance"]);
 

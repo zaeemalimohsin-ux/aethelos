@@ -98,7 +98,9 @@ test.describe("six-member community (UI instances)", () => {
     await closeContexts(contexts);
   });
 
-  test("head shifts when members vouch for a joiner over founder", async ({ browser }) => {
+  test("head shifts when members vouch for a joiner over founder", async ({
+    browser,
+  }) => {
     const { founder, joiners, keys, contexts } = await bootstrapStarCommunity(
       browser,
       "Head Six",

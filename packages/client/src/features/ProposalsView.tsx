@@ -39,8 +39,8 @@ export function ProposalsView({ pool }: { pool: PoolState }) {
     <div className="stack">
       {pool.fractures.length > 0 && (
         <div className="alert danger">
-          {pool.fractures.length} account(s) paused after suspicious activity. Propose
-          to unfreeze or remove them.
+          {pool.fractures.length} account(s) paused after suspicious activity. Propose to
+          unfreeze or remove them.
         </div>
       )}
       <CreateProposal pool={pool} />
@@ -139,14 +139,9 @@ function ProposalRow({
   const myKey = useStore((s) => s.myKey);
   const vote = useStore((s) => s.voteProposal);
   const controller = useStore((s) => s.controller);
-  const totalStake = pool.members.reduce(
-    (sum, m) => sum + votingWeight(pool, m),
-    0n,
-  );
+  const totalStake = pool.members.reduce((sum, m) => sum + votingWeight(pool, m), 0n);
   const approvalPct =
-    totalStake > 0n
-      ? Number((proposal.votesFor * 100n) / totalStake)
-      : 0;
+    totalStake > 0n ? Number((proposal.votesFor * 100n) / totalStake) : 0;
   const threshold = resolveGovernanceParameter(pool, "approval_threshold");
   const isHead = pool.head === myKey;
 
@@ -166,7 +161,8 @@ function ProposalRow({
         {proposal.kind === "bridge_transfer" ? (
           <>
             {shortKey(proposal.data["target"] ?? "", 12)} →{" "}
-            {shortKey(proposal.data["to"] ?? "", 12)} · {proposal.data["amount"] ?? "0"} pts
+            {shortKey(proposal.data["to"] ?? "", 12)} · {proposal.data["amount"] ?? "0"}{" "}
+            pts
           </>
         ) : proposal.data["target"] ? (
           shortKey(proposal.data["target"], 12)
@@ -244,8 +240,8 @@ function SuperstructureCard({ pool }: { pool: PoolState }) {
         </ul>
       ) : (
         <p className="muted" style={{ marginBottom: "var(--sp-3)" }}>
-          Link upward to a parent community, or register sub-communities you spawn.
-          Linked pools sync in the background when connected.
+          Link upward to a parent community, or register sub-communities you spawn. Linked
+          pools sync in the background when connected.
         </p>
       )}
       <Field

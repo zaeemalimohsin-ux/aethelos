@@ -107,7 +107,10 @@ export function IdentityView() {
           >
             Export event log
           </Button>
-          <label className="btn ghost" style={{ cursor: controller ? "pointer" : "not-allowed" }}>
+          <label
+            className="btn ghost"
+            style={{ cursor: controller ? "pointer" : "not-allowed" }}
+          >
             Import event log
             <input
               type="file"

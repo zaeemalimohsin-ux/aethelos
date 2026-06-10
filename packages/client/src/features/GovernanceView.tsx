@@ -1,5 +1,10 @@
 import type { PoolState, GovernanceParameter } from "@aethelos/core";
-import { DEFAULT_PARAMETERS, MIN_EPOCH_INTERVAL_MINUTES, formatIntervalMinutes, formatPointsAmount } from "@aethelos/core";
+import {
+  DEFAULT_PARAMETERS,
+  MIN_EPOCH_INTERVAL_MINUTES,
+  formatIntervalMinutes,
+  formatPointsAmount,
+} from "@aethelos/core";
 import { useStore } from "../app/store.js";
 import { useCirculationCountdown } from "../app/useCirculationCountdown.js";
 import { CONCEPT, GOVERNANCE_HELP } from "../app/concept-help.js";

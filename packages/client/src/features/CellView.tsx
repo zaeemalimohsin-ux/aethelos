@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import type { PoolState } from "@aethelos/core";
-import { SOFT_CELL_CAP, requiredVouchLien, pledgedLienTotal, availableToPledge, admissionProposalId, totalPoolPoints } from "@aethelos/core";
+import {
+  SOFT_CELL_CAP,
+  requiredVouchLien,
+  pledgedLienTotal,
+  availableToPledge,
+  admissionProposalId,
+  totalPoolPoints,
+} from "@aethelos/core";
 import { useStore } from "../app/store.js";
 import { Card } from "../design/components/Card.js";
 import { Button } from "../design/components/Button.js";
@@ -242,10 +249,7 @@ function TransferCard({
   );
 }
 
-function proposalApprovalPercent(
-  votesFor: bigint,
-  votesAgainst: bigint,
-): number {
+function proposalApprovalPercent(votesFor: bigint, votesAgainst: bigint): number {
   const total = votesFor + votesAgainst;
   if (total === 0n) return 0;
   return Number((votesFor * 100n) / total);
@@ -306,11 +310,7 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
   );
 }
 
-function InviteCard({
-  onInvite,
-}: {
-  onInvite: (pubkey: string) => Promise<void>;
-}) {
+function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> }) {
   const controller = useStore((s) => s.controller)!;
   const pool = useStore((s) => s.pool)!;
   const myKey = useStore((s) => s.myKey);
@@ -347,8 +347,8 @@ function InviteCard({
     <Card eyebrow="Invite someone">
       {atCap ? (
         <div className="alert warning" style={{ marginBottom: "var(--sp-3)" }}>
-          This community is full ({SOFT_CELL_CAP} members). Start a sub-community for
-          new people instead.
+          This community is full ({SOFT_CELL_CAP} members). Start a sub-community for new
+          people instead.
         </div>
       ) : nearCap ? (
         <div className="alert info" style={{ marginBottom: "var(--sp-3)" }}>
@@ -373,8 +373,8 @@ function InviteCard({
         />
         <p className="hint">
           This vouch pledges <strong>{lienPercent.toFixed(1)}%</strong> of your Share (
-          {formatPts(lienAmount)} pts) as a forfeitable lien. Points stay in your wallet; the
-          community must approve admission before they can join.{" "}
+          {formatPts(lienAmount)} pts) as a forfeitable lien. Points stay in your wallet;
+          the community must approve admission before they can join.{" "}
           {formatPts(pledgeCapacity)} pts still available to pledge.
         </p>
         <Button
@@ -393,8 +393,8 @@ function InviteCard({
         <Modal title="Invite link" onClose={() => setShowLink(false)}>
           <p className="muted" style={{ marginBottom: "var(--sp-3)" }}>
             {displayName ? `${displayName} invites you to ` : "Join "}
-            <strong>{pool.cellName}</strong>. This link is signed by the inviter. Share
-            it or the QR:
+            <strong>{pool.cellName}</strong>. This link is signed by the inviter. Share it
+            or the QR:
           </p>
           <div className="center" style={{ marginBottom: "var(--sp-3)" }}>
             <QRCode value={inviteLink} />
@@ -480,13 +480,7 @@ function SubCellCapBanner({ pool, isHead }: { pool: PoolState; isHead: boolean }
   );
 }
 
-function SubCellLinkageBanner({
-  pool,
-  isHead,
-}: {
-  pool: PoolState;
-  isHead: boolean;
-}) {
+function SubCellLinkageBanner({ pool, isHead }: { pool: PoolState; isHead: boolean }) {
   const joinSuperstructure = useStore((s) => s.joinSuperstructure);
   const toast = useStore((s) => s.toast);
   const parent = loadSubCellParentContext();
@@ -498,10 +492,13 @@ function SubCellLinkageBanner({
 
   return (
     <div className="alert info">
-      <strong>Link to parent:</strong> {parent.parentCellName}. In this sub-Cell, the
-      Head proposes joining the parent namespace. In the parent Cell, create a{" "}
+      <strong>Link to parent:</strong> {parent.parentCellName}. In this sub-Cell, the Head
+      proposes joining the parent namespace. In the parent Cell, create a{" "}
       <em>Link sub-Cell</em> proposal with this namespace ID:
-      <div className="mono faint" style={{ margin: "var(--sp-2) 0", wordBreak: "break-all" }}>
+      <div
+        className="mono faint"
+        style={{ margin: "var(--sp-2) 0", wordBreak: "break-all" }}
+      >
         {pool.namespaceId}
       </div>
       <div className="row">
@@ -636,8 +633,8 @@ function BridgeEscrowCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
       {isBridgeRole && linked ? (
         <>
           <p className="hint" style={{ marginBottom: "var(--sp-2)" }}>
-            Propose a cross-community transfer. After stake-weighted approval, bridge members
-            mirror it automatically on the linked namespace.
+            Propose a cross-community transfer. After stake-weighted approval, bridge
+            members mirror it automatically on the linked namespace.
           </p>
           <div className="stack">
             <Field
@@ -681,7 +678,9 @@ function BridgeEscrowCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
           </div>
         </>
       ) : (
-        <p className="muted">Only bridge members can initiate cross-community transfers.</p>
+        <p className="muted">
+          Only bridge members can initiate cross-community transfers.
+        </p>
       )}
     </Card>
   );
@@ -714,7 +713,10 @@ function RelaysCard() {
       </p>
       {desktop ? (
         <>
-          <div className="row" style={{ marginBottom: "var(--sp-2)", alignItems: "center" }}>
+          <div
+            className="row"
+            style={{ marginBottom: "var(--sp-2)", alignItems: "center" }}
+          >
             <span className="muted">Sharing from this computer</span>
             <button
               className={`btn ${relaySharing ? "secondary" : "ghost"} sm`}
@@ -735,8 +737,8 @@ function RelaysCard() {
             {tunnelStatusMessage(tunnelStatus)}
           </p>
           <p className="hint" style={{ marginBottom: "var(--sp-3)", fontSize: "0.85em" }}>
-            Your PC must stay awake while sharing. Tunnel URLs may change if you restart — toggle
-            sharing off and on to republish.
+            Your PC must stay awake while sharing. Tunnel URLs may change if you restart —
+            toggle sharing off and on to republish.
           </p>
         </>
       ) : (

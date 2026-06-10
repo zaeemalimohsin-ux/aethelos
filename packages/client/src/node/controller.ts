@@ -1,4 +1,10 @@
-import type { KeyPair, PoolState, ReducerSnapshot, RejectedReduction, SignedEvent } from "@aethelos/core";
+import type {
+  KeyPair,
+  PoolState,
+  ReducerSnapshot,
+  RejectedReduction,
+  SignedEvent,
+} from "@aethelos/core";
 import {
   DEFAULT_PARAMETERS,
   isBridge,
@@ -14,7 +20,11 @@ import {
   type ProposalKind,
 } from "@aethelos/core";
 import { SyncEngine, type SyncStatus } from "../sync/engine.js";
-import { mergeActiveRelays, relaySetsEqual, relayUrlsForInvite } from "../app/active-relays.js";
+import {
+  mergeActiveRelays,
+  relaySetsEqual,
+  relayUrlsForInvite,
+} from "../app/active-relays.js";
 import { BridgeMirrorCoordinator } from "./bridge-mirror.js";
 import { FederationReader, type LinkedPools } from "./federation-reader.js";
 
@@ -183,11 +193,7 @@ export class NodeController {
         if (pool.head === myKey && pool.parentSuperstructures.length > 0) {
           await this.maybeRelayGovernance(pool);
         }
-        await this.bridgeMirror.mirrorOutboundEvents(
-          pool,
-          this.sync.getEvents(),
-          myKey,
-        );
+        await this.bridgeMirror.mirrorOutboundEvents(pool, this.sync.getEvents(), myKey);
         await this.maybeAutoFlushChildEscrow(pool, myKey);
         await this.maybeExecuteApprovedBridges(pool, myKey);
       } else if (pool.head === myKey && pool.parentSuperstructures.length > 0) {
@@ -254,7 +260,10 @@ export class NodeController {
     }
   }
 
-  private async maybeExecuteApprovedBridges(pool: PoolState, myKey: string): Promise<void> {
+  private async maybeExecuteApprovedBridges(
+    pool: PoolState,
+    myKey: string,
+  ): Promise<void> {
     if (!isBridge(pool, myKey)) return;
     for (const [proposalId, proposal] of Object.entries(pool.proposals)) {
       if (proposal.kind !== "bridge_transfer") continue;
@@ -348,10 +357,7 @@ export class NodeController {
     this.recompute();
   }
 
-  async invite(
-    inviteePubkey: string,
-    parameters = DEFAULT_PARAMETERS,
-  ): Promise<void> {
+  async invite(inviteePubkey: string, parameters = DEFAULT_PARAMETERS): Promise<void> {
     if (!this.state) throw new Error("pool_not_initialized");
     const bond = requiredVouchLien(this.state, this.keyPair.publicKeyHex);
     await this.sync.publish({
@@ -424,9 +430,10 @@ export class NodeController {
     this.recompute();
   }
 
-  async buildSignedInvitePayload(cellName: string, relayUrls: string[]): Promise<
-    import("../app/invite.js").InvitePayload
-  > {
+  async buildSignedInvitePayload(
+    cellName: string,
+    relayUrls: string[],
+  ): Promise<import("../app/invite.js").InvitePayload> {
     const { signInvitePayload } = await import("../app/invite.js");
     return signInvitePayload(
       {
@@ -440,7 +447,12 @@ export class NodeController {
     );
   }
 
-  async transfer(to: string, amount: string, memo?: string, timestamp?: number): Promise<void> {
+  async transfer(
+    to: string,
+    amount: string,
+    memo?: string,
+    timestamp?: number,
+  ): Promise<void> {
     const now = Date.now();
     let ts = timestamp ?? now;
     if (timestamp === undefined && ts > now + TIMESTAMP_FORWARD_SKEW_MS) {

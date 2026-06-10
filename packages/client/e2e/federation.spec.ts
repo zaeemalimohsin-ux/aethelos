@@ -9,9 +9,9 @@ import {
   closeContexts,
 } from "./helpers.js";
 
-async function linkParentChild(
-  browser: { newContext: (opts?: object) => Promise<import("@playwright/test").BrowserContext> },
-) {
+async function linkParentChild(browser: {
+  newContext: (opts?: object) => Promise<import("@playwright/test").BrowserContext>;
+}) {
   const ctxParent = await freshContext(browser);
   const ctxChild = await freshContext(browser);
   const pageParent = await ctxParent.newPage();
@@ -34,9 +34,12 @@ async function linkParentChild(
   await pageChild.getByRole("button", { name: "Approve" }).first().click();
   await waitForPool(pageChild, (p) => p.parentSuperstructures.includes(parentNs));
 
-  await pageParent.evaluate(async ({ cid, bridge }) => {
-    await window.__aethelosTest?.linkSubcell(cid, bridge);
-  }, { cid: childNs, bridge: childHead });
+  await pageParent.evaluate(
+    async ({ cid, bridge }) => {
+      await window.__aethelosTest?.linkSubcell(cid, bridge);
+    },
+    { cid: childNs, bridge: childHead },
+  );
   await pageParent.getByRole("button", { name: "Proposals" }).click();
   await pageParent.getByRole("button", { name: "Approve" }).first().click();
   await waitForPool(pageParent, (p) => (p.childCells ?? []).includes(childNs));
@@ -49,9 +52,12 @@ test.describe("federation seam", () => {
     const { ctxParent, ctxChild, pageChild, pageParent, parentNs, childHead } =
       await linkParentChild(browser);
 
-    await pageChild.evaluate(async ({ parentNs, childHead }) => {
-      await window.__aethelosTest?.bridgeEscrow(parentNs, childHead, "25");
-    }, { parentNs, childHead });
+    await pageChild.evaluate(
+      async ({ parentNs, childHead }) => {
+        await window.__aethelosTest?.bridgeEscrow(parentNs, childHead, "25");
+      },
+      { parentNs, childHead },
+    );
     await waitForPool(pageChild, (p) => p.proposalCount >= 1, 30_000);
     const proposal = (await getPoolSummary(pageChild))!.proposals!.find(
       (p) => p.kind === "bridge_transfer",
@@ -64,22 +70,32 @@ test.describe("federation seam", () => {
     expect(pool!.proposals!.find((p) => p.id === proposal.id)?.executed).toBe(false);
 
     await bridgeVoteProposal(pageChild, proposal.id, true);
-    await waitForPool(pageChild, (p) => {
-      const pr = p.proposals?.find((x) => x.kind === "bridge_transfer");
-      return pr?.executed === true;
-    }, 60_000);
+    await waitForPool(
+      pageChild,
+      (p) => {
+        const pr = p.proposals?.find((x) => x.kind === "bridge_transfer");
+        return pr?.executed === true;
+      },
+      60_000,
+    );
 
     await closeContexts([ctxParent, ctxChild]);
   });
 
-  test("child governance slider relay shifts parent resolved decay_rate", async ({ browser }) => {
+  test("child governance slider relay shifts parent resolved decay_rate", async ({
+    browser,
+  }) => {
     const { ctxParent, ctxChild, pageParent, pageChild } = await linkParentChild(browser);
 
     const beforeParent = (await getPoolSummary(pageParent))!.parameters.decay_rate;
     await bridgeUpdateSlider(pageChild, "decay_rate", 18);
     await waitForPool(pageChild, (p) => p.parameters.decay_rate === 18);
 
-    await waitForPool(pageParent, (p) => p.parameters.decay_rate !== beforeParent, 60_000);
+    await waitForPool(
+      pageParent,
+      (p) => p.parameters.decay_rate !== beforeParent,
+      60_000,
+    );
     const afterParent = (await getPoolSummary(pageParent))!.parameters.decay_rate;
     expect(afterParent).toBeGreaterThan(beforeParent);
 
@@ -89,11 +105,18 @@ test.describe("federation seam", () => {
   test("leave_superstructure clears parent link on child", async ({ browser }) => {
     const { ctxParent, ctxChild, pageChild, parentNs } = await linkParentChild(browser);
 
-    await pageChild.evaluate((pid) => window.__aethelosTest?.leaveSuperstructure(pid), parentNs);
+    await pageChild.evaluate(
+      (pid) => window.__aethelosTest?.leaveSuperstructure(pid),
+      parentNs,
+    );
     await waitForPool(pageChild, (p) => p.proposalCount >= 1);
     await pageChild.getByRole("button", { name: "Proposals" }).click();
     await pageChild.getByRole("button", { name: "Approve" }).first().click();
-    await waitForPool(pageChild, (p) => !p.parentSuperstructures.includes(parentNs), 60_000);
+    await waitForPool(
+      pageChild,
+      (p) => !p.parentSuperstructures.includes(parentNs),
+      60_000,
+    );
 
     await closeContexts([ctxParent, ctxChild]);
   });

@@ -45,7 +45,9 @@ describe("relay_contribute", () => {
 
     const state = reduceEvents(ns, [g, contribute]);
     expect(state.communityRelays).toEqual(["wss://mailbox.example.org"]);
-    expect(state.communityRelayAuthors?.["wss://mailbox.example.org"]).toBe(kp.publicKeyHex);
+    expect(state.communityRelayAuthors?.["wss://mailbox.example.org"]).toBe(
+      kp.publicKeyHex,
+    );
   });
 
   it("replaces a member's prior URL on re-contribute", async () => {

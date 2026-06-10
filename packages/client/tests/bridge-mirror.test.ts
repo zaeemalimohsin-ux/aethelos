@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateKeyPair, DEFAULT_PARAMETERS, type PoolState, type SignedEvent } from "@aethelos/core";
+import {
+  generateKeyPair,
+  DEFAULT_PARAMETERS,
+  type PoolState,
+  type SignedEvent,
+} from "@aethelos/core";
 import { BridgeMirrorCoordinator } from "../src/node/bridge-mirror.js";
 
 const { mockPublishes } = vi.hoisted(() => ({ mockPublishes: [] as unknown[] }));
@@ -60,7 +65,12 @@ describe("BridgeMirrorCoordinator", () => {
     };
 
     const coordinator = new BridgeMirrorCoordinator();
-    await coordinator.syncLinkedNamespaces(pool, kp, ["ws://127.0.0.1:1"], kp.publicKeyHex);
+    await coordinator.syncLinkedNamespaces(
+      pool,
+      kp,
+      ["ws://127.0.0.1:1"],
+      kp.publicKeyHex,
+    );
 
     const event = {
       id: "evt-bridge-1",

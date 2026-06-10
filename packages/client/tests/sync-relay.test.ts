@@ -1,5 +1,10 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { generateKeyPair, signEvent, reduceEvents, DEFAULT_PARAMETERS } from "@aethelos/core";
+import {
+  generateKeyPair,
+  signEvent,
+  reduceEvents,
+  DEFAULT_PARAMETERS,
+} from "@aethelos/core";
 import { startRelayServer, type RelayServer } from "../../relay/src/server.js";
 import { SyncEngine } from "../src/sync/engine.js";
 import { mergeActiveRelays } from "../src/app/active-relays.js";

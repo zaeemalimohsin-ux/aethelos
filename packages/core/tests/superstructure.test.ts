@@ -56,7 +56,9 @@ describe("superstructure redistribution", () => {
     };
     const { state, allocated } = allocateCommonsToChildCells(parent, points("99"));
     expect(allocated).toBe(points("99"));
-    expect((state.childCellEscrow.c1 ?? 0n) + (state.childCellEscrow.c2 ?? 0n)).toBe(points("99"));
+    expect((state.childCellEscrow.c1 ?? 0n) + (state.childCellEscrow.c2 ?? 0n)).toBe(
+      points("99"),
+    );
   });
 });
 
@@ -119,7 +121,10 @@ describe("bridge_transaction", () => {
       ...createInitialState("cell"),
       initialized: true,
       members: [bridge.publicKeyHex, recipient.publicKeyHex],
-      balances: { [bridge.publicKeyHex]: points("300"), [recipient.publicKeyHex]: points("100") },
+      balances: {
+        [bridge.publicKeyHex]: points("300"),
+        [recipient.publicKeyHex]: points("100"),
+      },
       bridges: [bridge.publicKeyHex],
       totalSupply: points("400"),
       proposals: {
@@ -172,7 +177,10 @@ describe("bridge_transaction", () => {
       ...createInitialState("cell"),
       initialized: true,
       members: [bridge.publicKeyHex, recipient.publicKeyHex],
-      balances: { [bridge.publicKeyHex]: points("300"), [recipient.publicKeyHex]: points("100") },
+      balances: {
+        [bridge.publicKeyHex]: points("300"),
+        [recipient.publicKeyHex]: points("100"),
+      },
       bridges: [bridge.publicKeyHex],
       totalSupply: points("400"),
     };
@@ -333,7 +341,10 @@ describe("bridge_transaction", () => {
       totalSupply: points("1000"),
     };
     expect(resolveGovernanceParameter(parent, "decay_rate")).toBeCloseTo(4.016, 2);
-    expect(resolveGovernanceParameter(parent, "approval_threshold")).toBeCloseTo(50.04, 1);
+    expect(resolveGovernanceParameter(parent, "approval_threshold")).toBeCloseTo(
+      50.04,
+      1,
+    );
   });
 
   it("relay_cell_governance updates parent childSliderRelay", async () => {

@@ -17,7 +17,9 @@ export default defineConfig({
       name: "aethelos-block-e2e-production-build",
       config(_config, { command }) {
         if (command === "build" && process.env["VITE_E2E"] === "1") {
-          throw new Error("Refusing production build with VITE_E2E=1 (test bridge enabled)");
+          throw new Error(
+            "Refusing production build with VITE_E2E=1 (test bridge enabled)",
+          );
         }
       },
     },

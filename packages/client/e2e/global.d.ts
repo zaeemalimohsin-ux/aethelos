@@ -8,7 +8,11 @@ declare global {
       getNamespaceId: () => string | null;
       transfer: (to: string, amount: string) => Promise<void>;
       advanceCirculation: (to: string) => Promise<void>;
-      transferWithTimestamp: (to: string, amount: string, timestamp: number) => Promise<void>;
+      transferWithTimestamp: (
+        to: string,
+        amount: string,
+        timestamp: number,
+      ) => Promise<void>;
       updateSlider: (param: string, value: number, target?: string) => Promise<void>;
       createProposal: (kind: string, target: string) => Promise<void>;
       voteProposal: (id: string, approve: boolean) => Promise<void>;

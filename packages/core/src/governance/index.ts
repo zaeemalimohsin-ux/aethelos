@@ -1,7 +1,14 @@
 import type { PublicKeyHex } from "../schema/index.js";
 import type { Points } from "../schema/primitives.js";
 import type { PoolState } from "../reducer/state.js";
-import { createInitialState, isFrozen, isMember, resolveGovernanceParameter, stakeWeightNumber, votingWeight } from "../reducer/state.js";
+import {
+  createInitialState,
+  isFrozen,
+  isMember,
+  resolveGovernanceParameter,
+  stakeWeightNumber,
+  votingWeight,
+} from "../reducer/state.js";
 
 export function canInitiateSuperstructureProposal(
   state: PoolState,

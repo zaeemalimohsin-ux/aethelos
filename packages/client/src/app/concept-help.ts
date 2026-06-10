@@ -22,8 +22,7 @@ export const CONCEPT = {
 export const GOVERNANCE_HELP: Record<GovernanceParameter, string> = {
   decay_rate:
     "Target share of your stake that accrues to the commons over a calendar year (365 days). Accrual is time-proportional on every signed activity — not a fixed slice per redistribution.",
-  approval_threshold:
-    "What share of vote-weight must approve a proposal for it to pass.",
+  approval_threshold: "What share of vote-weight must approve a proposal for it to pass.",
   vouch_threshold: "How much vouching weight a candidate needs to become Head.",
   epoch_interval:
     "Minutes between redistribution flushes from the commons. Accrual runs continuously on activity; this slider sets how often pooled stake is shared out.",
@@ -53,10 +52,7 @@ export const PROPOSAL_LABELS: Record<ProposalKind, string> = {
 };
 
 /** Proposal kinds shown in the simple picker. */
-export const COMMON_PROPOSAL_KINDS: ProposalKind[] = [
-  "resolve_fracture",
-  "expel_member",
-];
+export const COMMON_PROPOSAL_KINDS: ProposalKind[] = ["resolve_fracture", "expel_member"];
 
 export const ADVANCED_PROPOSAL_KINDS: ProposalKind[] = [
   "admit_member",

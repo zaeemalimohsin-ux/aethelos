@@ -174,29 +174,40 @@ describe("community-scale (8 members, deterministic core)", () => {
     expect(state.proposals["expel1"]?.executed).not.toBe(true);
   }, 30_000);
 
-  it("runs epoch redistribution with eight members without losing points", { timeout: 30000 }, async () => {
-    const founder = await generateKeyPair();
-    const joiners = await Promise.all(Array.from({ length: 7 }, () => generateKeyPair()));
-    const ns = "scale-epoch";
-    const params = { ...DEFAULT_PARAMETERS, epoch_interval: 5, decay_rate: 10, vouch_bond_rate: 1 };
+  it(
+    "runs epoch redistribution with eight members without losing points",
+    { timeout: 30000 },
+    async () => {
+      const founder = await generateKeyPair();
+      const joiners = await Promise.all(
+        Array.from({ length: 7 }, () => generateKeyPair()),
+      );
+      const ns = "scale-epoch";
+      const params = {
+        ...DEFAULT_PARAMETERS,
+        epoch_interval: 5,
+        decay_rate: 10,
+        vouch_bond_rate: 1,
+      };
 
-    const extra: { author: KeyPair; payload: EventPayload }[] = [];
-    for (let i = 0; i < 6; i++) {
-      extra.push({
-        author: founder,
-        payload: {
-          type: "transaction",
-          to: joiners[i % joiners.length]!.publicKeyHex,
-          amount: "10",
-        },
-      });
-    }
+      const extra: { author: KeyPair; payload: EventPayload }[] = [];
+      for (let i = 0; i < 6; i++) {
+        extra.push({
+          author: founder,
+          payload: {
+            type: "transaction",
+            to: joiners[i % joiners.length]!.publicKeyHex,
+            amount: "10",
+          },
+        });
+      }
 
-    const state = reduceEvents(
-      ns,
-      await admitMembers(ns, founder, joiners, "80000", params, extra),
-    );
-    expect(state.epochNumber).toBeGreaterThanOrEqual(1);
-    expect(totalPoolPoints(state)).toBe(points("80000"));
-  });
+      const state = reduceEvents(
+        ns,
+        await admitMembers(ns, founder, joiners, "80000", params, extra),
+      );
+      expect(state.epochNumber).toBeGreaterThanOrEqual(1);
+      expect(totalPoolPoints(state)).toBe(points("80000"));
+    },
+  );
 });

@@ -19,12 +19,8 @@ import {
 
 import { useStore } from "./store.js";
 
-
-
 function poolSummary(pool: PoolState) {
-
   return {
-
     namespaceId: pool.namespaceId,
 
     cellName: pool.cellName,
@@ -50,9 +46,7 @@ function poolSummary(pool: PoolState) {
     totalPoints: formatPointsAmount(totalPoolPoints(pool)),
 
     balances: Object.fromEntries(
-
       Object.entries(pool.balances).map(([k, v]) => [k, formatPointsAmount(v)]),
-
     ),
 
     commons: formatPointsAmount(pool.commons),
@@ -68,7 +62,6 @@ function poolSummary(pool: PoolState) {
     proposalCount: Object.keys(pool.proposals).length,
 
     proposals: Object.values(pool.proposals).map((p) => ({
-
       id: p.id,
 
       kind: p.kind,
@@ -80,14 +73,9 @@ function poolSummary(pool: PoolState) {
       votesFor: formatPointsAmount(p.votesFor),
 
       votesAgainst: formatPointsAmount(p.votesAgainst),
-
     })),
-
   };
-
 }
-
-
 
 export function installTestBridge(): void {
   if (import.meta.env.PROD) {
@@ -95,37 +83,26 @@ export function installTestBridge(): void {
   }
 
   const bridge = {
-
     getPoolSummary() {
-
       const pool = useStore.getState().pool;
 
       return pool ? poolSummary(pool) : null;
-
     },
 
     getMyKey() {
-
       return useStore.getState().myKey;
-
     },
 
     getNamespaceId() {
-
       return useStore.getState().controller?.getNamespaceId() ?? null;
-
     },
 
     async transfer(to: string, amount: string) {
-
       await useStore.getState().transfer(to, amount);
-
     },
 
     async transferWithTimestamp(to: string, amount: string, timestamp: number) {
-
       await useStore.getState().controller?.transfer(to, amount, undefined, timestamp);
-
     },
 
     async advanceCirculation(to: string) {
@@ -164,65 +141,46 @@ export function installTestBridge(): void {
     },
 
     async updateSlider(param: string, value: number, target?: string) {
-
       await useStore
 
         .getState()
 
         .updateSlider(param as GovernanceParameter | "redistribution", value, target);
-
     },
 
     async createProposal(kind: string, target: string) {
-
       await useStore.getState().createProposal(kind as ProposalKind, { target });
-
     },
 
     async voteProposal(id: string, approve: boolean) {
-
       await useStore.getState().voteProposal(id, approve);
-
     },
 
     async spawnSubCell(name: string) {
-
       await useStore.getState().spawnSubCell(name);
-
     },
 
     async linkSubcell(childId: string, bridgeKey?: string) {
-
       await useStore.getState().linkSubcell(childId, bridgeKey);
-
     },
 
     async joinSuperstructure(parentId: string) {
-
       await useStore.getState().joinSuperstructure(parentId);
-
     },
 
     async invite(invitee: string) {
-
       await useStore.getState().invite(invitee);
-
     },
 
     async acceptPendingInvite() {
-
       await useStore.getState().acceptPendingInvite();
-
     },
 
     async updateVouch(target: string, weight: number) {
-
       await useStore.getState().updateVouch(target, weight);
-
     },
 
     requiredVouchLien() {
-
       const pool = useStore.getState().pool;
 
       const myKey = useStore.getState().myKey;
@@ -230,7 +188,6 @@ export function installTestBridge(): void {
       if (!pool || !myKey) return "500";
 
       return formatPointsAmount(requiredVouchLien(pool, myKey));
-
     },
 
     /** @deprecated use requiredVouchLien */
@@ -242,9 +199,7 @@ export function installTestBridge(): void {
     },
 
     async approveAdmission(invitee: string) {
-
       await useStore.getState().voteProposal(admissionProposalId(invitee), true);
-
     },
 
     async bridgeEscrow(remoteId: string, to: string, amount: string) {
@@ -267,13 +222,7 @@ export function installTestBridge(): void {
         }
       );
     },
-
   };
 
-
-
   (window as Window & { __aethelosTest?: typeof bridge }).__aethelosTest = bridge;
-
 }
-
-

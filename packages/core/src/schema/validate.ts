@@ -73,10 +73,7 @@ export function isValidPayload(p: unknown): p is EventPayload {
         isObject(p["parameters"])
       );
     case "transaction":
-      return (
-        isNonEmptyString(p["to"]) &&
-        isValidPointsAmountString(p["amount"])
-      );
+      return isNonEmptyString(p["to"]) && isValidPointsAmountString(p["amount"]);
     case "epoch_close":
       return typeof p["epochNumber"] === "number";
     case "slider_update":

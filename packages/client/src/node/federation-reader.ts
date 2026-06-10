@@ -25,11 +25,7 @@ export class FederationReader {
     this.listener?.({ ...this.pools });
   }
 
-  async sync(
-    pool: PoolState,
-    keyPair: KeyPair,
-    relayUrls: string[],
-  ): Promise<void> {
+  async sync(pool: PoolState, keyPair: KeyPair, relayUrls: string[]): Promise<void> {
     const linked = [...pool.parentSuperstructures, ...(pool.childCells ?? [])];
     const linkedSet = new Set(linked);
 

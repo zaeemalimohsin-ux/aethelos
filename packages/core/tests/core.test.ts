@@ -149,7 +149,14 @@ describe("reducer", () => {
     const tx1s = await signEvent(tx1, kp.privateKey);
     const tx2s = await signEvent(tx2, kp.privateKey);
 
-    state = reduceEvents("cell-1", [genesis, inviteSigned, voteSigned, acceptSigned, tx1s, tx2s]);
+    state = reduceEvents("cell-1", [
+      genesis,
+      inviteSigned,
+      voteSigned,
+      acceptSigned,
+      tx1s,
+      tx2s,
+    ]);
     expect(state.frozen).toContain(kp.publicKeyHex);
     expect(state.fractures).toContain(kp.publicKeyHex);
   });
@@ -228,7 +235,14 @@ describe("economy integer conservation", () => {
       },
       kp.privateKey,
     );
-    state = reduceEvents("cell-dec", [genesis, inviteSigned, voteSigned, acceptSigned, tx1, tx2]);
+    state = reduceEvents("cell-dec", [
+      genesis,
+      inviteSigned,
+      voteSigned,
+      acceptSigned,
+      tx1,
+      tx2,
+    ]);
     expect(totalPoolPoints(state)).toBe(points("100"));
     expect(state.balances[kp2.publicKeyHex]).toBe(points("0.75"));
   });

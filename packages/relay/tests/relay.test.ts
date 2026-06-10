@@ -9,7 +9,9 @@ import {
 } from "@aethelos/core";
 import { startRelayServer, type RelayServer } from "../src/server.js";
 
-async function signedGenesis(ns: string): Promise<{ event: SignedEvent; kp: Awaited<ReturnType<typeof generateKeyPair>> }> {
+async function signedGenesis(
+  ns: string,
+): Promise<{ event: SignedEvent; kp: Awaited<ReturnType<typeof generateKeyPair>> }> {
   const kp = await generateKeyPair();
   const event = await signEvent(
     {
@@ -40,7 +42,10 @@ function wsUrl(port: number): string {
   return `ws://127.0.0.1:${port}`;
 }
 
-async function httpGet(port: number, path: string): Promise<{ status: number; body: string }> {
+async function httpGet(
+  port: number,
+  path: string,
+): Promise<{ status: number; body: string }> {
   const res = await fetch(`http://127.0.0.1:${port}${path}`);
   return { status: res.status, body: await res.text() };
 }

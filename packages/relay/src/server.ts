@@ -41,11 +41,15 @@ interface BufferedEvent {
 
 export function createRelayServer(opts: RelayOptions = {}): RelayServer {
   const MAX_BUFFER = opts.maxBuffer ?? Number(process.env["MAX_BUFFER"] ?? 10000);
-  const BUFFER_TTL_MS = opts.bufferTtlMs ?? Number(process.env["BUFFER_TTL_MS"] ?? 24 * 60 * 60 * 1000);
-  const MAX_MSG_BYTES = opts.maxMsgBytes ?? Number(process.env["MAX_MSG_BYTES"] ?? 256 * 1024);
+  const BUFFER_TTL_MS =
+    opts.bufferTtlMs ?? Number(process.env["BUFFER_TTL_MS"] ?? 24 * 60 * 60 * 1000);
+  const MAX_MSG_BYTES =
+    opts.maxMsgBytes ?? Number(process.env["MAX_MSG_BYTES"] ?? 256 * 1024);
   const RATE_LIMIT = opts.rateLimit ?? Number(process.env["RATE_LIMIT"] ?? 100);
-  const RATE_WINDOW_MS = opts.rateWindowMs ?? Number(process.env["RATE_WINDOW_MS"] ?? 10_000);
-  const MAX_CONNECTIONS = opts.maxConnections ?? Number(process.env["MAX_CONNECTIONS"] ?? 5_000);
+  const RATE_WINDOW_MS =
+    opts.rateWindowMs ?? Number(process.env["RATE_WINDOW_MS"] ?? 10_000);
+  const MAX_CONNECTIONS =
+    opts.maxConnections ?? Number(process.env["MAX_CONNECTIONS"] ?? 5_000);
   const now = opts.now ?? (() => Date.now());
 
   const deliveryBuffer = new Map<string, BufferedEvent[]>();
@@ -97,7 +101,9 @@ export function createRelayServer(opts: RelayOptions = {}): RelayServer {
     msg: RelayMessage,
     exclude?: WebSocket,
   ): void {
-    const data = JSON.stringify(msg, (_k, v) => (typeof v === "bigint" ? v.toString() : v));
+    const data = JSON.stringify(msg, (_k, v) =>
+      typeof v === "bigint" ? v.toString() : v,
+    );
     for (const client of clients) {
       if (client !== exclude && client.readyState === WebSocket.OPEN) {
         client.send(data);
@@ -127,7 +133,7 @@ export function createRelayServer(opts: RelayOptions = {}): RelayServer {
           namespaces: deliveryBuffer.size,
         }),
       );
-    return;
+      return;
     }
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end(

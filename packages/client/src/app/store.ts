@@ -5,7 +5,13 @@ import type {
   ProposalKind,
   GovernanceParameter,
 } from "@aethelos/core";
-import { getBalance, requiredVouchLien, availableToPledge, parsePointsAmount, formatPointsAmount } from "@aethelos/core";
+import {
+  getBalance,
+  requiredVouchLien,
+  availableToPledge,
+  parsePointsAmount,
+  formatPointsAmount,
+} from "@aethelos/core";
 import { NodeController, generateNamespaceId } from "../node/controller.js";
 import type { LinkedPools } from "../node/federation-reader.js";
 import { resolvedGovernanceParameters } from "@aethelos/core";
@@ -28,7 +34,12 @@ import {
   isBootstrapPoolConfigured,
   type Session,
 } from "./session.js";
-import { parseInviteFromUrl, clearInviteFromUrl, verifyInviteSignature, type InvitePayload } from "./invite.js";
+import {
+  parseInviteFromUrl,
+  clearInviteFromUrl,
+  verifyInviteSignature,
+  type InvitePayload,
+} from "./invite.js";
 import { saveSubCellParentContext } from "./subcell-context.js";
 import {
   isDesktopApp,
@@ -227,7 +238,14 @@ export const useStore = create<AppStore>((set, get) => ({
   lock() {
     keyPair = null;
     get().controller?.stop();
-    set({ controller: null, pool: null, sync: null, relaySharing: false, tunnelStatus: "idle", phase: "locked" });
+    set({
+      controller: null,
+      pool: null,
+      sync: null,
+      relaySharing: false,
+      tunnelStatus: "idle",
+      phase: "locked",
+    });
   },
 
   async startCommunity(cellName, options) {
@@ -490,7 +508,10 @@ export const useStore = create<AppStore>((set, get) => ({
 
   async setRelaySharing(on) {
     if (!isDesktopApp()) {
-      get().toast("Install the desktop app to share a mailbox from your computer.", "info");
+      get().toast(
+        "Install the desktop app to share a mailbox from your computer.",
+        "info",
+      );
       return;
     }
     const controller = get().controller;
@@ -522,7 +543,10 @@ export const useStore = create<AppStore>((set, get) => ({
       if (tunnelStatus === "ready") {
         get().toast("Ready for friends abroad", "success");
       } else if (tunnelStatus === "failed") {
-        get().toast("Sharing locally only — install cloudflared for friends far away.", "info");
+        get().toast(
+          "Sharing locally only — install cloudflared for friends far away.",
+          "info",
+        );
       } else {
         get().toast("Sharing from this computer (local network only)", "info");
       }

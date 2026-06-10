@@ -37,8 +37,8 @@
   <body>
     <h1>Run an AethelOS relay</h1>
     <p>
-      A relay is a <strong>powerless mailbox</strong>. It holds no ledger, no keys, and
-      no authority — only a short-lived buffer so offline devices can catch up. Anyone can
+      A relay is a <strong>powerless mailbox</strong>. It holds no ledger, no keys, and no
+      authority — only a short-lived buffer so offline devices can catch up. Anyone can
       run one; communities can use several at once.
     </p>
 
@@ -50,23 +50,32 @@
 
     <h2>Quick start (Docker)</h2>
     <p>From the AethelOS repo on a VPS or home server:</p>
-    <pre>docker compose up -d --build
+    <pre>
+docker compose up -d --build
 # Relay listens on port 8787
-# Health check: http://YOUR_HOST:8787/healthz</pre>
+# Health check: http://YOUR_HOST:8787/healthz</pre
+    >
 
     <h2>Put TLS in front (required for HTTPS clients)</h2>
-    <p>Browsers on secure sites need <code>wss://</code>. Terminate TLS with Caddy or nginx:</p>
-    <pre># Caddy example — automatic HTTPS
+    <p>
+      Browsers on secure sites need <code>wss://</code>. Terminate TLS with Caddy or
+      nginx:
+    </p>
+    <pre>
+# Caddy example — automatic HTTPS
 relay.example.org {
   reverse_proxy localhost:8787
-}</pre>
+}</pre
+    >
     <p>Communities then use <code>wss://relay.example.org</code>.</p>
 
     <h2>Run from source</h2>
-    <pre>pnpm install
+    <pre>
+pnpm install
 pnpm --filter @aethelos/core build
 pnpm --filter @aethelos/relay build
-node packages/relay/dist/index.js</pre>
+node packages/relay/dist/index.js</pre
+    >
 
     <h2>Resilience</h2>
     <ul>

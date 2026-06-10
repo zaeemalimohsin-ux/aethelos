@@ -146,7 +146,10 @@ export function pickBootstrapRelaysFromPool(
   return indices.slice(0, count).map((idx) => pool[idx]!);
 }
 
-export function pickBootstrapRelays(namespaceId: string, count = DEFAULT_PICK_COUNT): string[] {
+export function pickBootstrapRelays(
+  namespaceId: string,
+  count = DEFAULT_PICK_COUNT,
+): string[] {
   return pickBootstrapRelaysFromPool(namespaceId, getBootstrapRelayPool(), count);
 }
 
@@ -165,7 +168,10 @@ export function relayHealthUrl(wsUrl: string): string | null {
 }
 
 /** Probe relay liveness via GET /healthz (optional genesis optimization). */
-export async function probeRelay(url: string, timeoutMs = PROBE_TIMEOUT_MS): Promise<boolean> {
+export async function probeRelay(
+  url: string,
+  timeoutMs = PROBE_TIMEOUT_MS,
+): Promise<boolean> {
   const healthUrl = relayHealthUrl(url);
   if (!healthUrl || typeof fetch === "undefined") return false;
   const controller = new AbortController();

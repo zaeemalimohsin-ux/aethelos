@@ -52,9 +52,7 @@ export function Slider({
         onTouchEnd={() => onCommit(draft)}
         onKeyUp={() => onCommit(draft)}
       />
-      <span className="value">
-        {step < 1 ? draft.toFixed(1) : draft}
-      </span>
+      <span className="value">{step < 1 ? draft.toFixed(1) : draft}</span>
     </div>
   );
 }

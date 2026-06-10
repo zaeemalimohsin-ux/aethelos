@@ -39,7 +39,13 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function BackButton({ onClick, label = "Back" }: { onClick: () => void; label?: string }) {
+function BackButton({
+  onClick,
+  label = "Back",
+}: {
+  onClick: () => void;
+  label?: string;
+}) {
   return (
     <Button variant="ghost" block style={{ marginTop: "var(--sp-2)" }} onClick={onClick}>
       {label}
@@ -319,13 +325,7 @@ function RestoreIdentity({ onDone, onBack }: { onDone: () => void; onBack: () =>
   );
 }
 
-function ChooseAction({
-  onStart,
-  onJoin,
-}: {
-  onStart: () => void;
-  onJoin: () => void;
-}) {
+function ChooseAction({ onStart, onJoin }: { onStart: () => void; onJoin: () => void }) {
   return (
     <Card title="What would you like to do?">
       <div className="stack">
@@ -382,7 +382,12 @@ function PasteInviteLink({
         className="mono"
       />
       {error ? <p className="error-text">{error}</p> : null}
-      <Button block disabled={!raw.trim()} style={{ marginTop: "var(--sp-3)" }} onClick={tryParse}>
+      <Button
+        block
+        disabled={!raw.trim()}
+        style={{ marginTop: "var(--sp-3)" }}
+        onClick={tryParse}
+      >
         Continue
       </Button>
       <BackButton onClick={onBack} />
@@ -453,8 +458,9 @@ function JoinCommunity({
   return (
     <Card title="You've been invited">
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-        You'll connect to <strong>{invite.cell || "this community"}</strong>. After joining,
-        copy your join code from the Community tab and send it to whoever invited you.
+        You'll connect to <strong>{invite.cell || "this community"}</strong>. After
+        joining, copy your join code from the Community tab and send it to whoever invited
+        you.
       </p>
       <ul className="list">
         <li>
@@ -489,7 +495,12 @@ function JoinCommunity({
             Join this community
           </Button>
           <BackButton onClick={onBack} label="Back to choices" />
-          <Button variant="ghost" block style={{ marginTop: "var(--sp-1)" }} onClick={onChangeLink}>
+          <Button
+            variant="ghost"
+            block
+            style={{ marginTop: "var(--sp-1)" }}
+            onClick={onChangeLink}
+          >
             Use a different invite link
           </Button>
         </>

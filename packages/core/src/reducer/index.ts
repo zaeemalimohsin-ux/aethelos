@@ -28,7 +28,10 @@ import {
   releaseVouchLien,
   transferPoints,
 } from "../economy/index.js";
-import { allocateCommonsToChildCells, canInitiateSuperstructureProposal } from "../governance/index.js";
+import {
+  allocateCommonsToChildCells,
+  canInitiateSuperstructureProposal,
+} from "../governance/index.js";
 import { parsePointsAmount, tryParsePointsAmount } from "../money/points.js";
 import { topologicalSort, verifyEventSync } from "../dag/index.js";
 
@@ -285,7 +288,8 @@ function parseParentParameters(
     const parsed = JSON.parse(raw) as Partial<Record<GovernanceParameter, number>>;
     return {
       decay_rate: parsed.decay_rate ?? DEFAULT_PARAMETERS.decay_rate,
-      approval_threshold: parsed.approval_threshold ?? DEFAULT_PARAMETERS.approval_threshold,
+      approval_threshold:
+        parsed.approval_threshold ?? DEFAULT_PARAMETERS.approval_threshold,
       vouch_threshold: parsed.vouch_threshold ?? DEFAULT_PARAMETERS.vouch_threshold,
       epoch_interval: parsed.epoch_interval ?? DEFAULT_PARAMETERS.epoch_interval,
       vouch_bond_rate: parsed.vouch_bond_rate ?? DEFAULT_PARAMETERS.vouch_bond_rate,
@@ -347,7 +351,10 @@ function validateBridgeProposal(
   }
 }
 
-function markBridgeProposalCompleted(state: PoolState, localProposalId: string): PoolState {
+function markBridgeProposalCompleted(
+  state: PoolState,
+  localProposalId: string,
+): PoolState {
   const proposal = state.proposals[localProposalId];
   if (!proposal) return state;
   return {
@@ -815,7 +822,15 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
           newBalances[payload.to] = getBalance(state, payload.to) + amount;
           return { ok: true, state: { ...state, balances: newBalances } };
         }
-        if (!validateBridgeProposal(state, remoteId, payload.localProposalId, payload.to, amount)) {
+        if (
+          !validateBridgeProposal(
+            state,
+            remoteId,
+            payload.localProposalId,
+            payload.to,
+            amount,
+          )
+        ) {
           return { ok: false, reason: "bridge_not_approved", state };
         }
         const { state: newState, fracture } = transferPoints(
@@ -835,7 +850,15 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
 
       // Outbound upward: release severed value held for a parent Superstructure.
       if (state.parentSuperstructures.includes(remoteId)) {
-        if (!validateBridgeProposal(state, remoteId, payload.localProposalId, payload.to, amount)) {
+        if (
+          !validateBridgeProposal(
+            state,
+            remoteId,
+            payload.localProposalId,
+            payload.to,
+            amount,
+          )
+        ) {
           return { ok: false, reason: "bridge_not_approved", state };
         }
         const escrow = state.superstructureEscrow[remoteId] ?? 0n;
@@ -859,7 +882,15 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
 
       // Outbound downward: release population-weighted allocation to a linked child Cell.
       if ((state.childCells ?? []).includes(remoteId)) {
-        if (!validateBridgeProposal(state, remoteId, payload.localProposalId, payload.to, amount)) {
+        if (
+          !validateBridgeProposal(
+            state,
+            remoteId,
+            payload.localProposalId,
+            payload.to,
+            amount,
+          )
+        ) {
           return { ok: false, reason: "bridge_not_approved", state };
         }
         const escrow = state.childCellEscrow?.[remoteId] ?? 0n;

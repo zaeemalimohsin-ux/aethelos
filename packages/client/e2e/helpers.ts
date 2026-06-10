@@ -181,7 +181,10 @@ export async function joinViaInviteLink(
   });
 }
 
-export async function sendOnChainInvite(page: Page, inviteePubkey: string): Promise<void> {
+export async function sendOnChainInvite(
+  page: Page,
+  inviteePubkey: string,
+): Promise<void> {
   await page.getByRole("button", { name: "Community" }).click();
   const panel = page.locator("details").filter({
     has: page.getByText("They opened your link — vouch for them"),
@@ -211,9 +214,9 @@ export async function admitJoiner(
   await waitForPool(founderPage, (p) => p.pendingInviteCount >= 1, 30_000);
   await bridgeApproveAdmission(founderPage, joinerPubkey);
   await joinerPage.getByRole("button", { name: "Community" }).click();
-  await expect(
-    joinerPage.getByText("The community approved your admission"),
-  ).toBeVisible({ timeout: 60_000 });
+  await expect(joinerPage.getByText("The community approved your admission")).toBeVisible(
+    { timeout: 60_000 },
+  );
   await joinerPage.getByRole("button", { name: "Accept invite" }).click();
   await waitForConvergence(
     founderPage,
@@ -228,9 +231,12 @@ export async function bridgeTransfer(
   to: string,
   amount: string,
 ): Promise<void> {
-  await page.evaluate(async ({ to, amount }) => {
-    await window.__aethelosTest?.transfer(to, amount);
-  }, { to, amount });
+  await page.evaluate(
+    async ({ to, amount }) => {
+      await window.__aethelosTest?.transfer(to, amount);
+    },
+    { to, amount },
+  );
 }
 
 export async function bridgeUpdateSlider(
@@ -238,19 +244,25 @@ export async function bridgeUpdateSlider(
   param: string,
   value: number,
 ): Promise<void> {
-  await page.evaluate(async ({ param, value }) => {
-    await window.__aethelosTest?.updateSlider(param, value);
-  }, { param, value });
+  await page.evaluate(
+    async ({ param, value }) => {
+      await window.__aethelosTest?.updateSlider(param, value);
+    },
+    { param, value },
+  );
 }
 
 /** Publish stepped transfers until a redistribution cycle closes (E2E only). */
 export async function bridgeAdvanceCirculation(page: Page, to: string): Promise<void> {
-  await page.evaluate(async ({ to }) => {
-    if (!window.__aethelosTest?.advanceCirculation) {
-      throw new Error("advanceCirculation missing from test bridge");
-    }
-    await window.__aethelosTest.advanceCirculation(to);
-  }, { to });
+  await page.evaluate(
+    async ({ to }) => {
+      if (!window.__aethelosTest?.advanceCirculation) {
+        throw new Error("advanceCirculation missing from test bridge");
+      }
+      await window.__aethelosTest.advanceCirculation(to);
+    },
+    { to },
+  );
 }
 
 export async function bridgeCreateProposal(
@@ -258,9 +270,12 @@ export async function bridgeCreateProposal(
   kind: string,
   target: string,
 ): Promise<void> {
-  await page.evaluate(async ({ kind, target }) => {
-    await window.__aethelosTest?.createProposal(kind, target);
-  }, { kind, target });
+  await page.evaluate(
+    async ({ kind, target }) => {
+      await window.__aethelosTest?.createProposal(kind, target);
+    },
+    { kind, target },
+  );
 }
 
 export async function bridgeVoteProposal(
@@ -268,15 +283,25 @@ export async function bridgeVoteProposal(
   id: string,
   approve: boolean,
 ): Promise<void> {
-  await page.evaluate(async ({ id, approve }) => {
-    await window.__aethelosTest?.voteProposal(id, approve);
-  }, { id, approve });
+  await page.evaluate(
+    async ({ id, approve }) => {
+      await window.__aethelosTest?.voteProposal(id, approve);
+    },
+    { id, approve },
+  );
 }
 
-export async function bridgeVouch(page: Page, target: string, weight: number): Promise<void> {
-  await page.evaluate(async ({ target, weight }) => {
-    await window.__aethelosTest?.updateVouch(target, weight);
-  }, { target, weight });
+export async function bridgeVouch(
+  page: Page,
+  target: string,
+  weight: number,
+): Promise<void> {
+  await page.evaluate(
+    async ({ target, weight }) => {
+      await window.__aethelosTest?.updateVouch(target, weight);
+    },
+    { target, weight },
+  );
 }
 
 /** Star topology: one founder vouches for N joiners via the real invite UX + bridge accept. */
@@ -305,7 +330,11 @@ export async function bootstrapStarCommunity(
     keys.push(key);
     joiners.push(page);
     await admitJoiner(founder, page, key, expectedCount - joinerLabels.length + i + 1);
-    await waitForMemberCount(founder, expectedCount - joinerLabels.length + i + 1, 90_000);
+    await waitForMemberCount(
+      founder,
+      expectedCount - joinerLabels.length + i + 1,
+      90_000,
+    );
   }
 
   return { founder, joiners, keys, contexts };

@@ -155,10 +155,18 @@ async function main() {
   console.log("  4. Founder: paste join code → vouch → other window: Accept invite");
   console.log("");
   console.log("Chaos / resilience charters (manual):");
-  console.log("  • Relay swap: stop relay, run `pnpm dev:relay`, reload windows — nodes catch up from local log");
-  console.log("  • Partition: keep one window offline, transact in another, then refresh offline window");
-  console.log("  • Byzantine relay: invalid events are ignored by nodes (see relay + sync tests)");
-  console.log("  • Head capture: bridge still requires stake-weighted bridge_transfer proposal");
+  console.log(
+    "  • Relay swap: stop relay, run `pnpm dev:relay`, reload windows — nodes catch up from local log",
+  );
+  console.log(
+    "  • Partition: keep one window offline, transact in another, then refresh offline window",
+  );
+  console.log(
+    "  • Byzantine relay: invalid events are ignored by nodes (see relay + sync tests)",
+  );
+  console.log(
+    "  • Head capture: bridge still requires stake-weighted bridge_transfer proposal",
+  );
   console.log("");
   console.log("See docs/TESTING_RELEASE.md for full charter descriptions.");
   console.log("");

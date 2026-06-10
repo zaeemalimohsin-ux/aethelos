@@ -149,7 +149,10 @@ describe("federation governance gaps", () => {
       ...createInitialState("cell"),
       initialized: true,
       members: [bridge.publicKeyHex, recipient.publicKeyHex],
-      balances: { [bridge.publicKeyHex]: points("300"), [recipient.publicKeyHex]: points("100") },
+      balances: {
+        [bridge.publicKeyHex]: points("300"),
+        [recipient.publicKeyHex]: points("100"),
+      },
       bridges: [bridge.publicKeyHex],
       totalSupply: points("400"),
       proposals: {
@@ -300,7 +303,15 @@ describe("federation governance gaps", () => {
       },
       joiner.privateKey,
     );
-    state = reduceEvents(ns, [g, joinCreate, joinVote, invite, admitCreate, admitVote, accept]);
+    state = reduceEvents(ns, [
+      g,
+      joinCreate,
+      joinVote,
+      invite,
+      admitCreate,
+      admitVote,
+      accept,
+    ]);
 
     const transfer = await signEvent(
       {
@@ -313,7 +324,16 @@ describe("federation governance gaps", () => {
       },
       founder.privateKey,
     );
-    state = reduceEvents(ns, [g, joinCreate, joinVote, invite, admitCreate, admitVote, accept, transfer]);
+    state = reduceEvents(ns, [
+      g,
+      joinCreate,
+      joinVote,
+      invite,
+      admitCreate,
+      admitVote,
+      accept,
+      transfer,
+    ]);
 
     const beforeTotal = totalPoolPoints(state);
     const expelCreate = await signEvent(

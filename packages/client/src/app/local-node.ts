@@ -47,7 +47,9 @@ export async function localNodeStatus(): Promise<LocalNodeStatus | null> {
 }
 
 /** Poll until a public tunnel URL appears or timeout (desktop genesis / sharing). */
-export async function waitForPublicTunnel(maxMs = 15000): Promise<LocalNodeStatus | null> {
+export async function waitForPublicTunnel(
+  maxMs = 15000,
+): Promise<LocalNodeStatus | null> {
   if (!isDesktopApp()) return null;
   const deadline = Date.now() + maxMs;
   while (Date.now() < deadline) {
