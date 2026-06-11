@@ -86,6 +86,12 @@ jobs:
       - name: Check desktop local-node prerequisites
         run: pnpm --filter @aethelos/client-tauri check:local-node
 
+      - name: Bundle relay sidecar
+        run: node scripts/bundle-relay-sidecar.mjs
+
+      - name: Fetch Node sidecar placeholder
+        run: node scripts/fetch-node-sidecar.mjs
+
       - name: Cargo check (desktop shell)
         working-directory: packages/client-tauri/src-tauri
         run: cargo check
