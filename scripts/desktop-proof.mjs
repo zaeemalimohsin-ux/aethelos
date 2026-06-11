@@ -64,11 +64,9 @@ if (e2e.status !== 0) {
 freeRelayPort();
 await new Promise((r) => setTimeout(r, 3000));
 
-run(
-  "tauri local_node",
-  "cargo",
-  ["test", "local_node::tests", "--", "--nocapture"],
-  { cwd: join(root, "packages", "client-tauri", "src-tauri"), shell: false },
-);
+run("tauri local_node", "cargo", ["test", "local_node::tests", "--", "--nocapture"], {
+  cwd: join(root, "packages", "client-tauri", "src-tauri"),
+  shell: false,
+});
 
 console.log("\ndesktop-proof: OK (tunnel invite + two-person sync + Tauri local_node)");

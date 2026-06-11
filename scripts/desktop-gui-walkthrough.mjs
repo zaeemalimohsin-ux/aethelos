@@ -113,7 +113,9 @@ async function resetApp(page) {
     : "http://localhost:5173/";
 
   await page.waitForLoadState("domcontentloaded").catch(() => {});
-  await page.goto(target, { waitUntil: "domcontentloaded", timeout: 60_000 }).catch(() => {});
+  await page
+    .goto(target, { waitUntil: "domcontentloaded", timeout: 60_000 })
+    .catch(() => {});
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -254,21 +256,27 @@ async function main() {
 
     // QUICKSTART criterion: the link's mailboxes are public tunnels, not 127.0.0.1.
     const encoded = inviteLink.split("#/join?d=")[1];
-    if (!encoded) throw new Error(`Invite link missing payload: ${inviteLink.slice(0, 120)}`);
+    if (!encoded)
+      throw new Error(`Invite link missing payload: ${inviteLink.slice(0, 120)}`);
     const pad = encoded.length % 4 === 0 ? "" : "=".repeat(4 - (encoded.length % 4));
     const payload = JSON.parse(
-      Buffer.from(encoded.replace(/-/g, "+").replace(/_/g, "/") + pad, "base64").toString("utf8"),
+      Buffer.from(encoded.replace(/-/g, "+").replace(/_/g, "/") + pad, "base64").toString(
+        "utf8",
+      ),
     );
     const relays = payload.relays ?? [];
     if (relays.some((r) => /localhost|127\.0\.0\.1/.test(r))) {
       throw new Error(`Invite relays contain localhost: ${relays.join(", ")}`);
     }
     if (!relays.some((r) => r.includes(".trycloudflare.com"))) {
-      throw new Error(`Invite relays missing trycloudflare: ${relays.join(", ") || "(empty)"}`);
+      throw new Error(
+        `Invite relays missing trycloudflare: ${relays.join(", ") || "(empty)"}`,
+      );
     }
     console.log(`PASS: Invite relays are public tunnels: ${relays.join(", ")}`);
 
-    const tunnelHost = new URL(relays.find((r) => r.includes(".trycloudflare.com"))).hostname;
+    const tunnelHost = new URL(relays.find((r) => r.includes(".trycloudflare.com")))
+      .hostname;
     const tunnelIp = await resolveTunnelHost(tunnelHost);
     console.log(`PASS: Tunnel DNS resolves publicly: ${tunnelHost} -> ${tunnelIp}`);
 
@@ -288,7 +296,9 @@ async function main() {
     await joinPage.getByRole("button", { name: "Create identity" }).click();
     await createIdentity(joinPage, "Friend", true);
     await joinPage.getByRole("button", { name: "Join this community" }).click();
-    await joinPage.getByRole("button", { name: "Community" }).waitFor({ timeout: 60_000 });
+    await joinPage
+      .getByRole("button", { name: "Community" })
+      .waitFor({ timeout: 60_000 });
     const syncLogger = setInterval(() => {
       void joinPage
         .evaluate(() => JSON.stringify(window.__aethelosTest?.getSyncStatus?.() ?? null))
@@ -296,7 +306,12 @@ async function main() {
         .catch(() => {});
     }, 10_000);
     try {
-      await waitForPool(joinPage, (p) => p.memberCount >= 1, 120_000, "joiner tunnel sync");
+      await waitForPool(
+        joinPage,
+        (p) => p.memberCount >= 1,
+        120_000,
+        "joiner tunnel sync",
+      );
     } finally {
       clearInterval(syncLogger);
     }
@@ -311,16 +326,29 @@ async function main() {
     await panel.getByLabel("Join code").fill(joinerKey);
     await panel.getByRole("button", { name: "Vouch and send invite" }).click();
     await waitForPool(page, (p) => p.pendingInviteCount >= 1, 60_000, "founder invite");
-    await page.evaluate((invitee) => window.__aethelosTest?.approveAdmission(invitee), joinerKey);
+    await page.evaluate(
+      (invitee) => window.__aethelosTest?.approveAdmission(invitee),
+      joinerKey,
+    );
     await joinPage.getByRole("button", { name: "Community" }).click();
-    await waitForPool(joinPage, (p) => p.pendingInviteCount >= 1, 120_000, "joiner invite sync");
+    await waitForPool(
+      joinPage,
+      (p) => p.pendingInviteCount >= 1,
+      120_000,
+      "joiner invite sync",
+    );
     await joinPage
       .getByText("The community approved your admission")
       .waitFor({ timeout: 120_000 });
     await joinPage.getByRole("button", { name: "Accept invite" }).click();
 
     await waitForPool(page, (p) => p.memberCount === 2, 120_000, "founder member count");
-    await waitForPool(joinPage, (p) => p.memberCount === 2, 120_000, "joiner member count");
+    await waitForPool(
+      joinPage,
+      (p) => p.memberCount === 2,
+      120_000,
+      "joiner member count",
+    );
     console.log("PASS: Founder and friend both show 2 members");
 
     console.log("\ndesktop-gui-walkthrough: OK");
