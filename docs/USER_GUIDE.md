@@ -29,10 +29,10 @@ You can re-check whether you've confirmed a backup under **Identity**.
 
 ## 3. Start or join a community
 
+See [GET_STARTED.md](./GET_STARTED.md) for install paths. Summary:
+
 - **Start a community (browser):** give it a name. If nobody in your group is
-  sharing a mailbox yet, you may need a relay address from your operator — or use
-  the desktop app to share one (see [QUICKSTART_REMOTE.md](./QUICKSTART_REMOTE.md)
-  for founders inviting friends abroad).
+  sharing a mailbox yet, use the desktop app or Docker stack (see GET_STARTED).
 - **Start a community (desktop):** same as above, plus you can turn on **Sharing
   from this computer** under **Connection** so remote friends can reach your
   mailbox.

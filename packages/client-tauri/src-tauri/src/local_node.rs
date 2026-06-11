@@ -1,4 +1,5 @@
 use std::io::{BufRead, BufReader};
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use std::thread;
@@ -27,13 +28,43 @@ struct LocalNodeState {
 
 static NODE: Mutex<Option<LocalNodeState>> = Mutex::new(None);
 
-fn relay_script_path() -> Option<std::path::PathBuf> {
-    let manifest = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+fn relay_script_path_dev() -> Option<PathBuf> {
+    let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let script = manifest.join("../../relay/dist/index.js");
     if script.exists() {
         Some(script)
     } else {
         None
+    }
+}
+
+fn resolve_relay_launch(app: Option<&tauri::AppHandle>) -> Result<(PathBuf, PathBuf), String> {
+    #[cfg(debug_assertions)]
+    {
+        let script = relay_script_path_dev()
+            .ok_or("relay script not found — run Start-AethelOS.bat or: pnpm --filter @aethelos/relay build")?;
+        return Ok((PathBuf::from("node"), script));
+    }
+
+    #[cfg(not(debug_assertions))]
+    {
+        use tauri::Manager;
+        let app = app.ok_or("internal: missing app handle")?;
+        let script = app
+            .path()
+            .resolve("relay/server.cjs", tauri::path::BaseDirectory::Resource)
+            .map_err(|e| format!("relay bundle missing: {e}"))?;
+        let node = app
+            .path()
+            .resolve("node/win-x64/node.exe", tauri::path::BaseDirectory::Resource)
+            .map_err(|e| format!("node runtime missing: {e}"))?;
+        if !script.exists() {
+            return Err(format!("relay bundle not found at {}", script.display()));
+        }
+        if !node.exists() {
+            return Err(format!("node runtime not found at {}", node.display()));
+        }
+        Ok((node, script))
     }
 }
 
@@ -106,7 +137,17 @@ fn build_status(state: &LocalNodeState) -> LocalNodeStatus {
     }
 }
 
-pub fn start_local_node() -> Result<LocalNodeStatus, String> {
+fn spawn_relay(node: &Path, script: &Path) -> Result<Child, String> {
+    Command::new(node)
+        .arg(script)
+        .env("PORT", LOCAL_PORT.to_string())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("failed to spawn relay: {e}"))
+}
+
+pub fn start_local_node(app: Option<&tauri::AppHandle>) -> Result<LocalNodeStatus, String> {
     let mut guard = NODE.lock().map_err(|e| e.to_string())?;
     if let Some(ref state) = *guard {
         if state.relay_child.is_some() {
@@ -114,16 +155,9 @@ pub fn start_local_node() -> Result<LocalNodeStatus, String> {
         }
     }
 
-    let script = relay_script_path()
-        .ok_or("relay script not found — run: pnpm --filter @aethelos/relay build")?;
+    let (node, script) = resolve_relay_launch(app)?;
 
-    let relay_child = Command::new("node")
-        .arg(script)
-        .env("PORT", LOCAL_PORT.to_string())
-        .stdout(Stdio::null())
-        .stderr(Stdio::piped())
-        .spawn()
-        .map_err(|e| format!("failed to spawn relay: {e}"))?;
+    let relay_child = spawn_relay(&node, &script)?;
 
     wait_for_relay_health();
 
@@ -212,7 +246,7 @@ mod tests {
     #[test]
     fn start_local_node_exposes_public_tunnel() {
         let _ = stop_local_node();
-        let status = start_local_node().expect("start_local_node");
+        let status = start_local_node(None).expect("start_local_node");
         assert!(status.running, "relay should be running");
         assert!(
             status.cloudflared_available,

@@ -17,9 +17,17 @@ The PWA already runs on any browser, including mobile. The desktop shell adds:
 
 It introduces no new gatekeeper — it is distributed directly, not via an app store.
 
+## Quick install (Windows)
+
+1. **Run from source:** double-click [`Start-AethelOS.bat`](../../Start-AethelOS.bat) at repo root.
+2. **Build installer to share:** double-click [`Build-Release.bat`](../../Build-Release.bat) → `dist/releases/*.exe`.
+3. **GitHub Release:** download the Windows installer from Releases (tag `v0.1.1+`).
+
+Release builds bundle relay + Node — recipients do not install Node separately.
+
 ## Peer mailbox prerequisites
 
-Before `desktop:dev` or `desktop:build`, prepare the relay sidecar:
+Before `desktop:dev`, prepare the relay sidecar (or use `Start-AethelOS.bat` which builds it):
 
 ```bash
 pnpm install
@@ -71,11 +79,11 @@ pnpm --filter @aethelos/client-tauri check:local-node
 ## Build a signed binary
 
 ```bash
-pnpm --filter @aethelos/relay build
-pnpm --filter @aethelos/client-tauri desktop:build
+pnpm release:desktop
+# or Build-Release.bat on Windows
 ```
 
-Artifacts land in `src-tauri/target/release/bundle/`.
+Artifacts land in `dist/releases/` (and `src-tauri/target/release/bundle/`).
 
 ## Signing & auto-update
 

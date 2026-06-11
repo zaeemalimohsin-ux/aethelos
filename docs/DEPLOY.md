@@ -4,6 +4,14 @@ This guide covers a minimal two-person genesis on real infrastructure. AethelOS 
 local-first: the relay is a dumb bulletin board; your community state lives on
 participants' devices.
 
+## Try without deploying
+
+On Windows, double-click [`Start-AethelOS.bat`](../Start-AethelOS.bat) — it starts relay +
+browser app (Docker if available, otherwise dev mode). See [GET_STARTED.md](./GET_STARTED.md).
+
+For LAN sharing, run `powershell -File scripts/start-aethelos.ps1 -Lan` to bake your
+machine's IP into `.env.docker`, then rebuild: `docker compose --env-file .env.docker up --build -d`.
+
 ## Overview
 
 ```
@@ -25,8 +33,12 @@ participants' devices.
 From the repo root:
 
 ```bash
-docker compose up -d --build
+docker compose --env-file .env.docker up -d --build
 ```
+
+This starts **relay** (port 8787) and **client** PWA (port 8080). Copy
+[`docker-compose.env.example`](../docker-compose.env.example) to `.env.docker` or let
+`Start-AethelOS.bat` generate it.
 
 Default listen: `ws://localhost:8787` with `/healthz` and `/metrics`.
 

@@ -87,6 +87,7 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
         <Welcome
           onCreate={() => setStep("create")}
           onRestore={() => setStep("restore")}
+          onJoinLink={() => setStep("joinPaste")}
         />
       )}
       {step === "create" && (
@@ -132,10 +133,15 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
 function Welcome({
   onCreate,
   onRestore,
+  onJoinLink,
 }: {
   onCreate: () => void;
   onRestore: () => void;
+  onJoinLink: () => void;
 }) {
+  const downloadUrl = import.meta.env.VITE_DOWNLOAD_URL?.trim();
+  const showDownload = downloadUrl && !isDesktopApp();
+
   return (
     <Card>
       <p className="muted" style={{ marginBottom: "var(--sp-4)" }}>
@@ -149,6 +155,20 @@ function Welcome({
         <Button block variant="ghost" onClick={onRestore}>
           Restore from recovery phrase
         </Button>
+        <Button block variant="ghost" onClick={onJoinLink}>
+          I have an invite link
+        </Button>
+        {showDownload ? (
+          <a
+            className="btn block ghost"
+            href={downloadUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textAlign: "center", textDecoration: "none" }}
+          >
+            Download desktop app (Windows)
+          </a>
+        ) : null}
       </div>
     </Card>
   );

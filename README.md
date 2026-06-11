@@ -10,9 +10,19 @@ Built on the principles in [Higher-Level-Philosophy.md](./Higher-Level-Philosoph
 
 **Repository:** https://github.com/zaeemalimohsin-ux/aethelos (private — request access or clone if you have permission)
 
+## Try now (no README required)
+
+| Goal | Action |
+|------|--------|
+| **Run it on your PC** | Double-click [`Start-AethelOS.bat`](./Start-AethelOS.bat) |
+| **Build a Windows installer to send someone** | Double-click [`Build-Release.bat`](./Build-Release.bat) → `dist/releases/` |
+| **Join a friend** | Open their invite link in a browser |
+| **Full plain-English guide** | [docs/GET_STARTED.md](docs/GET_STARTED.md) |
+
 ```bash
 git clone https://github.com/zaeemalimohsin-ux/aethelos.git
 cd aethelos
+# then Start-AethelOS.bat or pnpm start
 ```
 
 ## Highlights
@@ -85,8 +95,7 @@ cache, set `PLAYWRIGHT_BROWSERS_PATH` to `%LOCALAPPDATA%\ms-playwright` before `
 ## Deploy
 
 - **Full walkthrough:** [docs/DEPLOY.md](docs/DEPLOY.md) — relay, static client, env vars, genesis check.
-- **Relay:** `docker compose up -d --build` — see
-  [docs/RELAY_OPERATORS.md](docs/RELAY_OPERATORS.md) (TLS, federation, monitoring).
+- **Relay + client (Docker):** `docker compose --env-file .env.docker up --build -d` — browser at `http://localhost:8080`, relay at `ws://localhost:8787`. Or use [`Start-AethelOS.bat`](./Start-AethelOS.bat).
 - **Client:** set `VITE_DEFAULT_RELAY_URL` (see `packages/client/.env.example`), then
   `pnpm --filter @aethelos/client build` and host `packages/client/dist` on any static
   host. Security headers ship in
@@ -94,6 +103,7 @@ cache, set `PLAYWRIGHT_BROWSERS_PATH` to `%LOCALAPPDATA%\ms-playwright` before `
 
 ## Documentation
 
+- **[Get started](docs/GET_STARTED.md)** — download, run, share (non-developers start here).
 - [User Guide](docs/USER_GUIDE.md) — for community members.
 - [Quick start — remote friends](docs/QUICKSTART_REMOTE.md) — founder abroad + joiner (desktop tunnel).
 - [Genesis Bootstrap](docs/GENESIS.md) — starting the very first community.

@@ -1,13 +1,16 @@
 {
   "name": "@aethelos/client-tauri",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Signed desktop shell wrapping the AethelOS PWA via Tauri (same core, on-device files)",
   "scripts": {
-    "build": "node -e \"console.log('Desktop build is opt-in: pnpm desktop:build (requires Rust + Tauri CLI)')\"",
+    "build": "node -e \"console.log('Desktop build is opt-in: pnpm release:desktop or Build-Release.bat')\"",
     "check:local-node": "node scripts/check-local-node.mjs",
+    "bundle:sidecar": "node ../../scripts/bundle-relay-sidecar.mjs",
+    "fetch:node-sidecar": "node ../../scripts/fetch-node-sidecar.mjs",
     "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build"
+    "desktop:build": "tauri build",
+    "desktop:build:release": "node ../../scripts/bundle-relay-sidecar.mjs && node ../../scripts/fetch-node-sidecar.mjs && tauri build"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.1.0"

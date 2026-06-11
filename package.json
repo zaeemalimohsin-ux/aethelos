@@ -2,7 +2,7 @@
   "name": "aethelos",
   "private": true,
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "AethelOS — substrate of daily community life without external authority",
   "scripts": {
     "build": "pnpm -r build",
@@ -19,6 +19,10 @@
     "playground": "pnpm --filter @aethelos/client playground",
     "desktop:proof": "node scripts/desktop-proof.mjs",
     "desktop:gui-walkthrough": "node scripts/desktop-gui-walkthrough.mjs",
+    "start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-aethelos.ps1",
+    "bundle:relay-sidecar": "node scripts/bundle-relay-sidecar.mjs",
+    "fetch:node-sidecar": "node scripts/fetch-node-sidecar.mjs",
+    "release:desktop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1",
     "typecheck": "pnpm -r typecheck"
   },
   "engines": {
@@ -26,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "esbuild": "^0.25.0",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.4.2",

@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bundle relay sidecar
+        run: node scripts/bundle-relay-sidecar.mjs
+
+      - name: Fetch Node sidecar
+        run: node scripts/fetch-node-sidecar.mjs
+
+      - name: Generate Tauri icons
+        run: pnpm --filter @aethelos/client-tauri exec tauri icon ../client/public/favicon.svg
+
+      - name: Build Windows desktop installer
+        run: pnpm --filter @aethelos/client-tauri desktop:build:release
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            packages/client-tauri/src-tauri/target/release/bundle/**/*.exe
+            packages/client-tauri/src-tauri/target/release/bundle/**/*.msi
+
+  publish:
+    needs: build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download installer
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/releases
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/releases/**/*
+          generate_release_notes: true

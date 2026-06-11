@@ -7,8 +7,8 @@ use local_node::LocalNodeStatus;
 
 // Tauri command names must match the frontend `invoke("start_local_node")` etc.
 #[tauri::command]
-fn start_local_node() -> Result<LocalNodeStatus, String> {
-    local_node::start_local_node()
+fn start_local_node(app: tauri::AppHandle) -> Result<LocalNodeStatus, String> {
+    local_node::start_local_node(Some(&app))
 }
 
 #[tauri::command]

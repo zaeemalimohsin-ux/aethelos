@@ -24,3 +24,19 @@ services:
       interval: 30s
       timeout: 3s
       retries: 3
+
+  client:
+    build:
+      context: .
+      dockerfile: packages/client/Dockerfile
+      args:
+        VITE_DEFAULT_RELAY_URL: ${VITE_DEFAULT_RELAY_URL:-ws://localhost:8787}
+        VITE_BOOTSTRAP_RELAYS: ${VITE_BOOTSTRAP_RELAYS:-}
+        VITE_INVITE_BASE_URL: ${VITE_INVITE_BASE_URL:-http://localhost:8080}
+    image: aethelos/client:latest
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      relay:
+        condition: service_healthy

@@ -280,8 +280,8 @@ export const useStore = create<AppStore>((set, get) => ({
     if (relays.length === 0) {
       get().toast(
         isDesktopApp()
-          ? "Could not start a mailbox. Build the relay (pnpm --filter @aethelos/relay build) and install cloudflared for friends abroad."
-          : "No mailboxes available. Use the desktop app to share, or configure VITE_BOOTSTRAP_RELAYS before building.",
+          ? "Could not start a mailbox. Run Start-AethelOS.bat from the folder you downloaded, or reinstall the desktop app."
+          : "No mailboxes available. Ask your inviter for a link, or use the desktop app to start a community.",
         "error",
       );
       return;

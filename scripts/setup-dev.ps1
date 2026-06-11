@@ -1,4 +1,5 @@
 # One-shot dev prerequisite check (Windows). Run from repo root: .\scripts\setup-dev.ps1
+# For everyday use, prefer: Start-AethelOS.bat
 $ErrorActionPreference = "Stop"
 $env:Path = "$env:USERPROFILE\.cargo\bin;" + $env:Path
 $env:PLAYWRIGHT_BROWSERS_PATH = "$env:LOCALAPPDATA\ms-playwright"

@@ -14,7 +14,7 @@ let ok = true;
 
 if (!existsSync(relayScript)) {
   console.error("Missing relay build:", relayScript);
-  console.error("Run: pnpm --filter @aethelos/relay build");
+  console.error("Run Start-AethelOS.bat or: pnpm --filter @aethelos/relay build");
   ok = false;
 } else {
   console.log("Relay sidecar:", relayScript);

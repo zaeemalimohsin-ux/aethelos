@@ -2,11 +2,13 @@
 
 Plain steps to connect two people on different continents without copying relay URLs.
 
+**New:** see [GET_STARTED.md](./GET_STARTED.md) for download/install paths (`Build-Release.bat` or GitHub Releases).
+
 ## What you need
 
 | Who | What |
 |-----|------|
-| **You (founder)** | AethelOS **desktop app**, your PC awake, [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) installed |
+| **You (founder)** | AethelOS **desktop app** ([GET_STARTED](./GET_STARTED.md) or `Build-Release.bat`), your PC awake, [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) installed |
 | **Your friend** | Any device with a browser (or the desktop app) — no relay setup |
 
 ## One-time setup (founder)

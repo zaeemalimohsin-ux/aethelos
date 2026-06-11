@@ -420,10 +420,9 @@ function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> 
             tunnelStatus === "ready" &&
             isLocalInviteOrigin(inviteLink) && (
               <div className="alert info" style={{ marginBottom: "var(--sp-3)" }}>
-                Friends far away cannot open a localhost link. Set{" "}
-                <code className="mono">VITE_INVITE_BASE_URL</code> to your hosted PWA URL
-                before starting the desktop app (see QUICKSTART). Mailboxes in this link
-                are already public.
+                Friends far away cannot open a localhost link. Host the app at a public
+                URL (see GET_STARTED in the docs) or use Build-Release / GitHub Releases
+                for the desktop app with a configured invite URL.
               </div>
             )}
           <div className="field">

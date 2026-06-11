@@ -5,6 +5,10 @@ coverage/
 .DS_Store
 .env
 .env.local
+.env.docker
+packages/client-tauri/src-tauri/resources/node/
+packages/client-tauri/src-tauri/resources/relay/server.cjs
+dist/releases/
 .turbo
 *.tsbuildinfo
 test-results/

@@ -10,6 +10,7 @@ export default tseslint.config(
       "**/coverage/**",
       "**/target/**",
       "**/gen/**",
+      "packages/client-tauri/src-tauri/resources/**",
       "**/*.config.ts",
       "**/*.config.js",
       "**/vite-env.d.ts",
