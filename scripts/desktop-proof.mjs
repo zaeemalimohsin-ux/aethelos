@@ -36,6 +36,7 @@ function freeRelayPort() {
   );
 }
 
+run("core-build", "pnpm", ["--filter", "@aethelos/core", "build"]);
 run("tunnel-smoke", "node", ["scripts/tunnel-smoke.mjs"]);
 freeRelayPort();
 await new Promise((r) => setTimeout(r, 3000));

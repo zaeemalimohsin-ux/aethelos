@@ -1,6 +1,6 @@
 # AethelOS Codebase Audit — Pass 1
 
-> **Status (2026-06-11):** Critical items **C1–C4** from this pass were resolved in [Pass 2 resolutions](./CODEBASE_AUDIT_PASS2.md#resolutions-implemented-2026-06-09). Read findings below as historical context; verify current behavior in tests before acting on them.
+> **Status (2026-06-11):** Critical items **C1–C4** from this pass were resolved in [Pass 2 resolutions](./CODEBASE_AUDIT_PASS2.md#resolutions-implemented-2026-06-09). **Sign-off:** see [Pass 3](./CODEBASE_AUDIT_PASS3.md). Read findings below as historical context.
 
 > **Note (2026-06-09):** This pass predates Peer Relay Mesh and expanded E2E coverage. Current suite: 10 core test files, 9+ client unit files, 5 Playwright E2E specs. See audit remediation in repo history.
 

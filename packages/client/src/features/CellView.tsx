@@ -7,6 +7,7 @@ import {
   availableToPledge,
   admissionProposalId,
   totalPoolPoints,
+  proposalApprovalPercent,
 } from "@aethelos/core";
 import { useStore } from "../app/store.js";
 import { Card } from "../design/components/Card.js";
@@ -126,7 +127,7 @@ function PhilosophyCard() {
     <Disclosure summary="How your community works">
       <div className="concept-card">
         <p>
-          <strong>Your stake</strong> — {CONCEPT.stake} <HelpTip text={CONCEPT.points} />
+          <strong>Your stake</strong> — {CONCEPT.stake}
         </p>
         <p>
           <strong>Vouch for people</strong> — {CONCEPT.vouch}
@@ -259,12 +260,6 @@ function TransferCard({
       </Button>
     </Card>
   );
-}
-
-function proposalApprovalPercent(votesFor: bigint, votesAgainst: bigint): number {
-  const total = votesFor + votesAgainst;
-  if (total === 0n) return 0;
-  return Number((votesFor * 100n) / total);
 }
 
 function ActiveVouchLiensCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
@@ -759,10 +754,12 @@ function RelaysCard() {
           >
             {tunnelStatusMessage(tunnelStatus)}
           </p>
-          <p className="hint" style={{ marginBottom: "var(--sp-3)", fontSize: "0.85em" }}>
-            Your PC must stay awake while sharing. Tunnel URLs may change if you restart —
-            toggle sharing off and on to republish.
-          </p>
+          <Disclosure summary="Sharing details">
+            <p className="hint" style={{ marginBottom: "var(--sp-2)" }}>
+              Your PC must stay awake while sharing. Tunnel URLs may change if you restart
+              — toggle sharing off and on to republish.
+            </p>
+          </Disclosure>
         </>
       ) : (
         <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>

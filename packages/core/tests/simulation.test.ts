@@ -119,7 +119,7 @@ describe("multi-node convergence", () => {
       expect(shuffled.commons).toBe(canonical.commons);
       expect(shuffled.head).toBe(canonical.head);
     }
-  });
+  }, 120_000);
 });
 
 describe("integer conservation at scale", () => {

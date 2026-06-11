@@ -460,3 +460,21 @@
   word-break: break-all;
   flex: 1 1 12rem;
 }
+
+@media (max-width: 640px) {
+  .slider-row {
+    grid-template-columns: 1fr;
+    gap: var(--sp-2);
+  }
+  .slider-row .value {
+    text-align: left;
+  }
+  .list li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-2);
+  }
+  .recovery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

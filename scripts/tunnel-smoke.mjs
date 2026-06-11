@@ -4,27 +4,16 @@
  */
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const relayScript = join(root, "packages", "relay", "dist", "index.js");
+const { filterRemoteRelayUrls } = await import(
+  pathToFileURL(join(root, "packages", "core", "dist", "relay", "url-utils.js")).href
+);
 const PORT = 8787;
 const TIMEOUT_MS = 120_000;
-
-function isLocalOnlyRelayUrl(url) {
-  try {
-    const parsed = new URL(url.trim());
-    if (parsed.protocol !== "ws:" && parsed.protocol !== "wss:") return false;
-    return ["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname.toLowerCase());
-  } catch {
-    return false;
-  }
-}
-
-function relayUrlsForInvite(relayUrls) {
-  return [...new Set(relayUrls.filter((u) => !isLocalOnlyRelayUrl(u)))];
-}
 
 function killAll(children) {
   for (const child of children) {
@@ -72,7 +61,7 @@ async function main() {
 
   const wssUrl = publicUrl.replace(/^https:/, "wss:") + "/ws";
   const localUrl = `ws://127.0.0.1:${PORT}/ws`;
-  const inviteRelays = relayUrlsForInvite([localUrl, wssUrl]);
+  const inviteRelays = filterRemoteRelayUrls([localUrl, wssUrl]);
 
   if (inviteRelays.includes(localUrl)) {
     console.error("tunnel-smoke: localhost relay was not filtered from invite list");

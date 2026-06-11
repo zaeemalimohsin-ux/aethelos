@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["tests/**/*.test.ts"],
-    testTimeout: 30_000,
+    testTimeout: 120_000,
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],

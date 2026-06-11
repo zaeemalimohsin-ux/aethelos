@@ -63,3 +63,6 @@ export {
 
 // Governance
 export * from "./governance/index.js";
+
+// Relay URL helpers (invite filtering, shared with smoke scripts)
+export { isLocalOnlyRelayUrl, filterRemoteRelayUrls } from "./relay/url-utils.js";

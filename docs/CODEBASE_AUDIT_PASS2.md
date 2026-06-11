@@ -1,5 +1,7 @@
 # AethelOS Codebase Audit — Pass 2
 
+> **Superseded for sign-off by [Pass 3](./CODEBASE_AUDIT_PASS3.md) (2026-06-11).** This document remains as historical audit detail.
+
 > **Note (2026-06-09):** Client now has 9+ unit test files and 5 E2E specs (including `federation.spec.ts`). Items marked fixed in the resolutions table below remain accurate; stale "no client tests" claims in this doc are superseded.
 
 **Date:** 2026-06-09  

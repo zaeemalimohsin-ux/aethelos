@@ -1,23 +1,11 @@
+import { isLocalOnlyRelayUrl } from "@aethelos/core";
 import { selectRelaysForCommunity, dedupeRelays } from "./bootstrap-relays.js";
 
-export { dedupeRelays };
+export { dedupeRelays, isLocalOnlyRelayUrl };
 
 export interface MergeActiveRelaysOptions {
   /** Community mailbox URLs the user chose to disconnect from (session-only). */
   ignoredCommunityRelays?: string[];
-}
-
-const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
-
-/** True when the relay URL only works on this machine (not for remote invite links). */
-export function isLocalOnlyRelayUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url.trim());
-    if (parsed.protocol !== "ws:" && parsed.protocol !== "wss:") return false;
-    return LOCAL_HOSTS.has(parsed.hostname.toLowerCase());
-  } catch {
-    return false;
-  }
 }
 
 /** Relay list for signed invite links — excludes localhost-only URLs. */

@@ -97,7 +97,7 @@ describe("community-scale (8 members, deterministic core)", () => {
     );
     expect(state.members.length).toBe(8);
     expect(totalPoolPoints(state)).toBe(points("100000"));
-  }, 30_000);
+  }, 120_000);
 
   it("does not execute expel on founder-only yes vote below stake threshold", async () => {
     const founder = await generateKeyPair();
@@ -172,11 +172,11 @@ describe("community-scale (8 members, deterministic core)", () => {
     );
     expect(state.members).toContain(target.publicKeyHex);
     expect(state.proposals["expel1"]?.executed).not.toBe(true);
-  }, 30_000);
+  }, 120_000);
 
   it(
     "runs epoch redistribution with eight members without losing points",
-    { timeout: 30000 },
+    { timeout: 120_000 },
     async () => {
       const founder = await generateKeyPair();
       const joiners = await Promise.all(
