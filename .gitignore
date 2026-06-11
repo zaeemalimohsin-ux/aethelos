@@ -6,7 +6,7 @@ coverage/
 .env
 .env.local
 .env.docker
-packages/client-tauri/src-tauri/resources/node/
+packages/client-tauri/src-tauri/resources/node/win-x64/node.exe
 packages/client-tauri/src-tauri/resources/relay/server.cjs
 dist/releases/
 .turbo
