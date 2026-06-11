@@ -97,6 +97,24 @@ export function installTestBridge(): void {
       return useStore.getState().controller?.getNamespaceId() ?? null;
     },
 
+    getConnectionStatus() {
+      const { relaySharing, tunnelStatus } = useStore.getState();
+      return { relaySharing, tunnelStatus };
+    },
+
+    getSyncStatus() {
+      return useStore.getState().sync;
+    },
+
+    async setRelaySharing(on: boolean) {
+      await useStore.getState().setRelaySharing(on);
+    },
+
+    async getLocalNodeStatus() {
+      const { localNodeStatus } = await import("./local-node.js");
+      return localNodeStatus();
+    },
+
     async transfer(to: string, amount: string) {
       await useStore.getState().transfer(to, amount);
     },

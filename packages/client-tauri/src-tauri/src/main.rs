@@ -3,21 +3,22 @@
 
 mod local_node;
 
-use local_node::{local_node_status, start_local_node, stop_local_node, LocalNodeStatus};
+use local_node::LocalNodeStatus;
 
+// Tauri command names must match the frontend `invoke("start_local_node")` etc.
 #[tauri::command]
-fn cmd_start_local_node() -> Result<LocalNodeStatus, String> {
-    start_local_node()
+fn start_local_node() -> Result<LocalNodeStatus, String> {
+    local_node::start_local_node()
 }
 
 #[tauri::command]
-fn cmd_stop_local_node() -> Result<(), String> {
-    stop_local_node()
+fn stop_local_node() -> Result<(), String> {
+    local_node::stop_local_node()
 }
 
 #[tauri::command]
-fn cmd_local_node_status() -> Result<LocalNodeStatus, String> {
-    local_node_status()
+fn local_node_status() -> Result<LocalNodeStatus, String> {
+    local_node::local_node_status()
 }
 
 fn main() {
@@ -26,9 +27,9 @@ fn main() {
         tauri::Builder::default()
             .plugin(tauri_plugin_updater::Builder::new().build())
             .invoke_handler(tauri::generate_handler![
-                cmd_start_local_node,
-                cmd_stop_local_node,
-                cmd_local_node_status,
+                start_local_node,
+                stop_local_node,
+                local_node_status,
             ])
             .run(tauri::generate_context!())
             .expect("error while running AethelOS desktop");
@@ -37,9 +38,9 @@ fn main() {
     {
         tauri::Builder::default()
             .invoke_handler(tauri::generate_handler![
-                cmd_start_local_node,
-                cmd_stop_local_node,
-                cmd_local_node_status,
+                start_local_node,
+                stop_local_node,
+                local_node_status,
             ])
             .run(tauri::generate_context!())
             .expect("error while running AethelOS desktop");

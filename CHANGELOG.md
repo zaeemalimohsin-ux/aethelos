@@ -6,10 +6,15 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- Tauri IPC command names: the frontend invokes `start_local_node` / `stop_local_node` / `local_node_status`, but the Rust commands were registered as `cmd_*` — every desktop invoke failed silently, so GUI sharing/tunnel never started. Commands renamed to match (2026-06-11).
+
 ### Verified
 
 - Post-v0.1.0 remote path (automated, 2026-06-10): `check:local-node` (relay + cloudflared OK), `scripts/tunnel-smoke.mjs` (public trycloudflare URL in invite relays; localhost excluded), E2E two-person genesis/join (3/3).
-- Desktop remote path (2026-06-10): fixed Tauri `local_node` tunnel URL capture (read cloudflared stdout+stderr; accept `.trycloudflare.com` only; `--no-autoupdate`). Disabled updater plugin in debug builds and set `plugins.updater.active: false` so `desktop:dev` starts without release keys. Tunnel wait aligned to 120s (Rust + client). Verified via `pnpm desktop:proof` (tunnel-smoke + two-person E2E + `cargo test local_node::tests`), `desktop:dev` launch, and [QUICKSTART_REMOTE.md](./docs/QUICKSTART_REMOTE.md) criteria (Connection **Ready for friends abroad**, trycloudflare invite links, friend join sync).
+- Desktop remote path (2026-06-10): fixed Tauri `local_node` tunnel URL capture (read cloudflared stdout+stderr; accept `.trycloudflare.com` only; `--no-autoupdate`). Disabled updater plugin in debug builds and set `plugins.updater.active: false` so `desktop:dev` starts without release keys. Tunnel wait aligned to 120s (Rust + client). Verified via `pnpm desktop:proof` (tunnel-smoke + two-person E2E + `cargo test local_node::tests`) and `desktop:dev` launch. (The QUICKSTART GUI criteria were **not** actually provable on this date — blocked by the IPC name bug above.)
+- Full [QUICKSTART_REMOTE.md](./docs/QUICKSTART_REMOTE.md) GUI walkthrough (automated, 2026-06-11): `pnpm desktop:gui-walkthrough` drives the real Tauri webview over CDP — Connection shows **Ready for friends abroad**, invite carries public trycloudflare mailboxes only, a friend browser joins through the tunnel, founder vouches/approves, and both sides converge on 2 members.
 
 ## [0.1.0] - 2026-06-10
 

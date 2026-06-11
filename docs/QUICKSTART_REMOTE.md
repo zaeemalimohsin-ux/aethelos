@@ -68,6 +68,7 @@ Friends with the desktop app can toggle **Sharing from this computer** under Con
 |---------|-----|
 | Connection says “install cloudflared” | Install cloudflared, restart desktop app, toggle sharing on |
 | Friend cannot connect | Confirm Connection shows “Ready for friends abroad” before sharing link |
+| Friend on **your own network** cannot connect | Fresh tunnel hostnames can be negatively cached by your local DNS for a few minutes — `ipconfig /flushdns` (Windows) or wait; remote friends resolve fresh |
 | `check:local-node` fails on relay | Run `pnpm --filter @aethelos/relay build` |
 | `cargo check` fails | Install Rust via rustup |
 | Browser-only founder | Use desktop app to share, or configure `VITE_BOOTSTRAP_RELAYS` when building the PWA (see [DEPLOY.md](./DEPLOY.md)) |
@@ -82,3 +83,5 @@ pnpm --filter @aethelos/client test:e2e -- onboarding community
 ```
 
 `pnpm desktop:proof` runs tunnel-smoke, Tauri `local_node` tests, and the two-person E2E join spec.
+
+`pnpm desktop:gui-walkthrough` (Windows) automates this whole guide against the real desktop app: it starts `desktop:dev`, drives the Tauri webview over CDP through identity → community → **Ready for friends abroad**, checks the invite carries only public tunnel mailboxes, then joins as a friend through the trycloudflare tunnel until both sides show 2 members.

@@ -6,6 +6,19 @@ declare global {
       getPoolSummary: () => PoolSummary | null;
       getMyKey: () => string;
       getNamespaceId: () => string | null;
+      getConnectionStatus: () => { relaySharing: boolean; tunnelStatus: string };
+      getSyncStatus: () => {
+        overall: "online" | "connecting" | "offline";
+        relays: { url: string; status: string }[];
+        pendingOutbox: number;
+      } | null;
+      setRelaySharing: (on: boolean) => Promise<void>;
+      getLocalNodeStatus: () => Promise<{
+        localUrl: string;
+        publicUrl?: string;
+        running: boolean;
+        cloudflaredAvailable?: boolean;
+      } | null>;
       transfer: (to: string, amount: string) => Promise<void>;
       advanceCirculation: (to: string) => Promise<void>;
       transferWithTimestamp: (
