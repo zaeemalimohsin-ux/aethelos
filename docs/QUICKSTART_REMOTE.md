@@ -26,7 +26,14 @@ pnpm --filter @aethelos/client-tauri check:local-node
 cloudflared --version
 ```
 
-4. Start the desktop app:
+4. **Host a public client URL** for invite links (friends abroad must load the client shell from the internet — cloudflared only tunnels your relay, not the desktop UI). Set in `packages/client/.env.local`:
+
+```bash
+# Your hosted PWA origin (see DEPLOY.md)
+VITE_INVITE_BASE_URL=https://app.yourdomain.org
+```
+
+5. Start the desktop app (reads the env above via Vite):
 
 ```bash
 pnpm --filter @aethelos/client-tauri desktop:dev
@@ -39,7 +46,7 @@ pnpm --filter @aethelos/client-tauri desktop:dev
 3. Open the **Connection** card. You should see:
    - **Ready for friends abroad** — tunnel worked; safe to share the invite link.
    - **Install cloudflared…** — tunnel failed; friends far away cannot connect until cloudflared is installed.
-4. Go to **Invite someone** → **Share invite link**. The link includes public mailboxes only (not `127.0.0.1`).
+4. Go to **Invite someone** → **Share invite link**. The link uses your public client URL (when configured) and includes public mailboxes only (not `127.0.0.1`).
 5. Send the link (chat, email, QR).
 
 ## Join (friend)
@@ -68,6 +75,7 @@ Friends with the desktop app can toggle **Sharing from this computer** under Con
 |---------|-----|
 | Connection says “install cloudflared” | Install cloudflared, restart desktop app, toggle sharing on |
 | Friend cannot connect | Confirm Connection shows “Ready for friends abroad” before sharing link |
+| Invite link starts with `localhost` | Set `VITE_INVITE_BASE_URL` to your hosted PWA URL before `desktop:dev` (see step 4 above) |
 | Friend on **your own network** cannot connect | Fresh tunnel hostnames can be negatively cached by your local DNS for a few minutes — `ipconfig /flushdns` (Windows) or wait; remote friends resolve fresh |
 | `check:local-node` fails on relay | Run `pnpm --filter @aethelos/relay build` |
 | `cargo check` fails | Install Rust via rustup |

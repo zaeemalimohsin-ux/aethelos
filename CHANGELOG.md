@@ -6,9 +6,19 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- `VITE_INVITE_BASE_URL` — configurable client shell URL for invite links (desktop founders point remote friends at a hosted PWA; signed payload and peer mailboxes unchanged).
+- Community **How your community works** card now surfaces all seven philosophy concepts (stake, vouch, proposals, Head, circulation, mailboxes, scaling).
+
 ### Fixed
 
 - Tauri IPC command names: the frontend invokes `start_local_node` / `stop_local_node` / `local_node_status`, but the Rust commands were registered as `cmd_*` — every desktop invoke failed silently, so GUI sharing/tunnel never started. Commands renamed to match (2026-06-11).
+- ESLint ignore for Rust `target/` build artifacts (local Windows dev parity with CI).
+
+### Changed
+
+- Invite modal on desktop warns when tunnel is ready but the link still uses a localhost client shell — directs founders to set `VITE_INVITE_BASE_URL`.
 
 ### Verified
 

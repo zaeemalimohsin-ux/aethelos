@@ -14,7 +14,7 @@ import { Button } from "../design/components/Button.js";
 import { Field } from "../design/components/Field.js";
 import { Modal } from "../design/components/Modal.js";
 import { QRCode } from "../components/QRCode.js";
-import { buildInviteLink } from "../app/invite.js";
+import { buildInviteLink, isLocalInviteOrigin } from "../app/invite.js";
 import { shortKey, formatPts } from "../app/format.js";
 import {
   clearSubCellParentContext,
@@ -133,6 +133,18 @@ function PhilosophyCard() {
         </p>
         <p>
           <strong>We decide together</strong> — {CONCEPT.proposal}
+        </p>
+        <p>
+          <strong>The Head</strong> — {CONCEPT.head}
+        </p>
+        <p>
+          <strong>Stake circulation</strong> — {CONCEPT.epoch}
+        </p>
+        <p>
+          <strong>Mailboxes</strong> — {CONCEPT.relay}
+        </p>
+        <p>
+          <strong>Scaling up</strong> — {CONCEPT.subCell}
         </p>
       </div>
     </Disclosure>
@@ -315,6 +327,7 @@ function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> 
   const pool = useStore((s) => s.pool)!;
   const myKey = useStore((s) => s.myKey);
   const displayName = useStore((s) => s.displayName);
+  const tunnelStatus = useStore((s) => s.tunnelStatus);
   const toast = useStore((s) => s.toast);
   const [pubkey, setPubkey] = useState("");
   const lienAmount = requiredVouchLien(pool, myKey);
@@ -399,6 +412,16 @@ function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> 
           <div className="center" style={{ marginBottom: "var(--sp-3)" }}>
             <QRCode value={inviteLink} />
           </div>
+          {isDesktopApp() &&
+            tunnelStatus === "ready" &&
+            isLocalInviteOrigin(inviteLink) && (
+              <div className="alert info" style={{ marginBottom: "var(--sp-3)" }}>
+                Friends far away cannot open a localhost link. Set{" "}
+                <code className="mono">VITE_INVITE_BASE_URL</code> to your hosted PWA URL
+                before starting the desktop app (see QUICKSTART). Mailboxes in this link
+                are already public.
+              </div>
+            )}
           <div className="field">
             <textarea className="textarea mono" rows={3} readOnly value={inviteLink} />
           </div>

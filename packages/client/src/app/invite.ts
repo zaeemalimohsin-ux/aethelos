@@ -26,6 +26,26 @@ export interface InvitePayload {
 
 const HASH_PREFIX = "#/join?d=";
 
+const LOCAL_HTTP_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+/** True when the invite link points at a client shell only reachable on this machine. */
+export function isLocalInviteOrigin(url: string): boolean {
+  try {
+    const parsed = new URL(url.split("#")[0] ?? url);
+    return LOCAL_HTTP_HOSTS.has(parsed.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+/** Client shell URL for invite links — configurable for desktop founders sharing remotely. */
+export function inviteLinkBase(): string {
+  const configured = import.meta.env.VITE_INVITE_BASE_URL?.trim();
+  if (configured) return configured.replace(/\/$/, "");
+  const path = window.location.pathname.replace(/\/?$/, "");
+  return `${window.location.origin}${path}` || window.location.origin;
+}
+
 function toBase64Url(s: string): string {
   return btoa(unescape(encodeURIComponent(s)))
     .replace(/\+/g, "-")
@@ -70,8 +90,7 @@ export function encodeInvite(payload: InvitePayload): string {
 }
 
 export function buildInviteLink(payload: InvitePayload): string {
-  const base = `${window.location.origin}${window.location.pathname}`;
-  return `${base}${HASH_PREFIX}${encodeInvite(payload)}`;
+  return `${inviteLinkBase()}${HASH_PREFIX}${encodeInvite(payload)}`;
 }
 
 export function decodeInvite(encoded: string): InvitePayload | null {

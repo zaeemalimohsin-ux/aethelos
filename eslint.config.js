@@ -8,6 +8,8 @@ export default tseslint.config(
       "**/dist/**",
       "**/node_modules/**",
       "**/coverage/**",
+      "**/target/**",
+      "**/gen/**",
       "**/*.config.ts",
       "**/*.config.js",
       "**/vite-env.d.ts",

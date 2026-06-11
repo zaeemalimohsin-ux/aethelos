@@ -46,6 +46,9 @@ VITE_DEFAULT_RELAY_URL=wss://relay.yourdomain.org
 
 # Optional fallback for official hosted builds when no peer mailboxes exist yet
 VITE_BOOTSTRAP_RELAYS=wss://relay-a.example.org,wss://relay-b.example.org,wss://relay-c.example.org
+
+# Public client URL baked into invite links (same origin when hosting the PWA yourself)
+VITE_INVITE_BASE_URL=https://app.yourdomain.org
 ```
 
 Alternatively, edit `packages/client/src/app/bootstrap-relays.default.ts` before
@@ -66,6 +69,7 @@ Follow [GENESIS.md](./GENESIS.md):
 
 1. **Person A** opens the desktop app, creates an identity, starts a community.
    Install [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) on their PC for friends abroad — the app opens a free public tunnel automatically.
+   Set `VITE_INVITE_BASE_URL` to the same public URL where you host the PWA (see section 2) so invite links open for remote friends.
 2. **Person A** shares a signed invite link from the Community tab (includes all reachable mailboxes — localhost is excluded).
 3. **Person B** opens the link, creates an identity, joins.
 4. **Person A** sends the on-chain invite with a Vouch Bond; **Person B** accepts.

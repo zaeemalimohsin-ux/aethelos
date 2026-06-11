@@ -14,6 +14,7 @@ const { execSync } = require("node:child_process");
 const dns = require("node:dns");
 const CDP = "http://127.0.0.1:9222";
 const PASSWORD = "gui-walkthrough-pass-123";
+const INVITE_BASE_URL = "http://localhost:5173";
 
 /**
  * Fresh quick-tunnel hostnames can be stuck as NXDOMAIN in the local OS cache
@@ -215,6 +216,7 @@ async function main() {
       PATH: refreshedPath(),
       Path: refreshedPath(),
       VITE_E2E: "1",
+      VITE_INVITE_BASE_URL: INVITE_BASE_URL,
       WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: "--remote-debugging-port=9222",
       PLAYWRIGHT_BROWSERS_PATH:
         process.env.PLAYWRIGHT_BROWSERS_PATH ??
@@ -253,6 +255,13 @@ async function main() {
     await textarea.waitFor({ timeout: 60_000 });
     const inviteLink = await textarea.inputValue();
     await page.keyboard.press("Escape");
+
+    if (!inviteLink.startsWith(INVITE_BASE_URL)) {
+      throw new Error(
+        `Invite link must use VITE_INVITE_BASE_URL (${INVITE_BASE_URL}); got: ${inviteLink.slice(0, 80)}`,
+      );
+    }
+    console.log(`PASS: Invite link uses configured client shell: ${INVITE_BASE_URL}`);
 
     // QUICKSTART criterion: the link's mailboxes are public tunnels, not 127.0.0.1.
     const encoded = inviteLink.split("#/join?d=")[1];

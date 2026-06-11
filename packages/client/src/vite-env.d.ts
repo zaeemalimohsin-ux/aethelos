@@ -4,6 +4,7 @@
 interface ImportMetaEnv {
   readonly VITE_DEFAULT_RELAY_URL?: string;
   readonly VITE_BOOTSTRAP_RELAYS?: string;
+  readonly VITE_INVITE_BASE_URL?: string;
   readonly VITE_RELAY_OPERATOR_GUIDE_URL?: string;
   readonly VITE_E2E?: string;
 }
