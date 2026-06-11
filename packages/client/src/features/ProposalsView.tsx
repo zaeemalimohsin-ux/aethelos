@@ -171,6 +171,11 @@ function ProposalRow({
         )}
       </p>
       <div
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.min(100, Math.round(approvalPct))}
+        aria-label="Stake-weighted approval"
         style={{
           height: 6,
           background: "var(--surface-2)",

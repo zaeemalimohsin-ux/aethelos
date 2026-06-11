@@ -12,7 +12,8 @@ The PWA already runs on any browser, including mobile. The desktop shell adds:
 - On-device Event Log files and a always-available node.
 - **Peer mailbox sharing** — founders can host a community mailbox on their PC and
   invite friends abroad without manual relay configuration.
-- OS integration and a signed, auto-updating binary for less technical users.
+- OS integration (future: signed auto-update — **not enabled in v0.1.x**; updater
+  plugin is present but inactive until a release pipeline exists).
 
 It introduces no new gatekeeper — it is distributed directly, not via an app store.
 

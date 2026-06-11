@@ -85,4 +85,12 @@ describe("event log storage", () => {
     expect(Array.isArray(parsed)).toBe(true);
     expect(parsed[0].id).toBe(event.id);
   });
+
+  it("rejects invalid JSON on import", async () => {
+    await expect(importEventLog("not json")).rejects.toThrow("invalid_json");
+  });
+
+  it("rejects non-array JSON on import", async () => {
+    await expect(importEventLog('{"x":1}')).rejects.toThrow("invalid_log_format");
+  });
 });

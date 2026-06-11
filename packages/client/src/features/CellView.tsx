@@ -7,7 +7,7 @@ import {
   availableToPledge,
   admissionProposalId,
   totalPoolPoints,
-  proposalApprovalPercent,
+  votingWeight,
 } from "@aethelos/core";
 import { useStore } from "../app/store.js";
 import { Card } from "../design/components/Card.js";
@@ -53,6 +53,12 @@ export function CellView({ pool }: { pool: PoolState }) {
     <div className="stack">
       <PhilosophyCard />
       {isGuest && <GuestJoinCodeBanner myKey={myKey} />}
+      {isFrozen && (
+        <div className="alert danger">
+          Your account is frozen after suspicious activity. Open{" "}
+          <strong>Proposals</strong> to request an unfreeze vote.
+        </div>
+      )}
       <SubCellCapBanner pool={pool} isHead={isHead} />
       <SubCellLinkageBanner pool={pool} isHead={isHead} />
       {hasPendingInvite && (
@@ -286,6 +292,8 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
   const pending = Object.entries(pool.pendingInvites).filter(
     ([, inv]) => inv.inviter === myKey,
   );
+  const totalStake = pool.members.reduce((sum, m) => sum + votingWeight(pool, m), 0n);
+  const threshold = pool.parameters.approval_threshold;
   if (pending.length === 0) return null;
   return (
     <Card eyebrow="Your pending invites">
@@ -293,14 +301,15 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
         {pending.map(([invitee, inv]) => {
           const proposalId = admissionProposalId(invitee);
           const proposal = pool.proposals[proposalId];
-          const approvalPct = proposal
-            ? proposalApprovalPercent(proposal.votesFor, proposal.votesAgainst)
-            : 0;
+          const approvalPct =
+            proposal && totalStake > 0n
+              ? Number((proposal.votesFor * 100n) / totalStake)
+              : 0;
           const status = inv.admissionApproved
             ? "Approved — waiting for them to accept"
             : proposal?.executed
               ? "Approved"
-              : `Admission vote ${approvalPct}% (need ${pool.parameters.approval_threshold}%)`;
+              : `Admission vote ${approvalPct.toFixed(0)}% of stake (need ${threshold}%)`;
           return (
             <li key={invitee}>
               <span className="mono">{shortKey(invitee, 12)}</span>
@@ -355,8 +364,8 @@ function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> 
     <Card eyebrow="Invite someone">
       {atCap ? (
         <div className="alert warning" style={{ marginBottom: "var(--sp-3)" }}>
-          This community is full ({SOFT_CELL_CAP} members). Start a sub-community for new
-          people instead.
+          At capacity ({SOFT_CELL_CAP} members). New people join through sub-communities —
+          spawn one from the banner above if you are Head.
         </div>
       ) : nearCap ? (
         <div className="alert info" style={{ marginBottom: "var(--sp-3)" }}>
@@ -449,8 +458,8 @@ function SubCellCapBanner({ pool, isHead }: { pool: PoolState; isHead: boolean }
       <div className={`alert ${atCap ? "warning" : "info"}`}>
         {atCap ? (
           <>
-            This Cell has reached the soft cap ({SOFT_CELL_CAP} members). Growth continues
-            by spawning sub-Cells, not widening this one.
+            At capacity ({SOFT_CELL_CAP} members). New people join through linked
+            sub-communities — spawn one if you are Head.
           </>
         ) : (
           <>

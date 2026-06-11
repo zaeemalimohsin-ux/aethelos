@@ -15,6 +15,8 @@ export function SyncIndicator() {
     <span
       className="row"
       style={{ gap: "var(--sp-2)", fontSize: "var(--fs-xs)" }}
+      role="status"
+      aria-live="polite"
       title={sync?.relays.map((r) => `${r.url}: ${r.status}`).join("\n") ?? "No relays"}
     >
       <span className={`dot ${status}`} aria-hidden="true" />

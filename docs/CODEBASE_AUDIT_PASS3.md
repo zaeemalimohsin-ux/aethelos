@@ -1,6 +1,6 @@
 # AethelOS Codebase Audit — Pass 3 (Grand Final Sweep)
 
-> **Supersedes operational status in [Pass 2](./CODEBASE_AUDIT_PASS2.md)** for sign-off purposes. Pass 1/2 history is preserved; this pass re-verifies synthesis, runtime, UX, and doc honesty after the remote-invite closure work (`e1ca5b8`).
+> **Superseded for sign-off by [Pass 4](./CODEBASE_AUDIT_PASS4.md) (2026-06-11).** Pass 3 history preserved below.
 
 **Date:** 2026-06-11  
 **Scope:** Philosophy traceability, static code health, full gate matrix, desktop remote proofs, UX ergonomics, documentation honesty  

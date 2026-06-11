@@ -12,6 +12,7 @@ Before tagging a release candidate, confirm:
 - [ ] No new conservation violations in `simulation.test.ts` / `adversarial.test.ts`
 - [ ] Relay tests green if `@aethelos/relay` changed
 - [ ] Manual smoke: identity → community → invite → transfer → proposal → (if federation) bridge
+- [ ] **Windows:** `pnpm desktop:proof` and `pnpm desktop:gui-walkthrough` (remote founder path)
 
 ## Standard test commands
 

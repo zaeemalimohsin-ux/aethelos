@@ -29,11 +29,16 @@ You can re-check whether you've confirmed a backup under **Identity**.
 
 ## 3. Start or join a community
 
-- **Start a community:** give it a name and a relay address (ask your group, or
-  run your own). You now hold 100% of a fresh pool.
+- **Start a community (browser):** give it a name. If nobody in your group is
+  sharing a mailbox yet, you may need a relay address from your operator — or use
+  the desktop app to share one (see [QUICKSTART_REMOTE.md](./QUICKSTART_REMOTE.md)
+  for founders inviting friends abroad).
+- **Start a community (desktop):** same as above, plus you can turn on **Sharing
+  from this computer** under **Connection** so remote friends can reach your
+  mailbox.
 - **Join a community:** open the **invite link** someone sent you. It fills in
-  everything automatically — just confirm to join, then wait for your invite to
-  appear and tap **Accept invite**.
+  everything automatically — confirm to join, copy your **join code** back to
+  your inviter, then wait for the community to approve and tap **Accept invite**.
 
 ## 4. Everyday use
 
@@ -49,16 +54,18 @@ You can re-check whether you've confirmed a backup under **Identity**.
 
 ## 5. Inviting people
 
-1. In **Community**, tap **Share invite link**.
+1. In **Community**, tap **Share invite link** (desktop founders abroad: set your
+   public app URL first — see [QUICKSTART_REMOTE.md](./QUICKSTART_REMOTE.md)).
 2. Send them the link or show the QR code.
-3. Once they appear, send the on-chain **invite** with a Vouch Bond (a stake you
-   lock to vouch for them).
+3. When they send you their **join code**, vouch for them from the invite section.
 
 ## 6. Staying resilient
 
-- **Relays** just pass messages. Add several under **Community → Relays** so you
-  stay connected even if one goes down.
+- **Connection** (Community tab, bottom) shows mailboxes and sync status. Add
+  backup relays under **Troubleshooting: manage relays** if one goes down.
 - **Offline?** Your actions are queued and sent automatically when you reconnect.
+- **App update?** When a new version is ready, use **Reload now** on the banner at
+  the top.
 - **Lost a device?** Install AethelOS elsewhere and choose **Restore from
   recovery phrase**.
 

@@ -8,7 +8,7 @@ export const CONCEPT = {
     "Points are the community's unit of value. Everyone can verify the same ledger on their own device.",
   vouch:
     "When you invite someone, you pledge a Vouch Lien — a forfeitable slice of your own Share that stays in your wallet. If they harm the community, that slice can be forfeit. The community must approve before they join.",
-  head: "The Head is whoever the community currently trusts to propose certain actions. That trust can move at any time.",
+  head: "The Head is whoever the community currently trusts to propose certain actions. A challenger must reach the vouch threshold to take the role.",
   epoch:
     "Stake circulates continuously on activity — a time-proportional slice accrues to the commons. On a schedule the community sets, those commons are redistributed.",
   relay:

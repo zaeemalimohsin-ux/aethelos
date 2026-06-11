@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App.js";
 import { registerSW } from "virtual:pwa-register";
 import { installTestBridge } from "./app/test-bridge.js";
+import { notifySwUpdateReady, setSwUpdateHandler } from "./app/sw-update.js";
 
 if (import.meta.env["VITE_E2E"] === "1") {
   installTestBridge();
@@ -20,13 +21,12 @@ if (container) {
   );
 }
 
-// Service worker with an update prompt (Phase 9). Skip in E2E — confirm() flakes tests.
+// Service worker with an in-app update prompt (Pass 4). Skip in E2E.
 if (import.meta.env["VITE_E2E"] !== "1") {
   const updateSW = registerSW({
     onNeedRefresh() {
-      if (confirm("A new version of AethelOS is available. Reload now?")) {
-        void updateSW(true);
-      }
+      setSwUpdateHandler(updateSW);
+      notifySwUpdateReady();
     },
   });
 }

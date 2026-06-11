@@ -34,6 +34,7 @@ export interface NodeConfig {
   keyPair: KeyPair;
   cellName?: string;
   ignoredCommunityRelays?: string[];
+  onRejected?: (rejected: RejectedReduction[]) => void;
 }
 
 export type StateListener = (state: PoolState | null) => void;
@@ -56,12 +57,16 @@ export class NodeController {
   private bridgedProposals = new Set<string>();
   private sessionRelays: string[];
   private ignoredCommunityRelays: Set<string>;
+  private onRejected: ((rejected: RejectedReduction[]) => void) | undefined;
 
   constructor(config: NodeConfig) {
     this.namespaceId = config.namespaceId;
     this.keyPair = config.keyPair;
     this.sessionRelays = [...config.relayUrls];
     this.ignoredCommunityRelays = new Set(config.ignoredCommunityRelays ?? []);
+    if (config.onRejected) {
+      this.onRejected = config.onRejected;
+    }
     this.sync = new SyncEngine(config.relayUrls, config.namespaceId, config.keyPair);
     this.sync.onEvents(() => this.recompute());
     this.initWorker();
@@ -85,7 +90,7 @@ export class NodeController {
         if (e.data.type === "state" && e.data.seq > this.lastApplied) {
           this.lastApplied = e.data.seq;
           this.state = e.data.state;
-          this.logRejectedReductions(e.data.rejected ?? []);
+          this.notifyRejectedReductions(e.data.rejected ?? []);
           this.syncRelaysFromPool();
           this.emit();
           void this.maybeMirrorBridges(this.sync.getEvents());
@@ -154,7 +159,7 @@ export class NodeController {
     const rejected: RejectedReduction[] = [];
     this.snapshot = reduceWithSnapshot(this.namespaceId, events, this.snapshot, rejected);
     this.state = this.snapshot.state;
-    this.logRejectedReductions(rejected);
+    this.notifyRejectedReductions(rejected);
     this.syncRelaysFromPool();
     this.emit();
     void this.maybeMirrorBridges(events);
@@ -278,12 +283,15 @@ export class NodeController {
     }
   }
 
-  private logRejectedReductions(rejected: RejectedReduction[]): void {
-    if (rejected.length === 0 || !import.meta.env.DEV) return;
-    console.warn(
-      `[aethelos] ${rejected.length} event(s) rejected during reduction`,
-      rejected,
-    );
+  private notifyRejectedReductions(rejected: RejectedReduction[]): void {
+    if (rejected.length === 0) return;
+    if (import.meta.env.DEV) {
+      console.warn(
+        `[aethelos] ${rejected.length} event(s) rejected during reduction`,
+        rejected,
+      );
+    }
+    this.onRejected?.(rejected);
   }
 
   getNamespaceId(): string {

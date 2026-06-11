@@ -48,6 +48,7 @@ import {
   localNodeStatus,
   waitForPublicTunnel,
 } from "./local-node.js";
+import { rejectionMessage } from "./rejection-messages.js";
 import {
   httpsToWssRelayUrl,
   tunnelStatusFromLocalNode,
@@ -580,6 +581,15 @@ async function startNode(
     relayUrls,
     namespaceId,
     keyPair,
+    onRejected: (rejected) => {
+      const seen = new Set<string>();
+      for (const r of rejected) {
+        if (seen.has(r.reason)) continue;
+        seen.add(r.reason);
+        const msg = rejectionMessage(r.reason);
+        if (msg) get().toast(msg, "error");
+      }
+    },
     ...(session?.ignoredCommunityRelays?.length
       ? { ignoredCommunityRelays: session.ignoredCommunityRelays }
       : {}),

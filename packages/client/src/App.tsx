@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useStore, type View } from "./app/store.js";
+import { applySwUpdate, onSwUpdateReady } from "./app/sw-update.js";
 import { Onboarding } from "./features/Onboarding.js";
 import { CellView } from "./features/CellView.js";
 import { GovernanceView } from "./features/GovernanceView.js";
@@ -18,13 +19,24 @@ const NAV: { id: View; label: string }[] = [
 export function App() {
   const init = useStore((s) => s.init);
   const phase = useStore((s) => s.phase);
+  const [swUpdateReady, setSwUpdateReady] = useState(false);
 
   useEffect(() => {
     void init();
   }, [init]);
 
+  useEffect(() => onSwUpdateReady(() => setSwUpdateReady(true)), []);
+
   return (
     <>
+      {swUpdateReady ? (
+        <div className="alert info" style={{ margin: 0, borderRadius: 0 }}>
+          A new version is available.{" "}
+          <button type="button" className="btn sm" onClick={() => applySwUpdate()}>
+            Reload now
+          </button>
+        </div>
+      ) : null}
       {phase === "loading" ? (
         <div className="app-main center" style={{ paddingTop: "var(--sp-8)" }}>
           <p className="muted">Loading…</p>
