@@ -66,6 +66,8 @@ jobs:
       - name: Generate Checksums
         run: |
           cd dist/releases
+          find . -mindepth 2 -type f -exec mv -t . {} +
+          find . -type d -empty -delete
           sha256sum * > checksums.txt
 
       - name: Create GitHub Release
