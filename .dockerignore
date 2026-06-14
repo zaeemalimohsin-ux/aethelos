@@ -5,5 +5,8 @@ node_modules
 .git
 .github
 *.log
-packages/client
 packages/client-tauri
+packages/client/node_modules
+packages/client/dist
+packages/client/test-results
+packages/client/playwright-report

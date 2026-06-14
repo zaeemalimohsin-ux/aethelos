@@ -42,7 +42,8 @@ async function openDisclosures(page, prefix) {
     const s = summaries.nth(i);
     const text = ((await s.textContent()) ?? `disclosure-${i}`).trim().slice(0, 40);
     const isOpen = await s.evaluate(
-      (el) => el.parentElement?.tagName === "DETAILS" && el.parentElement.hasAttribute("open"),
+      (el) =>
+        el.parentElement?.tagName === "DETAILS" && el.parentElement.hasAttribute("open"),
     );
     if (!isOpen) {
       await s.click();
@@ -95,7 +96,9 @@ async function onboardingFlow(page) {
   await page.getByLabel("Community name").fill("Philosophy Audit Cell");
   await shot(page, "onboarding-start-community-filled");
   await page.getByRole("button", { name: "Create community" }).click();
-  await page.getByRole("button", { name: "Community", exact: true }).waitFor({ timeout: 30_000 });
+  await page
+    .getByRole("button", { name: "Community", exact: true })
+    .waitFor({ timeout: 30_000 });
   await shot(page, "main-cell-initial");
 }
 
