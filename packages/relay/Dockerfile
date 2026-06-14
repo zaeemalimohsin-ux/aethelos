@@ -14,7 +14,9 @@ RUN pnpm install --frozen-lockfile --filter @aethelos/relay... --filter @aethelo
 # Copy sources and build.
 COPY packages/core packages/core
 COPY packages/relay packages/relay
-RUN pnpm --filter @aethelos/core build && pnpm --filter @aethelos/relay build
+RUN pnpm --filter @aethelos/core build \
+  && test -f packages/core/dist/index.d.ts \
+  && pnpm --filter @aethelos/relay build
 
 # Prune to production dependencies.
 RUN pnpm --filter @aethelos/relay deploy --prod /relay-out
