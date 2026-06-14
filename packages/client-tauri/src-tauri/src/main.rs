@@ -21,28 +21,44 @@ fn local_node_status() -> Result<LocalNodeStatus, String> {
     local_node::local_node_status()
 }
 
+#[tauri::command]
+fn write_share_url_file(url: String) -> Result<(), String> {
+    let path = std::env::var("AETHELOS_SHARE_URL_FILE")
+        .map(std::path::PathBuf::from)
+        .or_else(|_| {
+            std::env::current_dir()
+                .map(|d| d.join(".share-url"))
+                .map_err(|e| e.to_string())
+        })?;
+    if url.is_empty() {
+        let _ = std::fs::remove_file(&path);
+        return Ok(());
+    }
+    if !local_node::is_quick_tunnel_url(&url) {
+        return Err("share URL must be a quick tunnel (*.trycloudflare.com)".into());
+    }
+    std::fs::write(&path, format!("{url}\n")).map_err(|e| e.to_string())
+}
+
 fn main() {
-    #[cfg(not(debug_assertions))]
-    {
-        tauri::Builder::default()
-            .plugin(tauri_plugin_updater::Builder::new().build())
-            .invoke_handler(tauri::generate_handler![
-                start_local_node,
-                stop_local_node,
-                local_node_status,
-            ])
-            .run(tauri::generate_context!())
-            .expect("error while running AethelOS desktop");
-    }
-    #[cfg(debug_assertions)]
-    {
-        tauri::Builder::default()
-            .invoke_handler(tauri::generate_handler![
-                start_local_node,
-                stop_local_node,
-                local_node_status,
-            ])
-            .run(tauri::generate_context!())
-            .expect("error while running AethelOS desktop");
-    }
+    tauri::Builder::default()
+        .setup(|app| {
+            #[cfg(not(debug_assertions))]
+            {
+                if let Err(err) = local_node::start_local_node(Some(&app.handle())) {
+                    local_node::record_startup_error(err.clone());
+                    let log = std::env::temp_dir().join("aethelos-local-node.log");
+                    let _ = std::fs::write(log, err);
+                }
+            }
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            start_local_node,
+            stop_local_node,
+            local_node_status,
+            write_share_url_file,
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running AethelOS desktop");
 }

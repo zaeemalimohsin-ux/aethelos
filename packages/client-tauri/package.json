@@ -1,6 +1,6 @@
 {
   "name": "@aethelos/client-tauri",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "private": true,
   "description": "Signed desktop shell wrapping the AethelOS PWA via Tauri (same core, on-device files)",
   "scripts": {
@@ -10,7 +10,7 @@
     "fetch:node-sidecar": "node ../../scripts/fetch-node-sidecar.mjs",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build",
-    "desktop:build:release": "node ../../scripts/bundle-relay-sidecar.mjs && node ../../scripts/fetch-node-sidecar.mjs && tauri build"
+    "desktop:build:release": "node ../../scripts/bundle-relay-sidecar.mjs && node ../../scripts/fetch-node-sidecar.mjs && node ../../scripts/fetch-cloudflared.mjs --tauri && tauri build"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.1.0"

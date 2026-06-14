@@ -41,6 +41,9 @@ jobs:
       - name: Unit tests
         run: pnpm test
 
+      - name: User doc jargon check
+        run: node scripts/check-user-docs.mjs
+
       - name: Core coverage
         run: pnpm --filter @aethelos/core test:coverage
 
@@ -92,6 +95,12 @@ jobs:
       - name: Fetch Node sidecar placeholder
         run: node scripts/fetch-node-sidecar.mjs
 
+      - name: Bundle static sidecar placeholder
+        run: node scripts/bundle-static-sidecar.mjs
+
+      - name: Fetch cloudflared sidecar placeholder
+        run: node scripts/fetch-cloudflared.mjs --tauri
+
       - name: Cargo check (desktop shell)
         working-directory: packages/client-tauri/src-tauri
         run: cargo check
@@ -129,6 +138,61 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
+          path: packages/client/playwright-report/
+
+  docker-founder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm --filter @aethelos/core build
+
+      - name: Start Docker stack
+        run: |
+          printf '%s\n' \
+            'VITE_DEFAULT_RELAY_URL=' \
+            'VITE_BOOTSTRAP_RELAYS=' \
+            'VITE_INVITE_BASE_URL=' > .env.docker
+          docker compose --env-file .env.docker up -d --build
+
+      - name: Wait for client health
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8080/healthz && exit 0
+            sleep 2
+          done
+          echo "Client did not become healthy"
+          docker compose logs
+          exit 1
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
+
+      - name: Founder mobile E2E (Docker)
+        run: pnpm --filter @aethelos/client exec playwright test --project=founder-docker
+        env:
+          AETHELOS_DOCKER: "1"
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-founder-docker-report
           path: packages/client/playwright-report/
 
   security-scan:

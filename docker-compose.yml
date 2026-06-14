@@ -30,9 +30,9 @@ services:
       context: .
       dockerfile: packages/client/Dockerfile
       args:
-        VITE_DEFAULT_RELAY_URL: ${VITE_DEFAULT_RELAY_URL:-ws://localhost:8787}
+        VITE_DEFAULT_RELAY_URL: ${VITE_DEFAULT_RELAY_URL:-}
         VITE_BOOTSTRAP_RELAYS: ${VITE_BOOTSTRAP_RELAYS:-}
-        VITE_INVITE_BASE_URL: ${VITE_INVITE_BASE_URL:-http://localhost:8080}
+        VITE_INVITE_BASE_URL: ${VITE_INVITE_BASE_URL:-}
     image: aethelos/client:latest
     restart: unless-stopped
     ports:

@@ -7,25 +7,24 @@ Rust toolchain.
 
 ## Why a desktop build at all?
 
-The PWA already runs on any browser, including mobile. The desktop shell adds:
+The PWA already runs on any browser, including mobile — that is the primary path.
+The desktop shell adds:
 
-- On-device Event Log files and a always-available node.
-- **Peer mailbox sharing** — founders can host a community mailbox on their PC and
-  invite friends abroad without manual relay configuration.
-- OS integration (future: signed auto-update — **not enabled in v0.1.x**; updater
-  plugin is present but inactive until a release pipeline exists).
+- On-device Event Log files and an always-available local node.
+- **Optional peer mailbox** — host a community mailbox on your PC while it is awake.
+- OS integration (signed installers via GitHub Releases).
 
 It introduces no new gatekeeper — it is distributed directly, not via an app store.
 
 ## Quick install (Windows)
 
-1. **Run from source:** double-click [`Start-AethelOS.bat`](../../Start-AethelOS.bat) at repo root.
-2. **Build installer to share:** double-click [`Build-Release.bat`](../../Build-Release.bat) → `dist/releases/*.exe`.
-3. **GitHub Release:** download the Windows installer from Releases (tag `v0.1.1+`).
+1. **Everyday users:** double-click [`Build-Release.bat`](../../Build-Release.bat) → send `dist/releases/*.exe`.
+2. **Developers:** [`Start-AethelOS.bat`](../../Start-AethelOS.bat) at repo root.
+3. **GitHub Release:** download the Windows installer from Releases (tag `v0.1.2+`).
 
-Release builds bundle relay + Node — recipients do not install Node separately.
+Release builds bundle relay + Node — recipients do not install Node separately. The app connects automatically; operators tune hosting under **Identity → Advanced → network**.
 
-## Peer mailbox prerequisites
+## Peer hosting (optional, Advanced)
 
 Before `desktop:dev`, prepare the relay sidecar (or use `Start-AethelOS.bat` which builds it):
 
@@ -34,17 +33,12 @@ pnpm install
 pnpm --filter @aethelos/relay build
 ```
 
-For **friends far away** (cross-continent), install [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) on the founder's machine. The desktop app runs:
+The desktop app can spawn a local relay and, when cloudflared is available, publish a
+public reach URL automatically. Founders invite people from **Community → Invite people**.
+See [GET_STARTED.md](../../docs/GET_STARTED.md).
 
-```bash
-cloudflared tunnel --url http://127.0.0.1:8787
-```
-
-This opens a free public `https://` URL mapped to `wss://` for WebSocket sync. Without
-cloudflared, the mailbox works on the local network only.
-
-The Connection card shows **Ready for friends abroad** when the tunnel succeeds, or
-guidance when `cloudflared` is missing.
+The Connection card shows mailbox sharing status and guidance when a public URL is not
+available.
 
 ## Prerequisites
 
@@ -52,7 +46,6 @@ guidance when `cloudflared` is missing.
 - [Node.js](https://nodejs.org/) (>= 20) — used to spawn the relay sidecar
 - Platform build tools (see the Tauri prerequisites for your OS)
 - Tauri CLI: `pnpm --filter @aethelos/client-tauri add -D @tauri-apps/cli`
-- Optional: **cloudflared** for public tunnels (see above)
 
 ## Generate icons (first time)
 
@@ -85,9 +78,7 @@ pnpm release:desktop
 
 Artifacts land in `dist/releases/` (and `src-tauri/target/release/bundle/`).
 
-## Signing & auto-update
+## Signing
 
-- Configure code-signing per platform (Authenticode on Windows, notarization on
-  macOS) in your CI release workflow.
-- The updater is configured in `src-tauri/tauri.conf.json`; point `endpoints` at
-  your release host and sign updates with your Tauri updater key.
+Configure code-signing per platform (Authenticode on Windows, notarization on macOS) in
+your CI release workflow. Auto-update is not enabled in v0.1.x.

@@ -132,5 +132,5 @@ Once both sides pass, the parent records `childCells` and the child records
 
 ## Production deploy
 
-See [DEPLOY.md](./DEPLOY.md) for relay Docker, `VITE_DEFAULT_RELAY_URL`, static
+See [PUBLISHER.md](./PUBLISHER.md) for relay hosting, static
 hosting, and verification steps.

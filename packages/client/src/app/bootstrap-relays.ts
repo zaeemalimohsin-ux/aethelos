@@ -36,6 +36,20 @@ function companionRelay(): string | null {
   return raw.trim();
 }
 
+/** Bundled deploy: relay on same host as the PWA (nginx proxies /ws). */
+export function sameOriginRelayUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${wsProto}//${window.location.host}/ws`;
+}
+
+/** True when the app shell is loaded from localhost (not a public tunnel). */
+export function isLocalAppHost(): boolean {
+  if (typeof window === "undefined") return true;
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+}
+
 export function dedupeRelays(urls: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -51,14 +65,20 @@ export function dedupeRelays(urls: string[]): string[] {
 /**
  * Silent fallback pool when no community member has published a mailbox yet.
  * Primary connectivity comes from peer `relay_contribute` URLs on the ledger.
- * Dev: localhost only. Prod: companion relay + env + checked-in operator slots.
+ * Dev: localhost relay. Prod: same-origin /ws, then env overrides.
  */
 export function getBootstrapRelayPool(): string[] {
   if (import.meta.env.DEV) {
+    const sameOrigin = sameOriginRelayUrl();
+    if (sameOrigin && !isLocalAppHost()) {
+      return [sameOrigin];
+    }
     return ["ws://localhost:8787"];
   }
+  const sameOrigin = sameOriginRelayUrl();
   const companion = companionRelay();
   return dedupeRelays([
+    ...(sameOrigin ? [sameOrigin] : []),
     ...(companion ? [companion] : []),
     ...envBootstrapRelays(),
     ...FILE_BOOTSTRAP_RELAYS,
@@ -67,6 +87,8 @@ export function getBootstrapRelayPool(): string[] {
 
 /** Fallback when the bootstrap pool is empty (misconfigured prod build). */
 export function defaultRelay(): string {
+  const sameOrigin = sameOriginRelayUrl();
+  if (sameOrigin) return sameOrigin;
   const companion = companionRelay();
   if (companion) return companion;
   return "ws://localhost:8787";
@@ -271,6 +293,7 @@ export function usesAutomaticBootstrapRelays(): boolean {
 /** True when prod builds have at least one fallback mailbox configured. */
 export function isBootstrapPoolConfigured(): boolean {
   if (import.meta.env.DEV) return true;
+  if (typeof window !== "undefined" && sameOriginRelayUrl()) return true;
   return getBootstrapRelayPool().length > 0;
 }
 

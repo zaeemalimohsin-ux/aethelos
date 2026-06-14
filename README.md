@@ -14,15 +14,15 @@ Built on the principles in [Higher-Level-Philosophy.md](./Higher-Level-Philosoph
 
 | Goal | Action |
 |------|--------|
-| **Run it on your PC** | Double-click [`Start-AethelOS.bat`](./Start-AethelOS.bat) |
-| **Build a Windows installer to send someone** | Double-click [`Build-Release.bat`](./Build-Release.bat) → `dist/releases/` |
-| **Join a friend** | Open their invite link in a browser |
+| **Run it on your PC** | Install from [`Build-Release.bat`](./Build-Release.bat) → `dist/releases/` (or [`Start-AethelOS.bat`](./Start-AethelOS.bat) for developers) |
+| **Use on phone or browser** | Open your hosted app URL or an invite link |
+| **Join a friend** | Open their invite link in any browser |
 | **Full plain-English guide** | [docs/GET_STARTED.md](docs/GET_STARTED.md) |
 
 ```bash
 git clone https://github.com/zaeemalimohsin-ux/aethelos.git
 cd aethelos
-# then Start-AethelOS.bat or pnpm start
+# then double-click Start-AethelOS.bat
 ```
 
 ## Highlights
@@ -44,7 +44,7 @@ cd aethelos
 ```
 packages/
   core/          Pure deterministic engine (DAG, Reducer, economy, governance, wire validation)
-  relay/         Powerless WebSocket relay (health, metrics, rate limiting, Docker)
+  relay/         Powerless WebSocket relay (health, metrics, rate limiting)
   client/        Local-first React PWA (identity, multi-relay sync, full UI)
   client-tauri/  Optional signed desktop shell (same core + UI)
 ```
@@ -71,7 +71,7 @@ pnpm dev:client   # http://localhost:5173
 ```
 
 Open the client, create an identity, and start a community. To add people, use
-**Share invite link** and send them the link or QR.
+**Invite people** on the Community tab and send them the link or QR.
 
 **Manual multi-person testing (Windows):** double-click
 [`Multi-Person-Test.bat`](./Multi-Person-Test.bat) in the repo root — it starts
@@ -94,20 +94,16 @@ cache, set `PLAYWRIGHT_BROWSERS_PATH` to `%LOCALAPPDATA%\ms-playwright` before `
 
 ## Deploy
 
-- **Full walkthrough:** [docs/DEPLOY.md](docs/DEPLOY.md) — relay, static client, env vars, genesis check.
-- **Relay + client (Docker):** `docker compose --env-file .env.docker up --build -d` — browser at `http://localhost:8080`, relay at `ws://localhost:8787`. Or use [`Start-AethelOS.bat`](./Start-AethelOS.bat).
-- **Client:** set `VITE_DEFAULT_RELAY_URL` (see `packages/client/.env.example`), then
-  `pnpm --filter @aethelos/client build` and host `packages/client/dist` on any static
-  host. Security headers ship in
-  [packages/client/public/_headers](packages/client/public/_headers).
+- **Publishers:** [docs/PUBLISHER.md](docs/PUBLISHER.md) — permanent URL, CI stack, env vars.
+- **Client build:** set optional env vars (see `packages/client/.env.example`), then
+  `pnpm --filter @aethelos/client build` and host `packages/client/dist`.
 
 ## Documentation
 
 - **[Get started](docs/GET_STARTED.md)** — download, run, share (non-developers start here).
 - [User Guide](docs/USER_GUIDE.md) — for community members.
-- [Quick start — remote friends](docs/QUICKSTART_REMOTE.md) — founder abroad + joiner (desktop tunnel).
 - [Genesis Bootstrap](docs/GENESIS.md) — starting the very first community.
-- [Production Deploy](docs/DEPLOY.md) — relay + client + two-person genesis.
+- [Publisher guide](docs/PUBLISHER.md) — deploy, CI, permanent URL.
 - [Relay Operators](docs/RELAY_OPERATORS.md) — running infrastructure.
 - [Threat Model](docs/THREAT_MODEL.md) and [Security Policy](SECURITY.md).
 - [Versioning & Wire Compatibility](docs/VERSIONING.md).

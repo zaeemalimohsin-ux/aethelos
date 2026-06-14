@@ -22,6 +22,12 @@ const MEMBER_KINDS = new Set<ProposalKind>([
   "expel_member",
 ]);
 
+function defaultProposalKind(pool: PoolState): ProposalKind {
+  if (pool.fractures.length > 0) return "resolve_fracture";
+  if (Object.keys(pool.pendingInvites).length > 0) return "admit_member";
+  return "admit_member";
+}
+
 export function ProposalsView({ pool }: { pool: PoolState }) {
   const myKey = useStore((s) => s.myKey);
   const isMember = pool.members.includes(myKey);
@@ -44,7 +50,7 @@ export function ProposalsView({ pool }: { pool: PoolState }) {
         </div>
       )}
       <CreateProposal pool={pool} />
-      <Disclosure summary="Advanced: parent & sub-communities">
+      <Disclosure summary="Advanced: link chapters">
         <SuperstructureCard pool={pool} />
       </Disclosure>
       <Card eyebrow="Open decisions">
@@ -64,7 +70,7 @@ export function ProposalsView({ pool }: { pool: PoolState }) {
 
 function CreateProposal({ pool }: { pool: PoolState }) {
   const create = useStore((s) => s.createProposal);
-  const [kind, setKind] = useState<ProposalKind>("resolve_fracture");
+  const [kind, setKind] = useState<ProposalKind>(() => defaultProposalKind(pool));
   const [memberTarget, setMemberTarget] = useState("");
   const [idTarget, setIdTarget] = useState("");
   const needsMember = MEMBER_KINDS.has(kind);

@@ -13,6 +13,7 @@ import {
   type KeyPair,
 } from "@aethelos/core";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
+import { isValidPublicShareUrl } from "./public-share-url.js";
 
 export interface InvitePayload {
   v: 1;
@@ -41,7 +42,13 @@ export function isLocalInviteOrigin(url: string): boolean {
 /** Client shell URL for invite links — configurable for desktop founders sharing remotely. */
 export function inviteLinkBase(): string {
   const configured = import.meta.env.VITE_INVITE_BASE_URL?.trim();
-  if (configured) return configured.replace(/\/$/, "");
+  const onPublicShell =
+    typeof window !== "undefined" &&
+    typeof window.location?.hostname === "string" &&
+    !LOCAL_HTTP_HOSTS.has(window.location.hostname.toLowerCase());
+  if (configured && !(onPublicShell && isLocalInviteOrigin(configured))) {
+    return configured.replace(/\/$/, "");
+  }
   const path = window.location.pathname.replace(/\/?$/, "");
   return `${window.location.origin}${path}` || window.location.origin;
 }
@@ -89,8 +96,21 @@ export function encodeInvite(payload: InvitePayload): string {
   return toBase64Url(JSON.stringify(payload));
 }
 
-export function buildInviteLink(payload: InvitePayload): string {
-  return `${inviteLinkBase()}${HASH_PREFIX}${encodeInvite(payload)}`;
+/** Prefer a public share/tunnel URL for invite links when available. */
+export function resolveInviteLinkBase(options?: { publicShellUrl?: string }): string {
+  const publicUrl = options?.publicShellUrl?.trim();
+  if (publicUrl && isValidPublicShareUrl(publicUrl)) {
+    return new URL(publicUrl).origin;
+  }
+  return inviteLinkBase();
+}
+
+export function buildInviteLink(payload: InvitePayload, linkBase?: string): string {
+  const base =
+    linkBase !== undefined
+      ? resolveInviteLinkBase({ publicShellUrl: linkBase })
+      : inviteLinkBase();
+  return `${base}${HASH_PREFIX}${encodeInvite(payload)}`;
 }
 
 export function decodeInvite(encoded: string): InvitePayload | null {

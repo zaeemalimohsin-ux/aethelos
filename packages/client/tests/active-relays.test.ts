@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   mergeActiveRelays,
   httpsToWssRelayUrl,
@@ -54,12 +54,38 @@ describe("relayUrlsForInvite", () => {
     );
     expect(invite).toEqual(["wss://public.example.org"]);
   });
+
+  it("prefers same-origin relay when only localhost is available in DEV", () => {
+    vi.stubGlobal("window", {
+      location: {
+        protocol: "https:",
+        host: "abc.trycloudflare.com",
+        hostname: "abc.trycloudflare.com",
+      },
+    });
+    const invite = relayUrlsForInvite(["ws://127.0.0.1:8787"], "ns-tunnel");
+    expect(invite).toEqual(["wss://abc.trycloudflare.com/ws"]);
+    expect(invite.some((r) => /localhost|127\.0\.0\.1/.test(r))).toBe(false);
+    vi.unstubAllGlobals();
+  });
 });
 
 describe("httpsToWssRelayUrl", () => {
   it("maps quick tunnel https URL to wss", () => {
     expect(httpsToWssRelayUrl("https://abc.trycloudflare.com/path")).toBe(
-      "wss://abc.trycloudflare.com/",
+      "wss://abc.trycloudflare.com/ws",
     );
+  });
+});
+
+describe("connectionStatusMessage", () => {
+  it("uses plain language on the happy path", async () => {
+    const { connectionStatusMessage } = await import("../src/app/active-relays.js");
+    expect(connectionStatusMessage("online")).toBe("Connected to your community.");
+    expect(connectionStatusMessage("online", 2)).toBe(
+      "Connected — sending queued actions…",
+    );
+    expect(connectionStatusMessage("connecting")).toBe("Connecting…");
+    expect(connectionStatusMessage("offline")).toMatch(/Offline/);
   });
 });

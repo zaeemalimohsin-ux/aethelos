@@ -9,6 +9,7 @@ Maps claims in [Higher-Level-Philosophy.md](../Higher-Level-Philosophy.md) to au
 | P1.3 | Fracture on impossible state | `core.test.ts`, `adversarial.test.ts` | Covered | Partial E2E: `community.spec` `resolve_fracture` proposal flow; true double-spend → frozen → unfreeze still Charter A |
 | P1.4 | Cryptographic identity | `core.test.ts` (crypto) | Covered | Invite tamper: `client/tests/invite.test.ts`; relay filter: `core/tests/relay-url-utils.test.ts` |
 | P1.5 | Vouch lien + admission gate | `adversarial.test.ts` (vouch lien), `governance-fixes.test.ts` | Covered | — |
+| P1.6 | Relays invisible on happy path — swappable in Advanced | `active-relays.test.ts` (connectionStatusMessage), UI audit | Covered | E2E uses **Invite people** flow |
 | P2.1 | Share-based relational wealth | `core.test.ts`, E2E transfers | Covered | — |
 | P2.2 | Time-proportional accrual + redistribution interval | `circulation.test.ts` | Covered | epoch_interval min 15: `circulation.test.ts` |
 | P2.3 | Equal-weight redistribution (live, vouched souls) | `adversarial.test.ts` (R1 Sybil) | Covered | Superstructure population E2E: `federation.spec.ts` |

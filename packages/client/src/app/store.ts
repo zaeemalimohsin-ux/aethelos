@@ -31,7 +31,6 @@ import {
   selectRelaysForCommunity,
   resolveRelaysForCommunity,
   isValidRelayUrl,
-  isBootstrapPoolConfigured,
   type Session,
 } from "./session.js";
 import {
@@ -47,13 +46,18 @@ import {
   stopLocalNode,
   localNodeStatus,
   waitForPublicTunnel,
+  writeShareUrlFile,
+  type LocalNodeStatus,
 } from "./local-node.js";
 import { rejectionMessage } from "./rejection-messages.js";
 import {
   httpsToWssRelayUrl,
   tunnelStatusFromLocalNode,
+  isLocalOnlyRelayUrl,
   type TunnelStatus,
 } from "./active-relays.js";
+import { sameOriginRelayUrl } from "./bootstrap-relays.js";
+import { ensureOnline } from "./connectivity.js";
 
 export type Phase = "loading" | "onboarding" | "locked" | "ready";
 export type View = "cell" | "governance" | "proposals" | "identity";
@@ -124,10 +128,37 @@ interface AppStore {
   bridgeEscrow(remoteId: string, to: string, amount: string): Promise<void>;
   addRelay(url: string): void;
   removeRelay(url: string): void;
+  /** Desktop: public app URL for phone founding (Connection tab). */
+  shareUrl: string | null;
+  ensureDesktopShare(): Promise<void>;
   setRelaySharing(on: boolean): Promise<void>;
 }
 
 let keyPair: KeyPair | null = null;
+
+function desktopStartupErrorMessage(node: LocalNodeStatus | null): string | null {
+  const detail = node?.startupError?.trim();
+  if (detail) {
+    return `Can't connect from this computer: ${detail}`;
+  }
+  return null;
+}
+
+function syncShareUrlFile(shareUrl: string | null): void {
+  if (!isDesktopApp()) return;
+  void writeShareUrlFile(shareUrl);
+}
+
+function resolveInviteRelays(invite: InvitePayload): string[] {
+  let relays =
+    invite.relays.length > 0 ? [...invite.relays] : selectRelaysForCommunity(invite.ns);
+  const sameOrigin = sameOriginRelayUrl();
+  if (sameOrigin && !isLocalOnlyRelayUrl(sameOrigin)) {
+    relays = relays.filter((u) => !isLocalOnlyRelayUrl(u));
+    if (!relays.includes(sameOrigin)) relays.unshift(sameOrigin);
+  }
+  return relays.length > 0 ? relays : selectRelaysForCommunity(invite.ns);
+}
 
 export const useStore = create<AppStore>((set, get) => ({
   theme: (localStorage.getItem("aethelos-theme") as Theme) ?? "dark",
@@ -146,6 +177,29 @@ export const useStore = create<AppStore>((set, get) => ({
   newMnemonic: null,
   relaySharing: false,
   tunnelStatus: "idle",
+  shareUrl: null,
+
+  async ensureDesktopShare() {
+    if (!isDesktopApp()) return;
+    if (get().shareUrl) return;
+    const online = await ensureOnline({ desktopOnly: true });
+    if (!online.ok) {
+      const status = await localNodeStatus();
+      get().toast(
+        desktopStartupErrorMessage(status) ??
+          "Can't connect from this computer. See Identity → Advanced → Network.",
+        "error",
+      );
+      set({ tunnelStatus: "failed" });
+      return;
+    }
+    const shareUrl = online.publicUrl ?? null;
+    set({
+      shareUrl,
+      tunnelStatus: online.tunnelStatus,
+    });
+    if (shareUrl) syncShareUrlFile(shareUrl);
+  },
 
   async init() {
     document.documentElement.setAttribute("data-theme", get().theme);
@@ -153,6 +207,17 @@ export const useStore = create<AppStore>((set, get) => ({
     const session = loadSession();
     const pendingInvite = parseInviteFromUrl();
     set({ identities, session, pendingInvite });
+
+    if (isDesktopApp()) {
+      void get()
+        .ensureDesktopShare()
+        .then(async () => {
+          if (get().shareUrl || get().tunnelStatus !== "idle") return;
+          const status = await localNodeStatus();
+          const msg = desktopStartupErrorMessage(status);
+          if (msg) get().toast(msg, "error");
+        });
+    }
 
     if (session && identities.some((i) => i.publicKeyHex === session.publicKeyHex)) {
       set({ phase: "locked", displayName: session.displayName });
@@ -245,70 +310,51 @@ export const useStore = create<AppStore>((set, get) => ({
       sync: null,
       relaySharing: false,
       tunnelStatus: "idle",
+      shareUrl: null,
       phase: "locked",
     });
+    syncShareUrlFile(null);
   },
 
   async startCommunity(cellName, options) {
     if (!keyPair) return;
     const namespaceId = generateNamespaceId();
-    let relays: string[] = [];
-    let publicRelayUrl: string | undefined;
-    let tunnelStatus: TunnelStatus = "idle";
+    const online = await ensureOnline({
+      namespaceId,
+      ...(options?.customRelay ? { customRelay: options.customRelay } : {}),
+      probe: !import.meta.env.DEV,
+    });
 
-    if (isDesktopApp()) {
-      const node = await startLocalNode();
-      if (node?.localUrl) {
-        relays = [node.localUrl];
-        const withTunnel = node.publicUrl ? node : await waitForPublicTunnel(120_000);
-        publicRelayUrl = withTunnel?.publicUrl;
-        tunnelStatus = tunnelStatusFromLocalNode(
-          true,
-          publicRelayUrl,
-          withTunnel?.cloudflaredAvailable ?? node.cloudflaredAvailable,
-        );
-      }
-    }
-
-    if (relays.length === 0) {
-      relays = await resolveRelaysForCommunity(namespaceId, {
-        ...(options?.customRelay ? { customRelay: options.customRelay } : {}),
-        probe: !import.meta.env.DEV,
-      });
-    }
-
-    if (relays.length === 0) {
+    if (!online.ok) {
       get().toast(
-        isDesktopApp()
-          ? "Could not start a mailbox. Run Start-AethelOS.bat from the folder you downloaded, or reinstall the desktop app."
-          : "No mailboxes available. Ask your inviter for a link, or use the desktop app to start a community.",
+        "Can't reach your community right now. Open Identity → Advanced → Network for help.",
         "error",
       );
       return;
     }
+
+    const { relays, publicUrl: publicRelayUrl, tunnelStatus } = online;
 
     await startNode(set, get, namespaceId, relays);
     await get().controller?.genesis(cellName);
 
     if (publicRelayUrl) {
       await get().controller?.contributeRelay(httpsToWssRelayUrl(publicRelayUrl));
-    } else if (isDesktopApp() && tunnelStatus === "failed") {
-      get().toast(
-        "Community created locally. Install cloudflared to invite friends far away.",
-        "info",
-      );
-    } else if (!isDesktopApp() && !isBootstrapPoolConfigured()) {
-      get().toast(
-        "Community created, but no public mailboxes are configured for remote friends.",
-        "info",
-      );
+    } else if (!isDesktopApp()) {
+      const sameOrigin = sameOriginRelayUrl();
+      if (sameOrigin && !isLocalOnlyRelayUrl(sameOrigin)) {
+        await get().controller?.contributeRelay(sameOrigin);
+      }
     }
 
     persistSession(get);
     set({
       relaySharing: isDesktopApp() && Boolean(relays.length),
       tunnelStatus: isDesktopApp() ? tunnelStatus : "idle",
+      shareUrl: publicRelayUrl ?? get().shareUrl,
     });
+    const finalShareUrl = publicRelayUrl ?? get().shareUrl;
+    if (finalShareUrl) syncShareUrlFile(finalShareUrl);
     get().toast(`Community "${cellName}" created`, "success");
   },
 
@@ -319,16 +365,18 @@ export const useStore = create<AppStore>((set, get) => ({
       return;
     }
     if (!invite.sig) {
-      get().toast("Unsigned invite link — use a signed link from your inviter", "error");
+      get().toast(
+        "Unsigned invite link — ask your inviter to send a fresh invite from the app",
+        "error",
+      );
       return;
     }
-    const relays =
-      invite.relays.length > 0 ? invite.relays : selectRelaysForCommunity(invite.ns);
+    const relays = resolveInviteRelays(invite);
     await startNode(set, get, invite.ns, relays);
     persistSession(get);
     clearInviteFromUrl();
     set({ pendingInvite: null });
-    get().toast("Joined. Waiting for your invite to sync...", "info");
+    get().toast("You're in — tell your inviter you're waiting to be welcomed", "success");
   },
 
   async acceptPendingInvite() {
@@ -484,7 +532,7 @@ export const useStore = create<AppStore>((set, get) => ({
   addRelay(url) {
     const trimmed = url.trim();
     if (!isValidRelayUrl(trimmed)) {
-      get().toast("Enter a valid ws:// or wss:// relay address.", "error");
+      get().toast("Enter a valid ws:// or wss:// address.", "error");
       return;
     }
     get().controller?.addRelay(trimmed);
@@ -496,7 +544,7 @@ export const useStore = create<AppStore>((set, get) => ({
     const pool = get().pool;
     const relays = controller?.getRelayUrls() ?? [];
     if (relays.length <= 1) {
-      get().toast("Keep at least one relay connected.", "error");
+      get().toast("Keep at least one connection point.", "error");
       return;
     }
     if (pool?.communityRelays?.includes(trimmed)) {
@@ -509,10 +557,7 @@ export const useStore = create<AppStore>((set, get) => ({
 
   async setRelaySharing(on) {
     if (!isDesktopApp()) {
-      get().toast(
-        "Install the desktop app to share a mailbox from your computer.",
-        "info",
-      );
+      get().toast("Install the desktop app to host from your computer.", "info");
       return;
     }
     const controller = get().controller;
@@ -523,7 +568,7 @@ export const useStore = create<AppStore>((set, get) => ({
     if (on) {
       const node = await startLocalNode();
       if (!node?.localUrl) {
-        get().toast("Could not start a mailbox on this computer.", "error");
+        get().toast("Can't connect from this computer.", "error");
         return;
       }
       if (!controller.getSessionRelays().includes(node.localUrl)) {
@@ -539,17 +584,19 @@ export const useStore = create<AppStore>((set, get) => ({
         publicUrl,
         withTunnel?.cloudflaredAvailable ?? node.cloudflaredAvailable,
       );
-      set({ relaySharing: true, tunnelStatus });
+      set({ relaySharing: true, tunnelStatus, shareUrl: publicUrl ?? get().shareUrl });
+      const shareUrl = publicUrl ?? get().shareUrl;
+      if (shareUrl) syncShareUrlFile(shareUrl);
       persistSession(get);
       if (tunnelStatus === "ready") {
-        get().toast("Ready for friends abroad", "success");
+        get().toast("You're online — invite people from Community", "success");
       } else if (tunnelStatus === "failed") {
         get().toast(
-          "Sharing locally only — install cloudflared for friends far away.",
+          "Online on this network only. See Advanced → Network for a public address.",
           "info",
         );
       } else {
-        get().toast("Sharing from this computer (local network only)", "info");
+        get().toast("Hosting on this network only", "info");
       }
       return;
     }
@@ -563,8 +610,9 @@ export const useStore = create<AppStore>((set, get) => ({
       }
     }
     await stopLocalNode();
-    set({ relaySharing: false, tunnelStatus: "idle" });
-    get().toast("Stopped sharing from this computer", "info");
+    set({ relaySharing: false, tunnelStatus: "idle", shareUrl: null });
+    syncShareUrlFile(null);
+    get().toast("Stopped hosting from this computer", "info");
   },
 }));
 

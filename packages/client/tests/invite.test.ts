@@ -108,4 +108,36 @@ describe("invite link base URL", () => {
     expect(isLocalInviteOrigin("http://localhost:5173/#/join?d=abc")).toBe(true);
     expect(isLocalInviteOrigin("https://app.example.org/#/join?d=abc")).toBe(false);
   });
+
+  it("uses public shell origin when configured base is localhost-only", () => {
+    vi.stubEnv("VITE_INVITE_BASE_URL", "http://localhost:5173");
+    vi.stubGlobal("window", {
+      location: {
+        origin: "https://abc.trycloudflare.com",
+        pathname: "/",
+        hostname: "abc.trycloudflare.com",
+      },
+    });
+    expect(inviteLinkBase()).toBe("https://abc.trycloudflare.com");
+  });
+
+  it("buildInviteLink uses public share URL when provided", async () => {
+    vi.stubEnv("VITE_INVITE_BASE_URL", "http://localhost:5173");
+    vi.stubGlobal("window", {
+      location: { origin: "http://localhost:5173", pathname: "/" },
+    });
+    const kp = await generateKeyPair();
+    const payload = await signInvitePayload(
+      {
+        v: 1,
+        ns: "ns-tunnel",
+        inviter: kp.publicKeyHex,
+        cell: "Cell",
+        relays: ["wss://abc.trycloudflare.com/ws"],
+      },
+      kp,
+    );
+    const link = buildInviteLink(payload, "https://abc.trycloudflare.com");
+    expect(link.startsWith("https://abc.trycloudflare.com#/join?d=")).toBe(true);
+  });
 });

@@ -1,6 +1,6 @@
 # AethelOS Codebase Audit — Pass 4 (Fresh-Lens Verification)
 
-> **Supersedes operational sign-off in [Pass 3](./CODEBASE_AUDIT_PASS3.md).** Pass 4 uses orthogonal lenses: threat crosswalk, error contracts, storage drills, persona docs, a11y, release honesty.
+> **Supersedes operational sign-off in [Pass 3 (archive)](./archive/CODEBASE_AUDIT_PASS3.md).** Pass 4 uses orthogonal lenses: threat crosswalk, error contracts, storage drills, persona docs, a11y, release honesty.
 
 **Date:** 2026-06-11  
 **Baseline commit:** Pass 3 at `31e0b05`  
@@ -67,7 +67,7 @@ Updated [`USER_GUIDE.md`](./USER_GUIDE.md):
 
 - Join path with join code + vouch (not “tap Accept” immediately)
 - **Connection** tab naming (was “Relays”)
-- Desktop founder pointer to `QUICKSTART_REMOTE.md`
+- Desktop founder pointer to [GET_STARTED.md](./GET_STARTED.md)
 - SW reload banner documented
 
 [`TESTING_RELEASE.md`](./TESTING_RELEASE.md): added Windows desktop proof checklist items.

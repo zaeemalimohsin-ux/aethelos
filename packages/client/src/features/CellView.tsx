@@ -15,7 +15,7 @@ import { Button } from "../design/components/Button.js";
 import { Field } from "../design/components/Field.js";
 import { Modal } from "../design/components/Modal.js";
 import { QRCode } from "../components/QRCode.js";
-import { buildInviteLink, isLocalInviteOrigin } from "../app/invite.js";
+import { buildInviteLink } from "../app/invite.js";
 import { shortKey, formatPts } from "../app/format.js";
 import {
   clearSubCellParentContext,
@@ -26,10 +26,7 @@ import { HelpTip } from "../design/components/HelpTip.js";
 import { Disclosure } from "../design/components/Disclosure.js";
 import { MemberSelect } from "../design/components/MemberSelect.js";
 import { useCirculationCountdown } from "../app/useCirculationCountdown.js";
-import { RelaySetupHelp } from "../design/components/RelaySetupHelp.js";
-import { isValidRelayUrl } from "../app/session.js";
-import { isDesktopApp } from "../app/local-node.js";
-import { tunnelStatusMessage } from "../app/active-relays.js";
+import { connectionStatusMessage } from "../app/active-relays.js";
 
 export function CellView({ pool }: { pool: PoolState }) {
   const controller = useStore((s) => s.controller)!;
@@ -65,13 +62,13 @@ export function CellView({ pool }: { pool: PoolState }) {
         <div className="alert info">
           {pendingInvite!.admissionApproved ? (
             <>
-              The community approved your admission.{" "}
+              You're approved — welcome in!{" "}
               <button className="btn sm" onClick={() => void acceptPendingInvite()}>
-                Accept invite
+                Accept invitation
               </button>
             </>
           ) : (
-            <>Waiting for the community to approve your admission via proposal vote.</>
+            <>Your community is voting on welcoming you in.</>
           )}
         </div>
       )}
@@ -108,6 +105,8 @@ export function CellView({ pool }: { pool: PoolState }) {
         </Card>
       </div>
 
+      {pool.members.includes(myKey) && !isFrozen && <InviteCard onInvite={invite} />}
+
       <Members pool={pool} />
 
       {(pool.childCells?.length ?? 0) > 0 && <ChildCellsCard pool={pool} />}
@@ -116,14 +115,13 @@ export function CellView({ pool }: { pool: PoolState }) {
 
       {pool.members.includes(myKey) && !isFrozen && (
         <>
-          <TransferCard onTransfer={transfer} pool={pool} myKey={myKey} />
+          {pool.members.length > 1 && (
+            <TransferCard onTransfer={transfer} pool={pool} myKey={myKey} />
+          )}
           <ActiveVouchLiensCard pool={pool} myKey={myKey} />
           <PendingInvitesCard pool={pool} myKey={myKey} />
-          <InviteCard onInvite={invite} />
         </>
       )}
-
-      <RelaysCard />
     </div>
   );
 }
@@ -148,9 +146,6 @@ function PhilosophyCard() {
           <strong>Stake circulation</strong> — {CONCEPT.epoch}
         </p>
         <p>
-          <strong>Mailboxes</strong> — {CONCEPT.relay}
-        </p>
-        <p>
           <strong>Scaling up</strong> — {CONCEPT.subCell}
         </p>
       </div>
@@ -162,9 +157,8 @@ function GuestJoinCodeBanner({ myKey }: { myKey: string }) {
   const toast = useStore((s) => s.toast);
   return (
     <div className="alert info">
-      <strong>Waiting to be welcomed in?</strong> Send this join code to whoever invited
-      you. They pledge a lien on their Share and the community votes to admit you.{" "}
-      <HelpTip text={CONCEPT.vouch} />
+      <strong>Waiting to be welcomed in?</strong> Tell whoever invited you that you're
+      ready — they vouch for you and the community votes. <HelpTip text={CONCEPT.vouch} />
       <div className="join-code-box">
         <code className="mono">{myKey}</code>
         <Button
@@ -172,10 +166,10 @@ function GuestJoinCodeBanner({ myKey }: { myKey: string }) {
           variant="secondary"
           onClick={async () => {
             await navigator.clipboard.writeText(myKey);
-            toast("Join code copied — send it to your inviter", "success");
+            toast("Copied — send this to your inviter", "success");
           }}
         >
-          Copy join code
+          Copy code for inviter
         </Button>
       </div>
     </div>
@@ -296,7 +290,7 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
   const threshold = pool.parameters.approval_threshold;
   if (pending.length === 0) return null;
   return (
-    <Card eyebrow="Your pending invites">
+    <Card eyebrow="People waiting to join">
       <ul className="list">
         {pending.map(([invitee, inv]) => {
           const proposalId = admissionProposalId(invitee);
@@ -329,9 +323,10 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
 function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> }) {
   const controller = useStore((s) => s.controller)!;
   const pool = useStore((s) => s.pool)!;
+  const sync = useStore((s) => s.sync);
   const myKey = useStore((s) => s.myKey);
   const displayName = useStore((s) => s.displayName);
-  const tunnelStatus = useStore((s) => s.tunnelStatus);
+  const shareUrl = useStore((s) => s.shareUrl);
   const toast = useStore((s) => s.toast);
   const [pubkey, setPubkey] = useState("");
   const lienAmount = requiredVouchLien(pool, myKey);
@@ -350,7 +345,9 @@ function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> 
     void controller
       .buildSignedInvitePayload(pool.cellName, controller.getInviteRelayUrls())
       .then((payload) => {
-        if (!cancelled) setInviteLink(buildInviteLink(payload));
+        if (!cancelled) {
+          setInviteLink(buildInviteLink(payload, shareUrl ?? undefined));
+        }
       })
       .catch(() => {
         if (!cancelled) toast("Could not sign invite link", "error");
@@ -358,29 +355,34 @@ function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> 
     return () => {
       cancelled = true;
     };
-  }, [showLink, controller, pool.cellName, toast]);
+  }, [showLink, controller, pool.cellName, toast, shareUrl]);
+
+  const statusLine = connectionStatusMessage(sync?.overall, sync?.pendingOutbox ?? 0);
 
   return (
-    <Card eyebrow="Invite someone">
+    <Card eyebrow="Invite people">
       {atCap ? (
         <div className="alert warning" style={{ marginBottom: "var(--sp-3)" }}>
-          At capacity ({SOFT_CELL_CAP} members). New people join through sub-communities —
-          spawn one from the banner above if you are Head.
+          At capacity ({SOFT_CELL_CAP} members). New people join through linked chapters —
+          start one from the banner above if you are Head.
         </div>
       ) : nearCap ? (
         <div className="alert info" style={{ marginBottom: "var(--sp-3)" }}>
-          {pool.members.length} / {SOFT_CELL_CAP} members — plan a sub-community soon.
+          {pool.members.length} / {SOFT_CELL_CAP} members — plan a linked chapter soon.
         </div>
       ) : null}
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-        Share a link first. When they open it, they copy a <strong>join code</strong> back
-        to you — then you vouch for them. <HelpTip text={CONCEPT.vouch} />
+        Send a link or QR. When they open it, tell you they're waiting — then vouch for
+        them here. <HelpTip text={CONCEPT.vouch} />
       </p>
       <Button variant="secondary" block onClick={() => setShowLink(true)}>
-        Share invite link
+        Invite people
       </Button>
+      <p className="hint" style={{ marginTop: "var(--sp-3)" }}>
+        {statusLine}
+      </p>
 
-      <Disclosure summary="They opened your link — vouch for them">
+      <Disclosure summary="Someone opened your link — vouch for them">
         <Field
           label="Join code"
           hint="Paste the code from their screen (Community tab)."
@@ -407,24 +409,14 @@ function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> 
       </Disclosure>
 
       {showLink && inviteLink && (
-        <Modal title="Invite link" onClose={() => setShowLink(false)}>
+        <Modal title="Invite people" onClose={() => setShowLink(false)}>
           <p className="muted" style={{ marginBottom: "var(--sp-3)" }}>
             {displayName ? `${displayName} invites you to ` : "Join "}
-            <strong>{pool.cellName}</strong>. This link is signed by the inviter. Share it
-            or the QR:
+            <strong>{pool.cellName}</strong>. Share this link or QR:
           </p>
           <div className="center" style={{ marginBottom: "var(--sp-3)" }}>
             <QRCode value={inviteLink} />
           </div>
-          {isDesktopApp() &&
-            tunnelStatus === "ready" &&
-            isLocalInviteOrigin(inviteLink) && (
-              <div className="alert info" style={{ marginBottom: "var(--sp-3)" }}>
-                Friends far away cannot open a localhost link. Host the app at a public
-                URL (see GET_STARTED in the docs) or use Build-Release / GitHub Releases
-                for the desktop app with a configured invite URL.
-              </div>
-            )}
           <div className="field">
             <textarea className="textarea mono" rows={3} readOnly value={inviteLink} />
           </div>
@@ -457,12 +449,12 @@ function SubCellCapBanner({ pool, isHead }: { pool: PoolState; isHead: boolean }
       <div className={`alert ${atCap ? "warning" : "info"}`}>
         {atCap ? (
           <>
-            At capacity ({SOFT_CELL_CAP} members). New people join through linked
-            sub-communities — spawn one if you are Head.
+            At capacity ({SOFT_CELL_CAP} members). New people join through linked chapters
+            — start one if you are Head.
           </>
         ) : (
           <>
-            {count} / {SOFT_CELL_CAP} members — AethelOS scales by depth (sub-Cells), not
+            {count} / {SOFT_CELL_CAP} members — AethelOS scales by linked chapters, not
             width.
           </>
         )}
@@ -472,18 +464,17 @@ function SubCellCapBanner({ pool, isHead }: { pool: PoolState; isHead: boolean }
             style={{ marginLeft: "var(--sp-2)" }}
             onClick={() => setOpen(true)}
           >
-            Spawn sub-Cell
+            Spawn a chapter
           </button>
         )}
       </div>
       {open && (
-        <Modal title="Spawn a sub-Cell" onClose={() => setOpen(false)}>
+        <Modal title="Start a linked chapter" onClose={() => setOpen(false)}>
           <p className="muted" style={{ marginBottom: "var(--sp-3)" }}>
-            Creates a new community (new namespace) with you as founder. New members join
-            the sub-Cell; link it back here via proposals on both sides.
+            Creates a new community with you as founder. Link it back here when ready.
           </p>
           <Field
-            label="Sub-Cell name"
+            label="Chapter name"
             placeholder={`${pool.cellName} — Ward A`}
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -498,7 +489,7 @@ function SubCellCapBanner({ pool, isHead }: { pool: PoolState; isHead: boolean }
               });
             }}
           >
-            Create sub-Cell
+            Create chapter
           </Button>
         </Modal>
       )}
@@ -708,118 +699,6 @@ function BridgeEscrowCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
           Only bridge members can initiate cross-community transfers.
         </p>
       )}
-    </Card>
-  );
-}
-
-function RelaysCard() {
-  const controller = useStore((s) => s.controller)!;
-  const sync = useStore((s) => s.sync);
-  const pool = useStore((s) => s.pool);
-  const relaySharing = useStore((s) => s.relaySharing);
-  const tunnelStatus = useStore((s) => s.tunnelStatus);
-  const setRelaySharing = useStore((s) => s.setRelaySharing);
-  const addRelay = useStore((s) => s.addRelay);
-  const removeRelay = useStore((s) => s.removeRelay);
-  const [url, setUrl] = useState("");
-  const [relayError, setRelayError] = useState("");
-  const [shareBusy, setShareBusy] = useState(false);
-  const desktop = isDesktopApp();
-  const relays =
-    sync?.relays ??
-    controller.getRelayUrls().map((u) => ({ url: u, status: "offline" as const }));
-  const communityCount = pool?.communityRelays?.length ?? 0;
-  const onlineCount = relays.filter((r) => r.status === "online").length;
-
-  return (
-    <Card eyebrow="Connection">
-      <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-        Community mailboxes: {communityCount || "none published yet"} · connected to{" "}
-        {onlineCount} of {relays.length}. <HelpTip text={CONCEPT.relay} />
-      </p>
-      {desktop ? (
-        <>
-          <div
-            className="row"
-            style={{ marginBottom: "var(--sp-2)", alignItems: "center" }}
-          >
-            <span className="muted">Sharing from this computer</span>
-            <button
-              className={`btn ${relaySharing ? "secondary" : "ghost"} sm`}
-              disabled={shareBusy}
-              onClick={async () => {
-                setShareBusy(true);
-                await setRelaySharing(!relaySharing);
-                setShareBusy(false);
-              }}
-            >
-              {relaySharing ? "On" : "Off"}
-            </button>
-          </div>
-          <p
-            className={`hint ${tunnelStatus === "failed" ? "error-text" : ""}`}
-            style={{ marginBottom: "var(--sp-3)" }}
-          >
-            {tunnelStatusMessage(tunnelStatus)}
-          </p>
-          <Disclosure summary="Sharing details">
-            <p className="hint" style={{ marginBottom: "var(--sp-2)" }}>
-              Your PC must stay awake while sharing. Tunnel URLs may change if you restart
-              — toggle sharing off and on to republish.
-            </p>
-          </Disclosure>
-        </>
-      ) : (
-        <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-          Install the desktop app if you want to share a mailbox from your computer.
-        </p>
-      )}
-      <Disclosure summary="Troubleshooting: manage relays">
-        <ul className="list">
-          {relays.map((r) => (
-            <li key={r.url}>
-              <span className="row" style={{ gap: "var(--sp-2)" }}>
-                <span className={`dot ${r.status}`} />
-                <span className="mono">{r.url}</span>
-              </span>
-              <button
-                className="btn ghost sm"
-                onClick={() => removeRelay(r.url)}
-                aria-label={`Remove relay ${r.url}`}
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-        <div className="row" style={{ marginTop: "var(--sp-3)" }}>
-          <input
-            className="input"
-            placeholder="wss://relay.example.org:8787"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            style={{ flex: 1 }}
-          />
-          <Button
-            variant="secondary"
-            disabled={!url.trim()}
-            onClick={() => {
-              const trimmed = url.trim();
-              if (!isValidRelayUrl(trimmed)) {
-                setRelayError("Enter a valid ws:// or wss:// relay address.");
-                return;
-              }
-              setRelayError("");
-              addRelay(trimmed);
-              setUrl("");
-            }}
-          >
-            Add relay
-          </Button>
-        </div>
-        {relayError ? <p className="error-text">{relayError}</p> : null}
-        <RelaySetupHelp />
-      </Disclosure>
     </Card>
   );
 }

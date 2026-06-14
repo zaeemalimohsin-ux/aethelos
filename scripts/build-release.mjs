@@ -2,7 +2,15 @@
 /**
  * Build a Windows desktop installer and copy to dist/releases/.
  */
-import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
+import {
+  readFileSync,
+  readdirSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  statSync,
+  utimesSync,
+} from "node:fs";
 import { execSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,12 +18,51 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const bundleDir = join(root, "packages/client-tauri/src-tauri/target/release/bundle");
 const outDir = join(root, "dist/releases");
+const resourceSrc = join(root, "packages/client-tauri/src-tauri/resources");
+const proofBuild = process.env.AETHELOS_PROOF_BUILD === "1";
+
+function staticAssetsHasTestBridge() {
+  const staticAssets = join(resourceSrc, "static", "assets");
+  if (!existsSync(staticAssets)) return false;
+  return readdirSync(staticAssets)
+    .filter((name) => name.endsWith(".js"))
+    .some((name) =>
+      readFileSync(join(staticAssets, name), "utf8").includes("__aethelosTest"),
+    );
+}
+
+function verifyStaticSidecarGate() {
+  const staticAssets = join(resourceSrc, "static", "assets");
+  if (!existsSync(staticAssets)) {
+    console.error("Static sidecar assets missing:", staticAssets);
+    process.exit(1);
+  }
+  const hasBridge = staticAssetsHasTestBridge();
+  if (proofBuild) {
+    if (!hasBridge) {
+      console.error("Proof build missing __aethelosTest in static sidecar bundle");
+      process.exit(1);
+    }
+    console.log("Proof static sidecar includes E2E test bridge");
+    return;
+  }
+  if (hasBridge) {
+    console.error(
+      "Normal release must not ship __aethelosTest — rebuild client without AETHELOS_PROOF_BUILD",
+    );
+    process.exit(1);
+  }
+  console.log("Release static sidecar verified (no E2E test bridge)");
+}
 
 console.log("== bundle relay sidecar ==");
 execSync("node scripts/bundle-relay-sidecar.mjs", { cwd: root, stdio: "inherit" });
 
 console.log("== fetch node sidecar ==");
 execSync("node scripts/fetch-node-sidecar.mjs", { cwd: root, stdio: "inherit" });
+
+console.log("== fetch cloudflared sidecar ==");
+execSync("node scripts/fetch-cloudflared.mjs --tauri", { cwd: root, stdio: "inherit" });
 
 console.log("== generate tauri icons ==");
 execSync(
@@ -27,10 +74,39 @@ execSync(
 );
 
 console.log("== desktop build ==");
+const tauriTarget = join(root, "packages/client-tauri/src-tauri/target");
+const buildEnv = { ...process.env };
+delete buildEnv.VITE_E2E;
+if (proofBuild) {
+  buildEnv.VITE_E2E = "1";
+}
+buildEnv.CARGO_TARGET_DIR = tauriTarget;
+if (buildEnv.CI === "1") buildEnv.CI = "true";
+else if (buildEnv.CI === "0") buildEnv.CI = "false";
+
+// Cargo may skip re-linking when only JS sidecars change; bump main.rs mtime so
+// the release binary is rebuilt after prepare-release-client refreshes resources/static.
+const mainRs = join(root, "packages/client-tauri/src-tauri/src/main.rs");
+utimesSync(mainRs, new Date(), new Date());
+
 execSync("pnpm --filter @aethelos/client-tauri desktop:build:release", {
   cwd: root,
   stdio: "inherit",
+  env: buildEnv,
 });
+
+console.log("== verify static sidecar ==");
+verifyStaticSidecarGate();
+
+console.log("== stage release resources beside runtime exe ==");
+const releaseDir = join(root, "packages/client-tauri/src-tauri/target/release");
+for (const name of ["relay", "node", "app-server", "static", "cloudflared"]) {
+  const src = join(resourceSrc, name);
+  const dest = join(releaseDir, name);
+  if (existsSync(src)) {
+    cpSync(src, dest, { recursive: true });
+  }
+}
 
 mkdirSync(outDir, { recursive: true });
 

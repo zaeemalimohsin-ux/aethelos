@@ -93,7 +93,10 @@ a:hover {
 .app-nav {
   display: flex;
   gap: var(--sp-2);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
   margin-bottom: var(--sp-5);
 }
 

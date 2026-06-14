@@ -6,6 +6,34 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-06-11
+
+### Changed
+
+- **Zero-jargon user path:** Start-AethelOS opens the desktop app first (not Docker). Share link in Connection tab (copy + QR).
+- User docs stripped of infrastructure terms; publisher deploy moved to [PUBLISHER.md](./docs/PUBLISHER.md).
+- Release bundles cloudflared + static app-server for phone founding via share link (`/ws` same-origin).
+- Docker only via `-Mode Docker` / `publisher-deploy.ps1` / CI — not the regular user path.
+
+### Added
+
+- `pnpm verify:release`, `pnpm check:user-docs`, `scripts/publisher-deploy.ps1`, `.cursor/rules/user-simplicity.mdc`.
+
+## [0.1.2] - 2026-06-11
+
+### Added
+
+- **Phone-first founding:** same-origin relay at `wss://{host}/ws` via nginx proxy; no `REPLACE` bootstrap placeholders.
+- **Auto public share link:** `Start-AethelOS.bat` bundles cloudflared fetch + tunnel to port 8080; `-Share` re-prints URL via `scripts/share-public.ps1`.
+- **Tests:** `bootstrap-relays.test.ts`, `founder-mobile.spec.ts`, CI `docker-founder` job, `pnpm android:smoke` / `scripts/android-pwa-smoke.ps1`.
+- **Deploy:** permanent URL section in [PUBLISHER.md](./docs/PUBLISHER.md); `scripts/deploy-compose.sh` for VPS bootstrap.
+
+### Changed
+
+- Phone-first copy across onboarding, Connection, and docs; desktop peer mailbox is optional appendix in [GET_STARTED.md](./docs/GET_STARTED.md).
+- Leaner E2E matrix: `community-scale` runs on chromium only (not duplicated on mobile-chrome).
+- Removed inactive Tauri auto-updater plugin from desktop shell.
+
 ## [0.1.1] - 2026-06-11
 
 ### Added

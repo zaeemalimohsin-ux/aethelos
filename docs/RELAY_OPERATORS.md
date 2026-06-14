@@ -69,16 +69,17 @@ server {
 
 Nodes then use `wss://relay.example.org`.
 
-## Desktop peer mailboxes (founders)
+## Desktop peer mailboxes (optional)
 
-The desktop app can share a mailbox from a member's PC without VPS setup:
+The desktop app can share a mailbox from a member's PC while it is awake. For founding
+and invites, the primary path is **Start-AethelOS.bat** (one public URL for app + `/ws`
+relay). Desktop mailboxes are an optional resilience layer:
 
 1. Build the relay: `pnpm --filter @aethelos/relay build`
-2. Install [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)
-3. Run the desktop app — it spawns the relay on `127.0.0.1:8787` and a Cloudflare quick tunnel
-4. The public `wss://` URL is published on the community ledger via `relay_contribute`
+2. Run the desktop app — it spawns the relay on `127.0.0.1:8787` and may open a public tunnel when cloudflared is available
+3. The public `wss://` URL is published on the community ledger via `relay_contribute`
 
-Without cloudflared, the mailbox works on the local network only. Toggle sharing off
+Without a public tunnel, the mailbox works on the local network only. Toggle sharing off
 in the Connection card to publish `relay_revoke` and stop the local relay.
 
 See [packages/client-tauri/README.md](../packages/client-tauri/README.md).

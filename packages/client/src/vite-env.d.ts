@@ -1,6 +1,8 @@
 /// <reference types="vite/client" />
 /// <reference types="vite-plugin-pwa/client" />
 
+declare const __PROOF_E2E__: "0" | "1";
+
 interface ImportMetaEnv {
   readonly VITE_DEFAULT_RELAY_URL?: string;
   readonly VITE_BOOTSTRAP_RELAYS?: string;

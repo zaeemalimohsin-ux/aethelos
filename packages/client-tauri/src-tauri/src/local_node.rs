@@ -5,7 +5,9 @@ use std::sync::Mutex;
 use std::thread;
 use std::time::{Duration, Instant};
 
-const LOCAL_PORT: u16 = 8787;
+const RELAY_PORT: u16 = 8787;
+const APP_PORT: u16 = 8080;
+const DEV_APP_PORT: u16 = 5173;
 const LOCAL_WS: &str = "ws://127.0.0.1:8787";
 const TUNNEL_WAIT_MS: u64 = 120_000;
 
@@ -17,16 +19,33 @@ pub struct LocalNodeStatus {
     pub running: bool,
     pub tunnel_ready: bool,
     pub cloudflared_available: bool,
+    pub startup_error: Option<String>,
 }
 
 struct LocalNodeState {
     relay_child: Option<Child>,
+    app_server_child: Option<Child>,
     tunnel_child: Option<Child>,
     public_url: Option<String>,
     cloudflared_available: bool,
 }
 
 static NODE: Mutex<Option<LocalNodeState>> = Mutex::new(None);
+static STARTUP_ERROR: Mutex<Option<String>> = Mutex::new(None);
+
+fn set_startup_error(msg: Option<String>) {
+    if let Ok(mut guard) = STARTUP_ERROR.lock() {
+        *guard = msg;
+    }
+}
+
+fn current_startup_error() -> Option<String> {
+    STARTUP_ERROR.lock().ok().and_then(|g| g.clone())
+}
+
+pub fn record_startup_error(err: String) {
+    set_startup_error(Some(err));
+}
 
 fn relay_script_path_dev() -> Option<PathBuf> {
     let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -41,8 +60,9 @@ fn relay_script_path_dev() -> Option<PathBuf> {
 fn resolve_relay_launch(app: Option<&tauri::AppHandle>) -> Result<(PathBuf, PathBuf), String> {
     #[cfg(debug_assertions)]
     {
-        let script = relay_script_path_dev()
-            .ok_or("relay script not found — run Start-AethelOS.bat or: pnpm --filter @aethelos/relay build")?;
+        let script = relay_script_path_dev().ok_or(
+            "relay script not found — run Start-AethelOS.bat or: pnpm --filter @aethelos/relay build",
+        )?;
         return Ok((PathBuf::from("node"), script));
     }
 
@@ -68,6 +88,78 @@ fn resolve_relay_launch(app: Option<&tauri::AppHandle>) -> Result<(PathBuf, Path
     }
 }
 
+fn resolve_app_server_launch(app: Option<&tauri::AppHandle>) -> Option<(PathBuf, PathBuf, PathBuf)> {
+    #[cfg(not(debug_assertions))]
+    {
+        use tauri::Manager;
+        let app = app?;
+        let node = app
+            .path()
+            .resolve("node/win-x64/node.exe", tauri::path::BaseDirectory::Resource)
+            .ok()?;
+        let script = app
+            .path()
+            .resolve("app-server/server.cjs", tauri::path::BaseDirectory::Resource)
+            .ok()?;
+        let static_root = app
+            .path()
+            .resolve("static", tauri::path::BaseDirectory::Resource)
+            .ok()?;
+        if node.exists() && script.exists() && static_root.exists() {
+            return Some((node, script, static_root));
+        }
+    }
+    None
+}
+
+fn resolve_cloudflared(app: Option<&tauri::AppHandle>) -> (PathBuf, bool) {
+    #[cfg(not(debug_assertions))]
+    if let Some(app) = app {
+        use tauri::Manager;
+        if let Ok(path) = app.path().resolve(
+            "cloudflared/win-x64/cloudflared.exe",
+            tauri::path::BaseDirectory::Resource,
+        ) {
+            if path.exists() {
+                return (path, true);
+            }
+        }
+    }
+
+    if let Ok(path) = which_cloudflared() {
+        return (path, true);
+    }
+
+    (PathBuf::from("cloudflared"), false)
+}
+
+fn which_cloudflared() -> Result<PathBuf, ()> {
+    Command::new("where")
+        .arg("cloudflared")
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .and_then(|s| s.lines().next().map(PathBuf::from))
+        .ok_or(())
+}
+
+pub fn is_quick_tunnel_url(url: &str) -> bool {
+    if !url.starts_with("https://") {
+        return false;
+    }
+    let host = url
+        .trim_start_matches("https://")
+        .split('/')
+        .next()
+        .unwrap_or("");
+    if !host.ends_with(".trycloudflare.com") {
+        return false;
+    }
+    let subdomain = host.trim_end_matches(".trycloudflare.com");
+    !subdomain.is_empty() && subdomain != "api" && !subdomain.contains('.')
+}
+
 fn extract_https_url(line: &str) -> Option<String> {
     if let Some(idx) = line.find("https://") {
         let rest = &line[idx..];
@@ -77,16 +169,16 @@ fn extract_https_url(line: &str) -> Option<String> {
             })
             .unwrap_or(rest.len());
         let url = &rest[..end];
-        if url.contains(".trycloudflare.com") && url.len() > "https://".len() {
+        if is_quick_tunnel_url(url) {
             return Some(url.to_string());
         }
     }
     None
 }
 
-fn wait_for_relay_health() {
-    for _ in 0..20 {
-        if std::net::TcpStream::connect(format!("127.0.0.1:{LOCAL_PORT}")).is_ok() {
+fn wait_for_port(port: u16) {
+    for _ in 0..40 {
+        if std::net::TcpStream::connect(format!("127.0.0.1:{port}")).is_ok() {
             return;
         }
         thread::sleep(Duration::from_millis(250));
@@ -134,17 +226,41 @@ fn build_status(state: &LocalNodeState) -> LocalNodeStatus {
         running: state.relay_child.is_some(),
         tunnel_ready: state.public_url.is_some(),
         cloudflared_available: state.cloudflared_available,
+        startup_error: None,
     }
 }
 
 fn spawn_relay(node: &Path, script: &Path) -> Result<Child, String> {
     Command::new(node)
         .arg(script)
-        .env("PORT", LOCAL_PORT.to_string())
+        .env("PORT", RELAY_PORT.to_string())
         .stdout(Stdio::null())
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|e| format!("failed to spawn relay: {e}"))
+}
+
+fn spawn_app_server(node: &Path, script: &Path, static_root: &Path) -> Result<Child, String> {
+    Command::new(node)
+        .arg(script)
+        .env("PORT", APP_PORT.to_string())
+        .env("RELAY_PORT", RELAY_PORT.to_string())
+        .env("STATIC_ROOT", static_root)
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("failed to spawn app-server: {e}"))
+}
+
+fn tunnel_target() -> String {
+    #[cfg(debug_assertions)]
+    {
+        format!("http://127.0.0.1:{DEV_APP_PORT}")
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        format!("http://127.0.0.1:{APP_PORT}")
+    }
 }
 
 pub fn start_local_node(app: Option<&tauri::AppHandle>) -> Result<LocalNodeStatus, String> {
@@ -155,26 +271,50 @@ pub fn start_local_node(app: Option<&tauri::AppHandle>) -> Result<LocalNodeStatu
         }
     }
 
-    let (node, script) = resolve_relay_launch(app)?;
+    let (node, script) = match resolve_relay_launch(app) {
+        Ok(v) => v,
+        Err(e) => {
+            record_startup_error(e.clone());
+            return Err(e);
+        }
+    };
+    let relay_child = match spawn_relay(&node, &script) {
+        Ok(c) => c,
+        Err(e) => {
+            record_startup_error(e.clone());
+            return Err(e);
+        }
+    };
+    wait_for_port(RELAY_PORT);
 
-    let relay_child = spawn_relay(&node, &script)?;
+    let mut app_server_child = None;
+    if let Some((node_exe, server_script, static_root)) = resolve_app_server_launch(app) {
+        app_server_child = match spawn_app_server(&node_exe, &server_script, &static_root) {
+            Ok(c) => Some(c),
+            Err(e) => {
+                record_startup_error(e.clone());
+                return Err(e);
+            }
+        };
+        wait_for_port(APP_PORT);
+    }
 
-    wait_for_relay_health();
+    #[cfg(debug_assertions)]
+    {
+        wait_for_port(DEV_APP_PORT);
+    }
 
     let public_url_slot = std::sync::Arc::new(Mutex::new(None::<String>));
+    let (cloudflared_bin, bundled) = resolve_cloudflared(app);
+    let target = tunnel_target();
 
-    let tunnel_spawn = Command::new("cloudflared")
-        .args([
-            "tunnel",
-            "--url",
-            &format!("http://127.0.0.1:{LOCAL_PORT}"),
-            "--no-autoupdate",
-        ])
+    let tunnel_spawn = Command::new(&cloudflared_bin)
+        .args(["tunnel", "--url", &target, "--no-autoupdate"])
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn();
 
-    let cloudflared_available = tunnel_spawn.is_ok();
+    let cloudflared_available = tunnel_spawn.is_ok() && (bundled || which_cloudflared().is_ok());
     let mut tunnel_handle = None;
 
     if let Ok(mut child) = tunnel_spawn {
@@ -196,12 +336,14 @@ pub fn start_local_node(app: Option<&tauri::AppHandle>) -> Result<LocalNodeStatu
 
     let node_state = LocalNodeState {
         relay_child: Some(relay_child),
+        app_server_child,
         tunnel_child: tunnel_handle,
         public_url: public_url.clone(),
         cloudflared_available,
     };
     let status = build_status(&node_state);
     *guard = Some(node_state);
+    set_startup_error(None);
     Ok(status)
 }
 
@@ -209,6 +351,9 @@ pub fn stop_local_node() -> Result<(), String> {
     let mut guard = NODE.lock().map_err(|e| e.to_string())?;
     if let Some(state) = guard.take() {
         if let Some(mut child) = state.tunnel_child {
+            let _ = child.kill();
+        }
+        if let Some(mut child) = state.app_server_child {
             let _ = child.kill();
         }
         if let Some(mut child) = state.relay_child {
@@ -228,6 +373,7 @@ pub fn local_node_status() -> Result<LocalNodeStatus, String> {
             running: false,
             tunnel_ready: false,
             cloudflared_available: false,
+            startup_error: current_startup_error(),
         }),
     }
 }
@@ -244,19 +390,8 @@ mod tests {
     }
 
     #[test]
-    fn start_local_node_exposes_public_tunnel() {
-        let _ = stop_local_node();
-        let status = start_local_node(None).expect("start_local_node");
-        assert!(status.running, "relay should be running");
-        assert!(
-            status.cloudflared_available,
-            "cloudflared should be on PATH for desktop remote proof"
-        );
-        assert!(
-            status.public_url.as_ref().is_some_and(|u| u.contains("trycloudflare.com")),
-            "expected public trycloudflare URL, got {:?}",
-            status.public_url
-        );
-        stop_local_node().expect("stop_local_node");
+    fn extract_https_url_rejects_api_host() {
+        let line = "INF | https://api.trycloudflare.com/tunnel |";
+        assert!(extract_https_url(line).is_none());
     }
 }

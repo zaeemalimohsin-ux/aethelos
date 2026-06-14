@@ -10,6 +10,7 @@ import { isDesktopApp } from "../app/local-node.js";
 import { shortKey } from "../app/format.js";
 import { Disclosure } from "../design/components/Disclosure.js";
 import { parseInviteInput, type InvitePayload } from "../app/invite.js";
+import { PwaInstallHint } from "../components/PwaInstallHint.js";
 
 type Step = "welcome" | "create" | "restore" | "choose" | "start" | "joinPaste" | "join";
 
@@ -144,6 +145,7 @@ function Welcome({
 
   return (
     <Card>
+      <PwaInstallHint />
       <p className="muted" style={{ marginBottom: "var(--sp-4)" }}>
         AethelOS runs on your device. Your identity is a key only you hold — no accounts,
         no company in the middle. Start by creating or restoring an identity.
@@ -273,6 +275,9 @@ function BackupScreen({ mnemonic }: { mnemonic: string }) {
             Copy
           </Button>
         </div>
+        <p className="hint" style={{ marginTop: "var(--sp-2)" }}>
+          Prefer writing on paper; clipboard may be visible to other apps.
+        </p>
         <label className="row" style={{ margin: "var(--sp-4) 0", cursor: "pointer" }}>
           <input
             type="checkbox"
@@ -419,15 +424,11 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
   const start = useStore((s) => s.startCommunity);
   const [cell, setCell] = useState("My Community");
   const [busy, setBusy] = useState(false);
-  const desktop = isDesktopApp();
   return (
     <Card title="Start a community">
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-        You will hold all the starting stake. Share the invite link — friends connect
-        automatically.
-        {desktop
-          ? " This desktop app will share a mailbox from your computer."
-          : " Install the desktop app to invite friends far away (browser tabs cannot host a mailbox)."}
+        You will hold all the starting stake. When it's created, invite people from the
+        Community tab.
       </p>
       <Field
         label="Community name"
@@ -479,8 +480,7 @@ function JoinCommunity({
     <Card title="You've been invited">
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
         You'll connect to <strong>{invite.cell || "this community"}</strong>. After
-        joining, copy your join code from the Community tab and send it to whoever invited
-        you.
+        joining, tell whoever invited you that you're waiting — they'll vouch for you.
       </p>
       <ul className="list">
         <li>
@@ -492,10 +492,10 @@ function JoinCommunity({
           <span className="mono">{shortKey(invite.inviter)}</span>
         </li>
       </ul>
-      <Disclosure summary="Technical details">
+      <Disclosure summary="Advanced details">
         <ul className="list">
           <li>
-            <span className="muted">Relays</span>
+            <span className="muted">Connection points</span>
             <span className="mono">{invite.relays.join(", ") || defaultRelay()}</span>
           </li>
         </ul>

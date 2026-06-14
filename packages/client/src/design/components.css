@@ -146,6 +146,7 @@
 
 /* Tabs / nav */
 .tab {
+  flex-shrink: 0;
   padding: 0.5rem 1rem;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);

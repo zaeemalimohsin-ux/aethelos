@@ -55,6 +55,7 @@ function MainApp() {
   const view = useStore((s) => s.view);
   const setView = useStore((s) => s.setView);
   const pool = useStore((s) => s.pool);
+  const session = useStore((s) => s.session);
 
   return (
     <div className="app-shell">
@@ -79,7 +80,11 @@ function MainApp() {
           ))}
         </nav>
         {!pool ? (
-          <p className="muted">Syncing community state…</p>
+          <p className="muted">
+            {session
+              ? `Loading ${session.displayName}'s community…`
+              : "Loading your community…"}
+          </p>
         ) : view === "cell" ? (
           <CellView pool={pool} />
         ) : view === "governance" ? (

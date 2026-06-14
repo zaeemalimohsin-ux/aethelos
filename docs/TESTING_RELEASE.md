@@ -1,9 +1,12 @@
-# AethelOS Testing & Release
+# Testing and release
+
+Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon check, E2E).
 
 ## Release sign-off checklist
 
 Before tagging a release candidate, confirm:
 
+- [ ] `pnpm verify:release` — full automated gate
 - [ ] `pnpm typecheck` passes on all packages
 - [ ] `pnpm lint:eslint` and `pnpm format:check` pass
 - [ ] `pnpm --filter @aethelos/core build && pnpm test` — all core + relay + client unit tests green

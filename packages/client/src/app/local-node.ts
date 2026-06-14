@@ -9,6 +9,7 @@ export interface LocalNodeStatus {
   running: boolean;
   tunnelReady?: boolean;
   cloudflaredAvailable?: boolean;
+  startupError?: string;
 }
 
 export async function startLocalNode(): Promise<LocalNodeStatus | null> {
@@ -17,9 +18,7 @@ export async function startLocalNode(): Promise<LocalNodeStatus | null> {
     const { invoke } = await import("@tauri-apps/api/core");
     return await invoke<LocalNodeStatus>("start_local_node");
   } catch (err) {
-    if (import.meta.env.DEV) {
-      console.warn("[aethelos] startLocalNode failed", err);
-    }
+    console.warn("[aethelos] startLocalNode failed", err);
     return null;
   }
 }
@@ -58,4 +57,17 @@ export async function waitForPublicTunnel(
     await new Promise((r) => setTimeout(r, 500));
   }
   return localNodeStatus();
+}
+
+/** Write public share URL for automation scripts (desktop only). */
+export async function writeShareUrlFile(url: string | null): Promise<void> {
+  if (!isDesktopApp()) return;
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("write_share_url_file", { url: url ?? "" });
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.warn("[aethelos] writeShareUrlFile failed", err);
+    }
+  }
 }

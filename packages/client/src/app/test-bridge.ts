@@ -78,7 +78,8 @@ function poolSummary(pool: PoolState) {
 }
 
 export function installTestBridge(): void {
-  if (import.meta.env.PROD) {
+  const e2eEnabled = __PROOF_E2E__ === "1" || import.meta.env.VITE_E2E === "1";
+  if (import.meta.env.PROD && !e2eEnabled) {
     throw new Error("Test bridge cannot run in production builds");
   }
 
@@ -91,6 +92,12 @@ export function installTestBridge(): void {
 
     getMyKey() {
       return useStore.getState().myKey;
+    },
+
+    isAdmissionApproved() {
+      const pool = useStore.getState().pool;
+      const myKey = useStore.getState().myKey;
+      return Boolean(pool?.pendingInvites[myKey]?.admissionApproved);
     },
 
     getNamespaceId() {

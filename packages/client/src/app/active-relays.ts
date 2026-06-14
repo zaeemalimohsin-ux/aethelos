@@ -1,5 +1,9 @@
 import { isLocalOnlyRelayUrl } from "@aethelos/core";
-import { selectRelaysForCommunity, dedupeRelays } from "./bootstrap-relays.js";
+import {
+  selectRelaysForCommunity,
+  dedupeRelays,
+  sameOriginRelayUrl,
+} from "./bootstrap-relays.js";
 
 export { dedupeRelays, isLocalOnlyRelayUrl };
 
@@ -12,7 +16,8 @@ export interface MergeActiveRelaysOptions {
 export function relayUrlsForInvite(relayUrls: string[], namespaceId: string): string[] {
   const remote = dedupeRelays(relayUrls.filter((u) => !isLocalOnlyRelayUrl(u)));
   if (remote.length > 0) return remote;
-  if (import.meta.env.DEV) return dedupeRelays(relayUrls);
+  const sameOrigin = sameOriginRelayUrl();
+  if (sameOrigin && !isLocalOnlyRelayUrl(sameOrigin)) return [sameOrigin];
   return selectRelaysForCommunity(namespaceId);
 }
 
@@ -46,11 +51,11 @@ export function relaySetsEqual(a: string[], b: string[]): boolean {
   return true;
 }
 
-/** Map https quick-tunnel URL to wss for WebSocket clients. */
+/** Map public app URL to same-origin wss relay (/ws). */
 export function httpsToWssRelayUrl(httpsUrl: string): string {
   const parsed = new URL(httpsUrl.trim());
   parsed.protocol = "wss:";
-  parsed.pathname = "";
+  parsed.pathname = "/ws";
   parsed.search = "";
   parsed.hash = "";
   return parsed.toString();
@@ -72,12 +77,28 @@ export function tunnelStatusFromLocalNode(
 export function tunnelStatusMessage(status: TunnelStatus): string {
   switch (status) {
     case "ready":
-      return "Ready for friends abroad — your mailbox is on the internet.";
+      return "Public reach is ready — invite links work on phone and desktop.";
     case "local_only":
-      return "Local mailbox only — friends far away need cloudflared for a public tunnel.";
+      return "Reachable on this network only. See Advanced → Network for a public address.";
     case "failed":
-      return "Tunnel failed — install cloudflared to invite friends far away.";
+      return "Could not open public reach yet. Try again under Advanced → Network.";
     default:
-      return "Not sharing a mailbox from this computer.";
+      return "Not hosting from this device.";
   }
+}
+
+export type SyncOverall = "online" | "connecting" | "offline";
+
+/** Plain-language connection line for the happy path (no relay/mailbox jargon). */
+export function connectionStatusMessage(
+  overall: SyncOverall | undefined,
+  pendingOutbox = 0,
+): string {
+  if (overall === "online") {
+    return pendingOutbox > 0
+      ? "Connected — sending queued actions…"
+      : "Connected to your community.";
+  }
+  if (overall === "connecting") return "Connecting…";
+  return "Offline — your actions queue until you're back online.";
 }

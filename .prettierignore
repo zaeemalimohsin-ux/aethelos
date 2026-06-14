@@ -2,6 +2,7 @@ node_modules
 dist
 coverage
 target
+.android-avd
 packages/client-tauri/src-tauri/resources
 packages/client-tauri/src-tauri/gen
 pnpm-lock.yaml

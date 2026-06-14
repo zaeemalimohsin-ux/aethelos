@@ -39,7 +39,7 @@ flowchart LR
 | Supply-chain / dependency risk | Pinned, lockfile-frozen deps; `pnpm audit` in CI; audited `@noble` crypto; no third-party CDNs (everything self-hosted, so no remote script trust). |
 | XSS / injection in the client | CSP (scripts from `'self'` only; `style-src` allows `'unsafe-inline'` for component CSS), `X-Content-Type-Options`, framing denied; React escaping; no `dangerouslySetInnerHTML`. |
 | Capture of a single Node or Head | State lives across the community; participants carry Shares + Event Logs and reconstitute elsewhere. The bridge is a revocable role, not a single fixed key. |
-| Malicious invite **shell URL** (wrong PWA origin) | Signed payload (namespace, relays) is verified on join; the **page origin** is only the client shell — founders must set `VITE_INVITE_BASE_URL` to a URL they control. See [QUICKSTART_REMOTE.md](./QUICKSTART_REMOTE.md). |
+| Malicious invite **shell URL** (wrong PWA origin) | Signed payload (namespace, relays) is verified on join; the **page origin** is only the client shell — founders must open the app from their share link first. See [GET_STARTED.md](./GET_STARTED.md). |
 | Ephemeral desktop tunnel mailboxes | Desktop founders may publish `*.trycloudflare.com` URLs via cloudflared; treat as convenience, not long-term infrastructure. |
 | Bridge / federation secondary sync | Same identity key may sync multiple linked namespaces via bridge mirror and federation readers — semi-trusted graph, not a new crypto trust root. |
 | Client-side abuse / spam | **Relay-only** rate and size limits; client outbox is unbounded; social resolution (expulsion) remains the backstop. |

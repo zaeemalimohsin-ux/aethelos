@@ -8,7 +8,9 @@ import { registerSW } from "virtual:pwa-register";
 import { installTestBridge } from "./app/test-bridge.js";
 import { notifySwUpdateReady, setSwUpdateHandler } from "./app/sw-update.js";
 
-if (import.meta.env["VITE_E2E"] === "1") {
+const e2eEnabled = __PROOF_E2E__ === "1" || import.meta.env.VITE_E2E === "1";
+
+if (e2eEnabled) {
   installTestBridge();
 }
 
@@ -22,7 +24,7 @@ if (container) {
 }
 
 // Service worker with an in-app update prompt (Pass 4). Skip in E2E.
-if (import.meta.env["VITE_E2E"] !== "1") {
+if (!e2eEnabled) {
   const updateSW = registerSW({
     onNeedRefresh() {
       setSwUpdateHandler(updateSW);

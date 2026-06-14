@@ -10,8 +10,7 @@ and your device keeps a full copy of your community's history.
 
 ## 1. Create your identity
 
-1. Open AethelOS in your browser (or install it — your browser will offer "Install
-   app").
+1. Open AethelOS in your browser or install the Windows app (see [GET_STARTED.md](./GET_STARTED.md)).
 2. Choose **Create a new identity**.
 3. Pick a display name and a passphrase. The passphrase encrypts your key on this
    device.
@@ -29,45 +28,35 @@ You can re-check whether you've confirmed a backup under **Identity**.
 
 ## 3. Start or join a community
 
-See [GET_STARTED.md](./GET_STARTED.md) for install paths. Summary:
+See [GET_STARTED.md](./GET_STARTED.md). Summary:
 
-- **Start a community (browser):** give it a name. If nobody in your group is
-  sharing a mailbox yet, use the desktop app or Docker stack (see GET_STARTED).
-- **Start a community (desktop):** same as above, plus you can turn on **Sharing
-  from this computer** under **Connection** so remote friends can reach your
-  mailbox.
-- **Join a community:** open the **invite link** someone sent you. It fills in
-  everything automatically — confirm to join, copy your **join code** back to
-  your inviter, then wait for the community to approve and tap **Accept invite**.
+- **Start a community:** create identity → name your community → **Invite people** from the Community tab.
+- **Join a community:** open the invite link → join → tell your inviter you're waiting → **Accept invitation** when approved.
 
 ## 4. Everyday use
 
-- **Community tab:** see your share, the member list, and send shares to others.
+- **Community tab:** invite people, see members, send Points to others.
 - **Governance tab:** move sliders to shape the rules (decay, thresholds), vouch
   for who should be the Head, and direct redistribution. Your sliders are
   averaged with everyone else's.
 - **Proposals tab:** propose and vote on one-off decisions (admitting, expelling,
-  joining a larger structure, resolving a frozen account). Proposals pass when
-  they cross the community's approval threshold — by math, not a deadline.
+  linking chapters, resolving a frozen account). Proposals pass when they cross
+  the community's approval threshold — by math, not a deadline.
 - **Identity tab:** export/import your identity, export your event log, switch
   theme, and lock your session.
 
 ## 5. Inviting people
 
-1. In **Community**, tap **Share invite link** (desktop founders abroad: set your
-   public app URL first — see [QUICKSTART_REMOTE.md](./QUICKSTART_REMOTE.md)).
-2. Send them the link or show the QR code.
-3. When they send you their **join code**, vouch for them from the invite section.
+1. In **Community**, tap **Invite people** and send the link or QR.
+2. When they tell you they're waiting, open **Someone opened your link — vouch for them** and enter their code (or paste from message).
+3. The community votes; they tap **Accept invitation** when approved.
 
 ## 6. Staying resilient
 
-- **Connection** (Community tab, bottom) shows mailboxes and sync status. Add
-  backup relays under **Troubleshooting: manage relays** if one goes down.
-- **Offline?** Your actions are queued and sent automatically when you reconnect.
-- **App update?** When a new version is ready, use **Reload now** on the banner at
-  the top.
-- **Lost a device?** Install AethelOS elsewhere and choose **Restore from
-  recovery phrase**.
+- The header shows **Connected**, **Syncing…**, or **Offline**. Actions queue offline and send when you're back.
+- **App update?** When a new version is ready, use **Reload now** on the banner at the top.
+- **Lost a device?** Install AethelOS elsewhere and choose **Restore from recovery phrase**.
+- **Operators:** **Identity → Advanced → network** for connection endpoints and hosting.
 
 ## A note on privacy
 

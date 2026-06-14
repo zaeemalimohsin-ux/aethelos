@@ -9,6 +9,8 @@ import {
 } from "../storage/keystore.js";
 import { collectDiagnostics } from "../app/diagnostics.js";
 import { WIRE_VERSION } from "@aethelos/core";
+import { Disclosure } from "../design/components/Disclosure.js";
+import { NetworkAdvancedPanel } from "./NetworkAdvancedPanel.js";
 
 function download(filename: string, content: string): void {
   const blob = new Blob([content], { type: "application/json" });
@@ -148,10 +150,14 @@ export function IdentityView() {
           </Button>
         </div>
         <p className="hint" style={{ marginTop: "var(--sp-3)" }}>
-          Your full event log lives on this device. Exporting it lets you reconstitute
-          your community on any relay — capturing one node achieves nothing.
+          Your full event log lives on this device. Export it to restore your community
+          elsewhere — capturing one device achieves nothing.
         </p>
       </Card>
+
+      <Disclosure summary="Advanced: network">
+        <NetworkAdvancedPanel />
+      </Disclosure>
 
       <Card eyebrow="Preferences">
         <div className="row between">

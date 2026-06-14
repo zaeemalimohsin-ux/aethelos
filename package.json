@@ -2,7 +2,7 @@
   "name": "aethelos",
   "private": true,
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "AethelOS — substrate of daily community life without external authority",
   "scripts": {
     "build": "pnpm -r build",
@@ -22,7 +22,12 @@
     "start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-aethelos.ps1",
     "bundle:relay-sidecar": "node scripts/bundle-relay-sidecar.mjs",
     "fetch:node-sidecar": "node scripts/fetch-node-sidecar.mjs",
+    "fetch:cloudflared": "node scripts/fetch-cloudflared.mjs",
+    "android:smoke": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-pwa-smoke.ps1",
+    "proof:product": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/proof-product.ps1",
     "release:desktop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1",
+    "verify:release": "node scripts/verify-release.mjs",
+    "check:user-docs": "node scripts/check-user-docs.mjs",
     "typecheck": "pnpm -r typecheck"
   },
   "engines": {

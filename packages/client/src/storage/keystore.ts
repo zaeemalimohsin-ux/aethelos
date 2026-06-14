@@ -7,7 +7,8 @@ import { ed } from "../crypto-init.js";
 
 const DB_NAME = "aethelos-keystore";
 const STORE = "keys";
-const PBKDF2_ITERATIONS = import.meta.env["VITE_E2E"] === "1" ? 1_000 : 210_000;
+const PBKDF2_ITERATIONS =
+  __PROOF_E2E__ === "1" || import.meta.env.VITE_E2E === "1" ? 1_000 : 210_000;
 
 interface StoredIdentity {
   publicKeyHex: string;

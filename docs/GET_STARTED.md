@@ -1,85 +1,36 @@
 # Get started with AethelOS
 
-No terminal required for most people. Pick your role:
+**Open the app → start a community → invite people.**  
+**Or open an invite link someone sent you.**
 
 | You are… | Do this |
 |----------|---------|
-| **Trying it alone** | Double-click [`Start-AethelOS.bat`](../Start-AethelOS.bat) in the project folder |
-| **Starting a community and inviting friends** | Install the **desktop app** (below), create a community, share the invite link |
-| **Joining someone else's community** | Open the **invite link** they sent — browser is fine |
+| **Starting a community** | Open AethelOS (web or [Windows installer](../Build-Release.bat)) → create identity → **Start a community** → **Invite people** |
+| **Joining a community** | Open the **invite link** someone sent you |
 
 ---
 
-## Try it alone (Windows)
+## Start a community
 
-1. Install [Node.js 20 LTS](https://nodejs.org/) if prompted (or run `winget install OpenJS.NodeJS.LTS`).
-2. Double-click **`Start-AethelOS.bat`** at the repo root.
-3. Your browser opens automatically:
-   - **Docker mode** if Docker Desktop is running → `http://localhost:8080`
-   - **Otherwise** → dev client at `http://localhost:5173` or the desktop window if Rust is installed
-4. Create an identity → **Start a community** → explore.
+1. Open AethelOS in your browser or install the Windows app (`Build-Release.bat` → send friends the `.exe` from `dist/releases/`).
+2. **Create a new identity** → save your recovery phrase → **Start a community**.
+3. On the **Community** tab, tap **Invite people** and send the link or QR to anyone.
 
-**Share on your home Wi‑Fi:** run `Start-AethelOS.bat` with LAN URLs:
-
-```powershell
-powershell -File scripts\start-aethelos.ps1 -Lan
-```
-
-Friends on the same network can open the LAN URL printed in the terminal.
+The app connects in the background. Operators can tune hosting under **Identity → Advanced → network**.
 
 ---
 
-## Download the desktop app (founders)
+## Join a community
 
-The desktop app lets you **host a mailbox** from your PC and invite friends abroad (with [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) installed).
-
-### Option A — GitHub Release (easiest to share)
-
-1. Open **Releases** on the GitHub repo (tag `v0.1.1` or later).
-2. Download the Windows `.exe` installer.
-3. Run the installer — **no separate Node.js install needed**.
-
-### Option B — Build on your PC
-
-1. Install [Rust](https://rustup.rs/) and Node 20.
-2. Double-click **`Build-Release.bat`** (or run `pnpm release:desktop`).
-3. Send friends the file from **`dist/releases/`**.
-
-### After installing (invite friends abroad)
-
-1. Install **cloudflared** (`winget install Cloudflare.cloudflared`).
-2. Open AethelOS desktop → create identity → **Start a community**.
-3. Check **Connection** shows **Ready for friends abroad**.
-4. **Community → Share invite link** — send the link or QR.
-5. When they send their **join code**, vouch for them from the invite section.
-
-For a **public browser URL** in invite links (so friends don't need your LAN), host the PWA once — see [DEPLOY.md](./DEPLOY.md) or use Docker (`Start-AethelOS.bat` with Docker).
-
-More detail: [QUICKSTART_REMOTE.md](./QUICKSTART_REMOTE.md)
-
----
-
-## Join as a friend
-
-1. Open the invite link (email, chat, QR).
-2. **Create a new identity** (or restore an existing one).
+1. Open the invite link.
+2. **Create a new identity** (or restore from your recovery phrase).
 3. Tap **Join this community**.
-4. Send your **join code** back to the inviter.
-5. Wait for approval, then tap **Accept invite**.
+4. Tell your inviter you're waiting — they'll vouch for you.
+5. When approved, tap **Accept invitation**.
 
-No install required if the link opens in your browser. See [USER_GUIDE.md](./USER_GUIDE.md) for everyday use.
+Works in any mobile or desktop browser. Use **Install app** on the welcome screen when offered, or add to home screen.
 
----
-
-## Docker stack (browser + relay)
-
-If you use Docker Desktop:
-
-```bash
-docker compose --env-file .env.docker up --build -d
-```
-
-Open `http://localhost:8080`. Copy [`docker-compose.env.example`](../docker-compose.env.example) to `.env.docker` or let `Start-AethelOS.bat -Lan` generate it.
+See [USER_GUIDE.md](./USER_GUIDE.md) for everyday use.
 
 ---
 
@@ -87,9 +38,8 @@ Open `http://localhost:8080`. Copy [`docker-compose.env.example`](../docker-comp
 
 | Problem | Fix |
 |---------|-----|
-| "No mailboxes available" in browser | Use the **desktop app** to start a community, or open an **invite link** to join |
-| Connection says install cloudflared | `winget install Cloudflare.cloudflared`, restart desktop app |
-| Invite link starts with `localhost` | Host the PWA publicly or share the desktop-built link after configuring a public app URL |
-| Start script fails on first run | Allow it to finish `pnpm install` once — can take a few minutes |
+| Can't create a community | Open **Identity → Advanced → network** or install the Windows app |
+| Stuck offline | Wait a moment; actions queue and send when back online |
+| Invite link doesn't open | Ask the sender for a fresh link from **Invite people** |
 
-Developers: see the main [README](../README.md) for tests and CI.
+For developers and operators: [`Start-AethelOS.bat`](../Start-AethelOS.bat) runs from source with a local relay.

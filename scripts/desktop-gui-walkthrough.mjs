@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * QUICKSTART_REMOTE GUI walkthrough against the Tauri desktop webview (CDP).
+ * Desktop GUI walkthrough against the Tauri webview (CDP).
  */
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -151,8 +151,8 @@ async function waitForTunnelReady(page, timeoutMs = 180_000) {
   );
 }
 
-async function ensureReadyForFriends(page) {
-  const ready = page.getByText(/Ready for friends abroad/);
+async function ensurePublicMailbox(page) {
+  const ready = page.getByText(/Share link is ready/);
   if (await ready.isVisible().catch(() => false)) return;
 
   try {
@@ -178,7 +178,7 @@ async function ensureReadyForFriends(page) {
       inTauri: "__TAURI_INTERNALS__" in window,
     }));
     const hint = await page
-      .locator("text=/Ready for friends|Local mailbox|Not sharing|Tunnel failed/")
+      .locator("text=/Mailbox reachable|Local mailbox|Not sharing|Tunnel failed/")
       .first()
       .textContent()
       .catch(() => "unknown");
@@ -247,8 +247,8 @@ async function main() {
     await waitForPool(page, (p) => p.cellName === "Walkthrough Cell", 180_000);
     await page.getByText("Connection").waitFor({ timeout: 30_000 });
 
-    await ensureReadyForFriends(page);
-    console.log("PASS: Connection shows Ready for friends abroad");
+    await ensurePublicMailbox(page);
+    console.log("PASS: Connection shows share link ready");
 
     await page.getByRole("button", { name: "Share invite link" }).click();
     const textarea = page.locator(".modal textarea.textarea");

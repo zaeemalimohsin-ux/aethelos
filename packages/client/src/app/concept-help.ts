@@ -13,11 +13,16 @@ export const CONCEPT = {
     "Stake circulates continuously on activity — a time-proportional slice accrues to the commons. On a schedule the community sets, those commons are redistributed.",
   relay:
     "A relay is just a mailbox for messages. It cannot change your balances or rules; anyone can run one.",
+  connection:
+    "Your community stays in sync over the internet. The app picks connection points automatically.",
   proposal:
     "Big decisions go through proposals. Members vote with the weight of their stake until the community's approval threshold is met.",
   subCell:
-    "When a community grows large, it can spawn a smaller sub-community that links upward — scale by depth, not by cramming everyone into one room.",
+    "When a community grows large, start a linked chapter that connects upward — scale by depth, not by cramming everyone into one room.",
 } as const;
+
+/** Advanced network panel — operator-facing relay explanation. */
+export const CONCEPT_NETWORK = CONCEPT.relay;
 
 export const GOVERNANCE_HELP: Record<GovernanceParameter, string> = {
   decay_rate:
@@ -34,28 +39,31 @@ export const PROPOSAL_HELP: Record<ProposalKind, string> = {
   admit_member: "Approve admitting someone who has a pending invite and vouch lien.",
   resolve_fracture: "Unfreeze an account the community paused after suspicious activity.",
   expel_member: "Remove a member after the community agrees.",
-  join_superstructure: "Link this community upward to a larger parent (advanced).",
-  leave_superstructure: "Delink from a parent community (advanced).",
-  link_subcell: "Register a child community that branched off this one (advanced).",
+  join_superstructure: "Link this community upward to a larger group (advanced).",
+  leave_superstructure: "Delink from a parent group (advanced).",
+  link_subcell: "Register a linked chapter that branched off this one (advanced).",
   bridge_transfer:
-    "Approve moving Points across a linked parent or child community. Bridge members mirror after approval.",
+    "Approve sending Points to someone in a linked chapter. Bridge members mirror after approval.",
 };
 
 export const PROPOSAL_LABELS: Record<ProposalKind, string> = {
   admit_member: "Admit member",
   resolve_fracture: "Unfreeze account",
   expel_member: "Remove member",
-  join_superstructure: "Join parent community",
-  leave_superstructure: "Leave parent community",
-  link_subcell: "Link sub-community",
-  bridge_transfer: "Bridge transfer",
+  join_superstructure: "Link to a larger group",
+  leave_superstructure: "Leave parent group",
+  link_subcell: "Link a chapter",
+  bridge_transfer: "Send to another chapter",
 };
 
 /** Proposal kinds shown in the simple picker. */
-export const COMMON_PROPOSAL_KINDS: ProposalKind[] = ["resolve_fracture", "expel_member"];
+export const COMMON_PROPOSAL_KINDS: ProposalKind[] = [
+  "admit_member",
+  "expel_member",
+  "resolve_fracture",
+];
 
 export const ADVANCED_PROPOSAL_KINDS: ProposalKind[] = [
-  "admit_member",
   "join_superstructure",
   "leave_superstructure",
   "link_subcell",

@@ -1,0 +1,27 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-capability",
+  "description": "Main window: core IPC and local node commands",
+  "windows": ["main"],
+  "remote": {
+    "urls": [
+      "http://localhost:*",
+      "http://127.0.0.1:*",
+      "http://tauri.localhost/*",
+      "https://tauri.localhost/*",
+      "https://*.trycloudflare.com/*"
+    ]
+  },
+  "permissions": [
+    "core:default",
+    "core:path:default",
+    "core:event:default",
+    "core:window:default",
+    "core:app:default",
+    "core:resources:default",
+    "allow-start-local-node",
+    "allow-stop-local-node",
+    "allow-local-node-status",
+    "allow-write-share-url-file"
+  ]
+}

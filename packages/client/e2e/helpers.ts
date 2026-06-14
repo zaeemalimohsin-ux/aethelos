@@ -94,6 +94,26 @@ export async function getPublicKey(page: Page): Promise<string> {
   return key.trim();
 }
 
+export async function waitForSyncConnected(
+  page: Page,
+  timeoutMs = 45_000,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const sync = await page.evaluate(
+      () => window.__aethelosTest?.getSyncStatus?.() ?? null,
+    );
+    if (sync?.overall === "online" || sync?.relays?.some((r) => r.status === "online")) {
+      return;
+    }
+    await page.waitForTimeout(500);
+  }
+  const last = await page.evaluate(
+    () => window.__aethelosTest?.getSyncStatus?.() ?? null,
+  );
+  throw new Error(`waitForSyncConnected timeout; last=${JSON.stringify(last)}`);
+}
+
 export async function getPoolSummary(page: Page): Promise<PoolSummary | null> {
   return page.evaluate(() => window.__aethelosTest?.getPoolSummary() ?? null);
 }
@@ -155,7 +175,7 @@ export async function waitForAllConvergence(
 }
 
 export async function buildInviteLink(page: Page): Promise<string> {
-  await page.getByRole("button", { name: "Share invite link" }).click();
+  await page.getByRole("button", { name: "Invite people" }).click();
   const textarea = page.locator(".modal textarea.textarea");
   await expect(textarea).toBeVisible({ timeout: 60_000 });
   const link = await textarea.inputValue();
@@ -164,6 +184,23 @@ export async function buildInviteLink(page: Page): Promise<string> {
   }
   await page.keyboard.press("Escape");
   return link;
+}
+
+export interface DecodedInvitePayload {
+  ns: string;
+  relays?: string[];
+  [key: string]: unknown;
+}
+
+export function decodeInviteFromLink(link: string): DecodedInvitePayload {
+  const encoded = link.split("#/join?d=")[1];
+  if (!encoded) throw new Error(`Invite link missing payload: ${link.slice(0, 120)}`);
+  const pad = encoded.length % 4 === 0 ? "" : "=".repeat(4 - (encoded.length % 4));
+  return JSON.parse(
+    Buffer.from(encoded.replace(/-/g, "+").replace(/_/g, "/") + pad, "base64").toString(
+      "utf8",
+    ),
+  ) as DecodedInvitePayload;
 }
 
 export async function joinViaInviteLink(
@@ -187,7 +224,7 @@ export async function sendOnChainInvite(
 ): Promise<void> {
   await page.getByRole("button", { name: "Community" }).click();
   const panel = page.locator("details").filter({
-    has: page.getByText("They opened your link — vouch for them"),
+    has: page.getByText("Someone opened your link — vouch for them"),
   });
   if ((await panel.getAttribute("open")) === null) {
     await panel.locator("summary").click();
@@ -214,10 +251,10 @@ export async function admitJoiner(
   await waitForPool(founderPage, (p) => p.pendingInviteCount >= 1, 30_000);
   await bridgeApproveAdmission(founderPage, joinerPubkey);
   await joinerPage.getByRole("button", { name: "Community" }).click();
-  await expect(joinerPage.getByText("The community approved your admission")).toBeVisible(
-    { timeout: 60_000 },
-  );
-  await joinerPage.getByRole("button", { name: "Accept invite" }).click();
+  await expect(joinerPage.getByText("You're approved")).toBeVisible({
+    timeout: 60_000,
+  });
+  await joinerPage.getByRole("button", { name: "Accept invitation" }).click();
   await waitForConvergence(
     founderPage,
     joinerPage,
