@@ -30,7 +30,7 @@ test("phone founder starts a community on docker stack", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Community" })).toBeVisible({
     timeout: 45_000,
   });
-  await expect(page.getByText("100%")).toBeVisible();
+  await expect(page.getByText("100.0%")).toBeVisible();
 
   const sameOriginWs = await page.evaluate(() => {
     const proto = window.location.protocol === "https:" ? "wss:" : "ws:";

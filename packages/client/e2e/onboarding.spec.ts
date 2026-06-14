@@ -37,5 +37,5 @@ test("create identity and start a community", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Community" })).toBeVisible({
     timeout: 30_000,
   });
-  await expect(page.getByText("100%")).toBeVisible();
+  await expect(page.getByText("100.0%")).toBeVisible();
 });

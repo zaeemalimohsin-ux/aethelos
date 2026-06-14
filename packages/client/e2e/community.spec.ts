@@ -75,7 +75,7 @@ test.describe("economy & transfers", () => {
     const joiner = before!.members.find((m) => m !== before!.members[0])!;
 
     await pageA.getByLabel("Send to").selectOption(joiner);
-    await pageA.getByLabel("Amount (Points)").fill("1000");
+    await pageA.getByLabel("Amount (Value)").fill("1000");
     await pageA.getByRole("button", { name: "Send transaction" }).click();
 
     await waitForConvergence(
