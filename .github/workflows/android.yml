@@ -34,10 +34,11 @@ jobs:
       - name: Build Web Client
         run: pnpm --filter @aethelos/client build
 
-      - name: Sync Capacitor
+      - name: Initialize and Add Capacitor Android
         run: |
           cd packages/client
-          npx cap sync android
+          npx cap init "AethelOS" "org.aethelos.app" --web-dir dist
+          npx cap add android
 
       - name: Build Android APK
         run: |
