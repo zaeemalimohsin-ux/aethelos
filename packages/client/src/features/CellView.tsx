@@ -36,8 +36,8 @@ export function CellView({ pool }: { pool: PoolState }) {
   const invite = useStore((s) => s.invite);
   const acceptPendingInvite = useStore((s) => s.acceptPendingInvite);
 
-  const myBalance = getBalance(pool, myKey);
-  const myPercent = sharePercent(pool, myKey);
+  const myBalance = pool.balances[myKey] ?? 0n;
+  const myPercent = controller.getSharePercent(myKey);
   const pledged = pledgedLienTotal(pool, myKey);
   const poolTotal = totalPoolPoints(pool);
   const isHead = pool.head === myKey;

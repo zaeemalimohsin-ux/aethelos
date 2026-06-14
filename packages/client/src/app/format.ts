@@ -24,7 +24,8 @@ export function pts(value: bigint | number): string {
 export function formatPts(value: bigint): string {
   const formatted = formatPointsAmount(value);
   const parts = formatted.split(".");
-  if (parts.length === 1) return formatted;
+  const p0 = parts[0] || "0";
+  if (parts.length === 1 || !parts[1]) return p0;
   const decimals = parts[1].slice(0, 2).replace(/0+$/, "");
-  return decimals ? `${parts[0]}.${decimals}` : parts[0];
+  return decimals ? `${p0}.${decimals}` : p0;
 }
