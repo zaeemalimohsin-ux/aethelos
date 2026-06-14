@@ -398,7 +398,7 @@ function PasteInviteLink({
       </p>
       <Field
         label="Invite link"
-        hint="Looks like https://…/#/join?d=…"
+        hint="Paste the full link here"
         value={raw}
         onChange={(e) => {
           setRaw(e.target.value);

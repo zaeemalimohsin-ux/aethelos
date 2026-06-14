@@ -63,8 +63,21 @@ jobs:
           name: windows-installer
           path: dist/releases
 
+      - name: Generate Checksums
+        run: |
+          cd dist/releases
+          sha256sum * > checksums.txt
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: dist/releases/**/*
           generate_release_notes: true
+          draft: false
+          body: |
+            ## AethelOS Release
+            
+            Download the installer below to run AethelOS locally on your Windows machine.
+            
+            ### Checksums (SHA-256)
+            You can verify your download against the checksums provided in the assets.

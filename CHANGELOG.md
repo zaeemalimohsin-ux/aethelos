@@ -6,6 +6,17 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-06-15
+
+### Added
+- **Distribution polish:** Created `website` with a premium dark mode landing page, generated PWA icons from `favicon.svg`, and deployed to GitHub Pages.
+- Updated `release.yml` to generate SHA-256 checksums automatically.
+
+### Changed
+- **UX Polish:** Changed `Namespace ID` to `Community ID` and removed technical URL hints from onboarding.
+- Replaced system fonts with `Outfit` for a more modern typography look.
+- Rewrote the `README.md` to prioritize end-user presentation over developer documentation.
+
 ## [0.1.3] - 2026-06-11
 
 ### Changed

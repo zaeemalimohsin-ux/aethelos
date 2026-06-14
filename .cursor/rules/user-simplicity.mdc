@@ -1,0 +1,33 @@
+---
+description: Keep user-facing docs free of infrastructure jargon
+globs:
+  - docs/GET_STARTED.md
+  - docs/USER_GUIDE.md
+  - Start-AethelOS.bat
+  - README.md
+alwaysApply: false
+---
+
+# User simplicity
+
+Regular users see **plain language only** in GET_STARTED, USER_GUIDE, Start-AethelOS.bat, and the top of README.
+
+## Never put in user docs
+
+docker, cloudflared, cloudflare, compose, nginx, pnpm, bootstrap, relay operators
+
+## Where infrastructure belongs
+
+- [docs/PUBLISHER.md](docs/PUBLISHER.md) — deploy, CI, permanent URLs
+- [docs/RELAY_OPERATORS.md](docs/RELAY_OPERATORS.md) — relay hosting
+- README below "## Quick start" — developer clone/build
+
+## Product path
+
+1. Double-click Start-AethelOS.bat (or open publisher link)
+2. Share link in Connection tab
+3. Start community → share invite link
+
+Docker is CI/publisher only (`-Mode Docker`, `publisher-deploy.ps1`, `AETHELOS_USE_DOCKER=1`).
+
+Before release: `pnpm verify:release`

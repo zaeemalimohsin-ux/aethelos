@@ -17,10 +17,14 @@ export function displayNameFor(
 }
 
 export function pts(value: bigint | number): string {
-  if (typeof value === "number") return `${value} pts`;
-  return `${formatPointsAmount(value)} pts`;
+  if (typeof value === "number") return `${value} Value`;
+  return `${formatPts(value)} Value`;
 }
 
 export function formatPts(value: bigint): string {
-  return formatPointsAmount(value);
+  const formatted = formatPointsAmount(value);
+  const parts = formatted.split(".");
+  if (parts.length === 1) return formatted;
+  const decimals = parts[1].slice(0, 2).replace(/0+$/, "");
+  return decimals ? `${parts[0]}.${decimals}` : parts[0];
 }

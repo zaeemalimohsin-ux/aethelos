@@ -31,12 +31,13 @@ import { connectionStatusMessage } from "../app/active-relays.js";
 export function CellView({ pool }: { pool: PoolState }) {
   const controller = useStore((s) => s.controller)!;
   const myKey = useStore((s) => s.myKey);
+  const displayName = useStore((s) => s.displayName);
   const transfer = useStore((s) => s.transfer);
   const invite = useStore((s) => s.invite);
   const acceptPendingInvite = useStore((s) => s.acceptPendingInvite);
 
-  const myBalance = pool.balances[myKey] ?? 0n;
-  const myShare = controller.getSharePercent(myKey);
+  const myBalance = getBalance(pool, myKey);
+  const myPercent = sharePercent(pool, myKey);
   const pledged = pledgedLienTotal(pool, myKey);
   const poolTotal = totalPoolPoints(pool);
   const isHead = pool.head === myKey;
@@ -75,11 +76,11 @@ export function CellView({ pool }: { pool: PoolState }) {
 
       <div className="grid">
         <Card eyebrow="Your stake">
-          <div className="stat">{myShare.toFixed(2)}%</div>
-          <div className="stat-label">{formatPts(myBalance)} Points</div>
+          <div className="stat-value">{myPercent.toFixed(1)}%</div>
+          <div className="stat-label">{formatPts(myBalance)} Value</div>
           {pledged > 0n && (
             <div className="hint" style={{ marginTop: "var(--sp-2)" }}>
-              {formatPts(pledged)} pts pledged behind others (lien on your Share)
+              {formatPts(pledged)} Value pledged behind others (lien on your Share)
             </div>
           )}
           <div className="row" style={{ marginTop: "var(--sp-2)" }}>
@@ -177,6 +178,8 @@ function GuestJoinCodeBanner({ myKey }: { myKey: string }) {
 }
 
 function Members({ pool }: { pool: PoolState }) {
+  const myKey = useStore((s) => s.myKey);
+  const displayName = useStore((s) => s.displayName);
   const controller = useStore((s) => s.controller)!;
   return (
     <Card eyebrow="Members">
@@ -190,7 +193,7 @@ function Members({ pool }: { pool: PoolState }) {
           return (
             <li key={m}>
               <span className="mono">
-                {shortKey(m, 12)}{" "}
+                {m === myKey ? `${displayName || "You"} (You)` : shortKey(m, 12)}{" "}
                 {tags.map((t) => (
                   <span key={t} className="badge neutral" style={{ marginLeft: 4 }}>
                     {t}
@@ -222,9 +225,9 @@ function TransferCard({
   const [amount, setAmount] = useState("");
   const [memo, setMemo] = useState("");
   return (
-    <Card eyebrow="Send to someone">
-      <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-        Move Points to another member. Everyone sees the same result.{" "}
+    <Card eyebrow="Send Value">
+      <p className="hint" style={{ marginBottom: "var(--sp-4)" }}>
+        Move Value to another member. Everyone sees the same result.{" "}
         <HelpTip text={CONCEPT.points} />
       </p>
       <MemberSelect
@@ -235,8 +238,8 @@ function TransferCard({
         onChange={setTo}
       />
       <Field
-        label="Amount (Points)"
-        type="text"
+        label="Amount (Value)"
+        type="number"
         inputMode="decimal"
         hint="Up to 9 decimal places"
         value={amount}
@@ -263,6 +266,7 @@ function TransferCard({
 }
 
 function ActiveVouchLiensCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
+  const displayName = useStore((s) => s.displayName);
   const liens = Object.entries(pool.vouchLiens).filter(
     ([invitee, lien]) => lien.inviter === myKey && pool.members.includes(invitee),
   );
@@ -272,8 +276,8 @@ function ActiveVouchLiensCard({ pool, myKey }: { pool: PoolState; myKey: string 
       <ul className="list">
         {liens.map(([invitee, lien]) => (
           <li key={invitee}>
-            <span className="mono">{shortKey(invitee, 12)}</span>
-            <span>{formatPts(lien.amount)} pts pledged (forfeitable if expelled)</span>
+            <span className="mono">{invitee === myKey ? `${displayName || "You"} (You)` : shortKey(invitee, 12)}</span>
+            <span>{formatPts(lien.amount)} Value pledged (forfeitable if expelled)</span>
           </li>
         ))}
       </ul>
@@ -283,6 +287,7 @@ function ActiveVouchLiensCard({ pool, myKey }: { pool: PoolState; myKey: string 
 
 function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
   const cancelInvite = useStore((s) => s.cancelInvite);
+  const displayName = useStore((s) => s.displayName);
   const pending = Object.entries(pool.pendingInvites).filter(
     ([, inv]) => inv.inviter === myKey,
   );
@@ -306,8 +311,8 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
               : `Admission vote ${approvalPct.toFixed(0)}% of stake (need ${threshold}%)`;
           return (
             <li key={invitee}>
-              <span className="mono">{shortKey(invitee, 12)}</span>
-              <span>{formatPts(inv.lienAmount)} pts pledged (lien)</span>
+              <span className="mono">{invitee === myKey ? `${displayName || "You"} (You)` : shortKey(invitee, 12)}</span>
+              <span>{formatPts(inv.lienAmount)} Value pledged (lien)</span>
               <span className="muted">{status}</span>
               <button className="btn ghost sm" onClick={() => void cancelInvite(invitee)}>
                 Cancel
@@ -392,9 +397,9 @@ function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> 
         />
         <p className="hint">
           This vouch pledges <strong>{lienPercent.toFixed(1)}%</strong> of your Share (
-          {formatPts(lienAmount)} pts) as a forfeitable lien. Points stay in your wallet;
-          the community must approve admission before they can join.{" "}
-          {formatPts(pledgeCapacity)} pts still available to pledge.
+          {formatPts(lienAmount)} Value) as a forfeitable lien. Value stays in your wallet;
+          you just can't spend or transfer it while the invite is pending.{" "}
+          {formatPts(pledgeCapacity)} Value still available to pledge.
         </p>
         <Button
           block
@@ -511,7 +516,7 @@ function SubCellLinkageBanner({ pool, isHead }: { pool: PoolState; isHead: boole
     <div className="alert info">
       <strong>Link to parent:</strong> {parent.parentCellName}. In this sub-Cell, the Head
       proposes joining the parent namespace. In the parent Cell, create a{" "}
-      <em>Link sub-Cell</em> proposal with this namespace ID:
+      <em>Link a chapter</em> proposal with this community ID:
       <div
         className="mono faint"
         style={{ margin: "var(--sp-2) 0", wordBreak: "break-all" }}
@@ -524,10 +529,10 @@ function SubCellLinkageBanner({ pool, isHead }: { pool: PoolState; isHead: boole
           variant="secondary"
           onClick={async () => {
             await navigator.clipboard.writeText(pool.namespaceId);
-            toast("Namespace ID copied", "success");
+            toast("Community ID copied", "success");
           }}
         >
-          Copy this Cell ID
+          Copy this Community ID
         </Button>
         {isHead && (
           <Button
@@ -546,6 +551,7 @@ function SubCellLinkageBanner({ pool, isHead }: { pool: PoolState; isHead: boole
 }
 
 function ChildCellsCard({ pool }: { pool: PoolState }) {
+  const myKey = useStore((s) => s.myKey);
   const linkSubcell = useStore((s) => s.linkSubcell);
   const [childId, setChildId] = useState("");
   const children = pool.childCells ?? [];
@@ -554,17 +560,17 @@ function ChildCellsCard({ pool }: { pool: PoolState }) {
       <ul className="list">
         {children.map((id) => (
           <li key={id}>
-            <span className="mono">{shortKey(id, 16)}</span>
+            <span className="mono">{id === myKey ? `${useStore.getState().displayName || "You"} (You)` : shortKey(id, 16)}</span>
           </li>
         ))}
       </ul>
       <p className="hint" style={{ margin: "var(--sp-3) 0" }}>
-        Register a child namespace after its Head has genesis'd it:
+        Register a child community after its Head has genesis'd it:
       </p>
       <div className="row">
-        <input
-          className="input mono"
-          placeholder="Child namespace ID"
+        <Field
+          label="Propose linking a chapter"
+          placeholder="Child community ID"
           value={childId}
           onChange={(e) => setChildId(e.target.value)}
           style={{ flex: 1 }}
@@ -585,6 +591,7 @@ function ChildCellsCard({ pool }: { pool: PoolState }) {
 }
 
 function FederationCard({ pool }: { pool: PoolState }) {
+  const myKey = useStore((s) => s.myKey);
   const linkedPools = useStore((s) => s.linkedPools);
   const ids = [...pool.parentSuperstructures, ...(pool.childCells ?? [])];
   if (ids.length === 0) return null;
@@ -598,7 +605,7 @@ function FederationCard({ pool }: { pool: PoolState }) {
           return (
             <li key={id}>
               <span className="badge neutral">{role}</span>
-              <span className="mono">{shortKey(id, 16)}</span>
+              <span className="mono">{id === myKey ? `${useStore.getState().displayName || "You"} (You)` : shortKey(id, 16)}</span>
               {linked ? (
                 <span className="muted">
                   {linked.cellName || "—"} · {linked.members.length} members ·{" "}
@@ -641,8 +648,8 @@ function BridgeEscrowCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
         <ul className="list" style={{ marginBottom: "var(--sp-3)" }}>
           {escrowEntries.map(([id, pts]) => (
             <li key={id}>
-              <span className="mono">{shortKey(id, 12)}</span>
-              <span>{formatPts(pts)} pts held for bridge delivery</span>
+              <span className="mono">{id === myKey ? `${useStore.getState().displayName || "You"} (You)` : shortKey(id, 12)}</span>
+              <span>{formatPts(pts)} Value held for bridge delivery</span>
             </li>
           ))}
         </ul>
@@ -668,7 +675,8 @@ function BridgeEscrowCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
               className="mono"
             />
             <Field
-              label="Bridge amount (Points)"
+              label="Bridge amount (Value)"
+              type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />

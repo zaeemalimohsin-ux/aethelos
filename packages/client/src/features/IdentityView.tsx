@@ -205,8 +205,8 @@ export function IdentityView() {
             <span>Your only backup — keep it safe and never share it.</span>
           </li>
           <li>
-            <span className="muted">App / wire version</span>
-            <span className="mono">0.1.0 / wire {WIRE_VERSION}</span>
+            <span className="muted">App version</span>
+            <span className="mono">0.1.3 / wire {WIRE_VERSION}</span>
           </li>
         </ul>
       </Card>

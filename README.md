@@ -1,124 +1,82 @@
 # AethelOS
 
-**Community life, owned by its people.** A local-first platform for trade,
-governance, and mutual organisation that needs no bank, platform, or central
-authority to function. Every participant holds their own keys and a full copy of
-their community's history; the only shared infrastructure is a powerless message
-relay anyone can run.
+<p align="center">
+  <img src="./packages/client/public/logo.svg" width="128" alt="AethelOS Logo" />
+</p>
 
-Built on the principles in [Higher-Level-Philosophy.md](./Higher-Level-Philosophy.md).
+<h3 align="center">Community life, owned by its people.</h3>
 
-**Repository:** https://github.com/zaeemalimohsin-ux/aethelos (private — request access or clone if you have permission)
+<p align="center">
+  A local-first platform for trade, governance, and mutual organisation. No central authority, no intermediary.
+  <br />
+  <br />
+  <a href="https://aethelos.org"><strong>Website</strong></a> ·
+  <a href="https://github.com/zaeemalimohsin-ux/aethelos/releases/latest"><strong>Download for Windows</strong></a> ·
+  <a href="./docs/USER_GUIDE.md"><strong>User Guide</strong></a>
+</p>
 
-## Try now (no README required)
+---
 
-| Goal | Action |
-|------|--------|
-| **Run it on your PC** | Install from [`Build-Release.bat`](./Build-Release.bat) → `dist/releases/` (or [`Start-AethelOS.bat`](./Start-AethelOS.bat) for developers) |
-| **Use on phone or browser** | Open your hosted app URL or an invite link |
-| **Join a friend** | Open their invite link in any browser |
-| **Full plain-English guide** | [docs/GET_STARTED.md](docs/GET_STARTED.md) |
+## Built differently
 
-```bash
-git clone https://github.com/zaeemalimohsin-ux/aethelos.git
-cd aethelos
-# then double-click Start-AethelOS.bat
-```
+Every system built on trust has the same failure mode: over time, trust migrates toward those who control the infrastructure. AethelOS eliminates the center entirely.
 
-## Highlights
+1. **You hold your keys**: Your data and identity belong entirely to you, secured by cryptography, not terms of service.
+2. **Mathematical governance**: Decisions are made transparently through community-voted proposals that execute automatically.
+3. **Equal voices**: AethelOS is designed to resist wealth concentration. Value circulates naturally, and every human soul carries equal weight in the system.
+4. **Unstoppable operation**: Even if the creators of AethelOS disappear tomorrow, your community keeps running exactly as it did yesterday.
 
-- **Local-first PWA** — installable on any desktop or mobile browser, no app
-  store. Optional signed [desktop build](packages/client-tauri/) via Tauri.
-- **You hold your identity** — Ed25519 keys encrypted on-device, with a 12-word
-  recovery phrase and encrypted export.
-- **Frictionless invites** — share a link or QR; the recipient joins with one tap.
-- **Deterministic core** — identical event logs produce identical state on every
-  device; an off-thread reducer with incremental snapshots keeps it fast.
-- **Resilient sync** — connect to several relays at once, automatic failover, and
-  a durable offline outbox.
-- **Powerless relays** — no ledger, no keys, no authority; trivially self-hosted
-  and swappable.
+Read the full [Higher-Level Philosophy](./Higher-Level-Philosophy.md).
 
-## Architecture
+## Get Started
 
+AethelOS is completely free and open source. 
+
+1. **Download the Windows App:** Go to the [Releases page](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) and download the installer (`.exe` or `.msi`).
+2. **Create Identity:** Open the app and create your identity. 
+3. **Start a Community:** Create a new community and send invite links to your friends. They can join directly from their browser or phone without downloading the app.
+
+---
+
+## For Developers
+
+AethelOS is built as a local-first React PWA with an optional Tauri desktop shell. It uses Ed25519 cryptography, a deterministic DAG engine, and WebSocket relays.
+
+### Architecture
 ```
 packages/
-  core/          Pure deterministic engine (DAG, Reducer, economy, governance, wire validation)
+  core/          Pure deterministic engine (DAG, Reducer, economy, governance)
   relay/         Powerless WebSocket relay (health, metrics, rate limiting)
   client/        Local-first React PWA (identity, multi-relay sync, full UI)
-  client-tauri/  Optional signed desktop shell (same core + UI)
+  client-tauri/  Desktop shell
 ```
 
-## Quick start
-
-### Prerequisites
-
-- Node.js 20+
-- pnpm 9+
-
-### Install and build
-
+### Quick start
+Requires Node.js 20+ and pnpm 9+.
 ```bash
 pnpm install
 pnpm build
 ```
 
-### Run a relay and the client
-
+**Run local development:**
 ```bash
-pnpm dev:relay    # ws://localhost:8787  (+ /healthz, /metrics)
+pnpm dev:relay    # ws://localhost:8787
 pnpm dev:client   # http://localhost:5173
 ```
 
-Open the client, create an identity, and start a community. To add people, use
-**Invite people** on the Community tab and send them the link or QR.
-
-**Manual multi-person testing (Windows):** double-click
-[`Multi-Person-Test.bat`](./Multi-Person-Test.bat) in the repo root — it starts
-the relay and client if needed, then opens six isolated browser windows (each
-acts as a separate person). Or run `pnpm playground` / `pnpm playground -- 4`.
-
 ### Tests and quality
-
 ```bash
-pnpm test         # unit + simulation + property + fuzz (core)
-pnpm setup:e2e    # once: download Playwright Chromium (run before E2E)
-pnpm test:e2e     # Playwright multi-instance UI (relay + 2-browser sync; packages/client/e2e/)
-pnpm lint:eslint  # lint
-pnpm format       # format
+pnpm test         # unit + simulation + property + fuzz
+pnpm setup:e2e    # download Playwright Chromium
+pnpm test:e2e     # E2E test suite
 ```
+*Note on Windows E2E: Run setup and test separately to avoid hanging.*
 
-**E2E on Windows:** run `pnpm setup:e2e` and `pnpm test:e2e` as **separate** commands — do not chain
-`playwright install` with tests in one line (install can hang after download). For a persistent browser
-cache, set `PLAYWRIGHT_BROWSERS_PATH` to `%LOCALAPPDATA%\ms-playwright` before `pnpm setup:e2e`.
-
-## Deploy
-
-- **Publishers:** [docs/PUBLISHER.md](docs/PUBLISHER.md) — permanent URL, CI stack, env vars.
-- **Client build:** set optional env vars (see `packages/client/.env.example`), then
-  `pnpm --filter @aethelos/client build` and host `packages/client/dist`.
-
-## Documentation
-
-- **[Get started](docs/GET_STARTED.md)** — download, run, share (non-developers start here).
-- [User Guide](docs/USER_GUIDE.md) — for community members.
-- [Genesis Bootstrap](docs/GENESIS.md) — starting the very first community.
-- [Publisher guide](docs/PUBLISHER.md) — deploy, CI, permanent URL.
-- [Relay Operators](docs/RELAY_OPERATORS.md) — running infrastructure.
-- [Threat Model](docs/THREAT_MODEL.md) and [Security Policy](SECURITY.md).
-- [Versioning & Wire Compatibility](docs/VERSIONING.md).
-
-## Philosophy alignment
-
-| Principle               | Implementation                                              |
-| ----------------------- | ---------------------------------------------------------- |
-| Powerless relays        | `packages/relay` — no ledger, no keys, swappable           |
-| Deterministic state     | `packages/core` Reducer — identical logs to identical state |
-| Integer economy         | `BigInt` Points throughout; Shares are a UI projection      |
-| Identity = signature    | Ed25519; every event signed and verified                   |
-| Sybil resistance        | Super-linear, decaying Vouch Bonds; live-soul redistribution |
-| Exit = accountability   | Full Event Log portability; leave a superstructure anytime  |
+### Documentation
+- [Publisher Guide](docs/PUBLISHER.md) — Deploying AethelOS online
+- [Relay Operators](docs/RELAY_OPERATORS.md) — Running your own relay
+- [Threat Model](docs/THREAT_MODEL.md) & [Security Policy](SECURITY.md)
+- [Versioning Policy](docs/VERSIONING.md)
 
 ## License
-
 MIT
