@@ -76,8 +76,8 @@ jobs:
           draft: false
           body: |
             ## AethelOS Release
-            
+
             Download the installer below to run AethelOS locally on your Windows machine.
-            
+
             ### Checksums (SHA-256)
             You can verify your download against the checksums provided in the assets.

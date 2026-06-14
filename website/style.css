@@ -10,7 +10,8 @@
   --accent: #e94560;
   --accent-hover: #ff5a75;
   --accent-soft: rgba(233, 69, 96, 0.14);
-  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans:
+    "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   --radius: 12px;
   --radius-lg: 24px;
@@ -203,21 +204,31 @@ h4 {
 }
 
 .hero::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at center, rgba(233, 69, 96, 0.15) 0%, rgba(15, 15, 26, 0) 50%);
+  background: radial-gradient(
+    circle at center,
+    rgba(233, 69, 96, 0.15) 0%,
+    rgba(15, 15, 26, 0) 50%
+  );
   animation: pulseGradient 15s ease-in-out infinite alternate;
   z-index: -1;
   pointer-events: none;
 }
 
 @keyframes pulseGradient {
-  0% { transform: scale(0.8) translate(5%, 5%); opacity: 0.5; }
-  100% { transform: scale(1.2) translate(-5%, -5%); opacity: 1; }
+  0% {
+    transform: scale(0.8) translate(5%, 5%);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.2) translate(-5%, -5%);
+    opacity: 1;
+  }
 }
 
 .hero-content {
@@ -264,7 +275,9 @@ h4 {
 
 .step-card:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(233, 69, 96, 0.1);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(233, 69, 96, 0.1);
   border-color: rgba(233, 69, 96, 0.3);
   background: rgba(32, 32, 58, 0.7);
 }
@@ -397,11 +410,11 @@ h4 {
   .nav-links a:not(.btn) {
     display: none;
   }
-  
+
   .features-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .footer-content {
     flex-direction: column;
   }

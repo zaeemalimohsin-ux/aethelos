@@ -21,7 +21,8 @@
   --text-faint: #6b7390;
 
   /* Typography */
-  --font-sans: "Outfit", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans:
+    "Outfit", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "SF Mono", "Cascadia Code", Consolas, "Liberation Mono", monospace;
   --fs-xs: 0.75rem;
   --fs-sm: 0.85rem;

@@ -276,7 +276,11 @@ function ActiveVouchLiensCard({ pool, myKey }: { pool: PoolState; myKey: string 
       <ul className="list">
         {liens.map(([invitee, lien]) => (
           <li key={invitee}>
-            <span className="mono">{invitee === myKey ? `${displayName || "You"} (You)` : shortKey(invitee, 12)}</span>
+            <span className="mono">
+              {invitee === myKey
+                ? `${displayName || "You"} (You)`
+                : shortKey(invitee, 12)}
+            </span>
             <span>{formatPts(lien.amount)} Value pledged (forfeitable if expelled)</span>
           </li>
         ))}
@@ -311,7 +315,11 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
               : `Admission vote ${approvalPct.toFixed(0)}% of stake (need ${threshold}%)`;
           return (
             <li key={invitee}>
-              <span className="mono">{invitee === myKey ? `${displayName || "You"} (You)` : shortKey(invitee, 12)}</span>
+              <span className="mono">
+                {invitee === myKey
+                  ? `${displayName || "You"} (You)`
+                  : shortKey(invitee, 12)}
+              </span>
               <span>{formatPts(inv.lienAmount)} Value pledged (lien)</span>
               <span className="muted">{status}</span>
               <button className="btn ghost sm" onClick={() => void cancelInvite(invitee)}>
@@ -397,8 +405,8 @@ function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> 
         />
         <p className="hint">
           This vouch pledges <strong>{lienPercent.toFixed(1)}%</strong> of your Share (
-          {formatPts(lienAmount)} Value) as a forfeitable lien. Value stays in your wallet;
-          you just can't spend or transfer it while the invite is pending.{" "}
+          {formatPts(lienAmount)} Value) as a forfeitable lien. Value stays in your
+          wallet; you just can't spend or transfer it while the invite is pending.{" "}
           {formatPts(pledgeCapacity)} Value still available to pledge.
         </p>
         <Button
@@ -560,7 +568,11 @@ function ChildCellsCard({ pool }: { pool: PoolState }) {
       <ul className="list">
         {children.map((id) => (
           <li key={id}>
-            <span className="mono">{id === myKey ? `${useStore.getState().displayName || "You"} (You)` : shortKey(id, 16)}</span>
+            <span className="mono">
+              {id === myKey
+                ? `${useStore.getState().displayName || "You"} (You)`
+                : shortKey(id, 16)}
+            </span>
           </li>
         ))}
       </ul>
@@ -605,7 +617,11 @@ function FederationCard({ pool }: { pool: PoolState }) {
           return (
             <li key={id}>
               <span className="badge neutral">{role}</span>
-              <span className="mono">{id === myKey ? `${useStore.getState().displayName || "You"} (You)` : shortKey(id, 16)}</span>
+              <span className="mono">
+                {id === myKey
+                  ? `${useStore.getState().displayName || "You"} (You)`
+                  : shortKey(id, 16)}
+              </span>
               {linked ? (
                 <span className="muted">
                   {linked.cellName || "—"} · {linked.members.length} members ·{" "}
@@ -648,7 +664,11 @@ function BridgeEscrowCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
         <ul className="list" style={{ marginBottom: "var(--sp-3)" }}>
           {escrowEntries.map(([id, pts]) => (
             <li key={id}>
-              <span className="mono">{id === myKey ? `${useStore.getState().displayName || "You"} (You)` : shortKey(id, 12)}</span>
+              <span className="mono">
+                {id === myKey
+                  ? `${useStore.getState().displayName || "You"} (You)`
+                  : shortKey(id, 12)}
+              </span>
               <span>{formatPts(pts)} Value held for bridge delivery</span>
             </li>
           ))}

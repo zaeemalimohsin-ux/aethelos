@@ -14,7 +14,8 @@ const { chromium } = require("playwright");
 
 const PASSWORD = "walkthrough-pass-123";
 const VIDEO_OUTPUT_DIR = join(root, "test-results", "videos");
-const FINAL_ARTIFACT_DIR = "C:/Users/zaeem/.gemini/antigravity/brain/ddede381-522a-4f9a-a3da-3aadbe9272d3";
+const FINAL_ARTIFACT_DIR =
+  "C:/Users/zaeem/.gemini/antigravity/brain/ddede381-522a-4f9a-a3da-3aadbe9272d3";
 const FINAL_VIDEO_PATH = join(FINAL_ARTIFACT_DIR, "aethelos_walkthrough.webm");
 
 async function waitForServer(url, timeoutMs = 60000) {
@@ -42,7 +43,7 @@ function freePorts() {
         "-Command",
         "Get-Process node,aethelos-desktop -ErrorAction SilentlyContinue | Where-Object { $_.Path -like '*App2*' } | Stop-Process -Force -ErrorAction SilentlyContinue; Get-NetTCPConnection -LocalPort 5173,8787 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }",
       ],
-      { stdio: "ignore" }
+      { stdio: "ignore" },
     );
   } catch (err) {
     console.warn("Could not free ports:", err);
@@ -59,7 +60,7 @@ async function main() {
     cwd: root,
     shell: true,
     stdio: "inherit",
-    env: { ...process.env, VITE_E2E: "1" }
+    env: { ...process.env, VITE_E2E: "1" },
   });
 
   console.log("Starting @aethelos/client dev server...");
@@ -67,12 +68,14 @@ async function main() {
     cwd: root,
     shell: true,
     stdio: "inherit",
-    env: { ...process.env, VITE_E2E: "1" }
+    env: { ...process.env, VITE_E2E: "1" },
   });
 
   let browser;
   try {
-    console.log("Waiting for Vite dev server on http://127.0.0.1:5173 (timeout: 120s)...");
+    console.log(
+      "Waiting for Vite dev server on http://127.0.0.1:5173 (timeout: 120s)...",
+    );
     await waitForServer("http://127.0.0.1:5173", 120000);
     console.log("Dev server is ready! Launching Playwright browser...");
 
@@ -85,8 +88,8 @@ async function main() {
       viewport: { width: 1024, height: 768 },
       recordVideo: {
         dir: VIDEO_OUTPUT_DIR,
-        size: { width: 1024, height: 768 }
-      }
+        size: { width: 1024, height: 768 },
+      },
     });
 
     const page = await context.newPage();
@@ -110,7 +113,7 @@ async function main() {
 
     console.log("Clicking 'Create identity'...");
     await page.getByRole("button", { name: "Create identity" }).click();
-    
+
     console.log("Waiting for recovery phrase...");
     await page.getByText("Save your recovery phrase").waitFor({ timeout: 15000 });
     await page.waitForTimeout(2000);
@@ -137,7 +140,9 @@ async function main() {
     await page.getByRole("button", { name: "Create community" }).click();
 
     console.log("Waiting for community dashboard to load...");
-    await page.getByRole("button", { name: "Community", exact: true }).waitFor({ timeout: 30000 });
+    await page
+      .getByRole("button", { name: "Community", exact: true })
+      .waitFor({ timeout: 30000 });
     await page.waitForTimeout(3000);
 
     // Tab Navigation & Visual Inspection
@@ -184,11 +189,12 @@ async function main() {
         mkdirSync(FINAL_ARTIFACT_DIR, { recursive: true });
       }
       copyFileSync(videoPath, FINAL_VIDEO_PATH);
-      console.log(`\nSUCCESS: Walkthrough video recorded and saved to:\n${FINAL_VIDEO_PATH}`);
+      console.log(
+        `\nSUCCESS: Walkthrough video recorded and saved to:\n${FINAL_VIDEO_PATH}`,
+      );
     } else {
       console.warn("Playwright did not produce a video file.");
     }
-
   } catch (err) {
     console.error("Recording error:", err);
   } finally {
