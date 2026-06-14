@@ -34,6 +34,15 @@ jobs:
       - name: Build Web Client
         run: pnpm --filter @aethelos/client build
 
+      - name: Build Relay
+        run: pnpm --filter @aethelos/relay build
+
+      - name: Package Relay for Mobile
+        run: |
+          mkdir -p packages/client/dist/nodejs
+          cp packages/relay/dist/index.js packages/client/dist/nodejs/index.js
+          echo '{"name":"aethelos-relay","main":"index.js"}' > packages/client/dist/nodejs/package.json
+
       - name: Initialize and Add Capacitor Android
         run: |
           cd packages/client

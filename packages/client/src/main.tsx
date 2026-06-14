@@ -10,6 +10,13 @@ import { notifySwUpdateReady, setSwUpdateHandler } from "./app/sw-update.js";
 
 const e2eEnabled = __PROOF_E2E__ === "1" || import.meta.env.VITE_E2E === "1";
 
+import { Capacitor } from "@capacitor/core";
+if (Capacitor.isNativePlatform()) {
+  import("@choreruiz/capacitor-node-js").then(({ NodeJS }) => {
+    NodeJS.start().catch(console.error);
+  }).catch(e => console.warn("Failed to load Capacitor NodeJS", e));
+}
+
 if (e2eEnabled) {
   installTestBridge();
 }
