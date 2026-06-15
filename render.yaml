@@ -1,0 +1,21 @@
+# Render Blueprint — AethelOS Browser Gateway
+#
+# Connect this repo to Render.com and it auto-deploys the full AethelOS
+# experience: PWA client + stateless relay in a single container.
+# Free tier. No credit card. Any browser, any device.
+#
+# Philosophy: "AethelOS runs on the internet, and on the internet exclusively."
+
+services:
+  - type: web
+    name: aethelos
+    runtime: docker
+    plan: free
+    dockerfilePath: deploy/Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: RELAY_PORT
+        value: "8787"
