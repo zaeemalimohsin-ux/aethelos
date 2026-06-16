@@ -13,7 +13,7 @@ RELAY_PORT=${RELAY_PORT:-8787}
 echo "AethelOS Deploy: starting relay on :${RELAY_PORT}, nginx on :${PORT}"
 
 # Generate nginx config with the platform-assigned port
-sed "s/LISTEN_PORT/${PORT}/g" /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+sed "s/LISTEN_PORT/${PORT}/g" /etc/nginx/nginx.conf.template > /tmp/nginx.conf
 
 # Start the stateless relay in the background
 cd /relay
@@ -30,7 +30,7 @@ for i in $(seq 1 20); do
 done
 
 # Start nginx in the foreground
-nginx -g "daemon off;" &
+nginx -c /tmp/nginx.conf -g "daemon off;" &
 NGINX_PID=$!
 
 echo "AethelOS Deploy: ready — serving on :${PORT}"
