@@ -20,10 +20,19 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # Remove website folder to prevent pushing binary files like og-image.png
+          # Copy current state to a temp directory to build a flat single-commit repo
+          mkdir -p ../deploy_tmp
+          cp -r ./* ../deploy_tmp/
+          cd ../deploy_tmp
+          
+          # Strip the website folder containing binary images
           rm -rf website
+          
+          # Initialize fresh git with no binary history
+          git init
           git config user.email "action@github.com"
           git config user.name "GitHub Actions"
+          git checkout -b main
           git add -A
-          git commit -m "cleanup: remove website folder before push" --allow-empty
-          git push --force https://TheGritz:$HF_TOKEN@huggingface.co/spaces/TheGritz/aethelos HEAD:main
+          git commit -m "deploy: aethelos browser release"
+          git push --force https://TheGritz:$HF_TOKEN@huggingface.co/spaces/TheGritz/aethelos main
