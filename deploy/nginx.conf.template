@@ -1,5 +1,5 @@
 worker_processes auto;
-error_log stderr warn;
+error_log /dev/stderr warn;
 pid /tmp/nginx.pid;
 
 events {
@@ -9,6 +9,7 @@ events {
 http {
     include /etc/nginx/mime.types;
     default_type application/octet-stream;
+    access_log /dev/stdout;
     sendfile on;
     keepalive_timeout 65;
     gzip on;

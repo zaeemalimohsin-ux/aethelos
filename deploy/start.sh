@@ -30,7 +30,7 @@ for i in $(seq 1 20); do
 done
 
 # Start nginx in the foreground
-nginx -c /tmp/nginx.conf -g "daemon off;" &
+nginx -p /tmp -c /tmp/nginx.conf -e /dev/stderr -g "daemon off;" &
 NGINX_PID=$!
 
 echo "AethelOS Deploy: ready — serving on :${PORT}"
