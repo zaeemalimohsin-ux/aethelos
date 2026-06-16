@@ -20,4 +20,10 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          # Remove website folder to prevent pushing binary files like og-image.png
+          rm -rf website
+          git config user.email "action@github.com"
+          git config user.name "GitHub Actions"
+          git add -A
+          git commit -m "cleanup: remove website folder before push" --allow-empty
           git push --force https://TheGritz:$HF_TOKEN@huggingface.co/spaces/TheGritz/aethelos HEAD:main
