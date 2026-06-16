@@ -20,4 +20,4 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git push --force https://TheGritz:$HF_TOKEN@huggingface.co/spaces/TheGritz/aethelos main
+          git push --force https://TheGritz:$HF_TOKEN@huggingface.co/spaces/TheGritz/aethelos HEAD:main
