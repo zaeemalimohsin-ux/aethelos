@@ -60,7 +60,11 @@ ENV RELAY_PORT=8787
 # Grant non-root user permissions to nginx directories
 RUN mkdir -p /var/lib/nginx/logs /var/log/nginx /run/nginx && \
     chown -R 1000:1000 /var/lib/nginx /var/log/nginx /run/nginx /etc/nginx /tmp /usr/share/nginx/html && \
-    chmod -R 777 /var/lib/nginx /var/log/nginx /run/nginx /etc/nginx /tmp /usr/share/nginx/html
+    chmod -R 777 /var/lib/nginx /var/log/nginx /run/nginx /etc/nginx /tmp /usr/share/nginx/html && \
+    ln -sf /dev/stdout /var/log/nginx/access.log && \
+    ln -sf /dev/stderr /var/log/nginx/error.log && \
+    ln -sf /dev/stdout /var/lib/nginx/logs/access.log && \
+    ln -sf /dev/stderr /var/lib/nginx/logs/error.log
 
 # Run as non-root user (UID 1000) for security environments (like Hugging Face Spaces)
 USER 1000
