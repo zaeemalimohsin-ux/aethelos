@@ -28,7 +28,13 @@ const banned = [
 const readmeDevMarker = "## Quick start";
 
 function checkFile(path) {
-  const text = readFileSync(path, "utf8");
+  let text = readFileSync(path, "utf8");
+  if (text.startsWith("---")) {
+    const end = text.indexOf("---", 3);
+    if (end > 0) {
+      text = text.slice(end + 3);
+    }
+  }
   const scope =
     path.endsWith("README.md") && text.includes(readmeDevMarker)
       ? text.slice(0, text.indexOf(readmeDevMarker))
