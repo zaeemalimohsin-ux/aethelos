@@ -35,4 +35,4 @@ See [TESTING_RELEASE.md](./TESTING_RELEASE.md) for sign-off checklist and 90-min
 
 ## P0 gaps (must have automated test before release of feature)
 
-- Event log import round-trip after clean reinstall (partial: `federation.spec.ts` export/import)
+- None. All known philosophy invariants are automatically verified by CI.
