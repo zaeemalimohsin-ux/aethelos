@@ -6,7 +6,7 @@ Maps claims in [Higher-Level-Philosophy.md](../Higher-Level-Philosophy.md) to au
 |----|------------------|-------------------|--------|---------------|
 | P1.1 | Stateless relay — no authoritative ledger | `packages/relay/tests/relay.test.ts` | Covered | — |
 | P1.2 | DAG merge / deterministic ordering | `core.test.ts` (DAG merge), `adversarial.test.ts` (replay), `simulation.test.ts` | Covered | Live WS: `client/tests/sync-relay.test.ts` |
-| P1.3 | Fracture on impossible state | `core.test.ts`, `adversarial.test.ts` | Covered | Partial E2E: `community.spec` `resolve_fracture` proposal flow; true double-spend → frozen → unfreeze still Charter A |
+| P1.3 | Fracture on impossible state | `core.test.ts`, `adversarial.test.ts` (Charter A) | Covered | — |
 | P1.4 | Cryptographic identity | `core.test.ts` (crypto) | Covered | Invite tamper: `client/tests/invite.test.ts`; relay filter: `core/tests/relay-url-utils.test.ts` |
 | P1.5 | Vouch lien + admission gate | `adversarial.test.ts` (vouch lien), `governance-fixes.test.ts` | Covered | — |
 | P1.6 | Relays invisible on happy path — swappable in Advanced | `active-relays.test.ts` (connectionStatusMessage), UI audit | Covered | E2E uses **Invite people** flow |
@@ -25,9 +25,9 @@ Maps claims in [Higher-Level-Philosophy.md](../Higher-Level-Philosophy.md) to au
 | P4.2 | Liquid vouch / Head election | E2E community-scale head shift | Covered | — |
 | P4.3 | Governance sliders (share-weighted) | E2E governance sliders | Covered | — |
 | P4.4 | Superstructure slider relay | `superstructure.test.ts` (relay_cell_governance) | Covered | E2E governance relay |
-| P4.5 | Head-only superstructure proposals | `governance-fixes.test.ts` | Covered | `proposal_close`: Charter B |
+| P4.5 | Head-only superstructure proposals | `governance-fixes.test.ts`, `adversarial.test.ts` (Charter B) | Covered | — |
 | P5.1 | Sovereignty — no fiat appropriation | `adversarial.test.ts` (R2) | Covered | Explicit rejection test in core |
-| P5.2 | Head relay, not dictator | governance + bridge role tests | Covered | Charter C (Head capture) |
+| P5.2 | Head relay, not dictator | `adversarial.test.ts` (Charter C) | Covered | — |
 
 ## Manual exploratory charters
 
@@ -35,6 +35,4 @@ See [TESTING_RELEASE.md](./TESTING_RELEASE.md) for sign-off checklist and 90-min
 
 ## P0 gaps (must have automated test before release of feature)
 
-- Relay buffer contract (TTL, cap, rate limit) — covered in `packages/relay/tests/relay.test.ts`
 - Event log import round-trip after clean reinstall (partial: `federation.spec.ts` export/import)
-- Fracture recovery / unfreeze E2E (Charter A)
