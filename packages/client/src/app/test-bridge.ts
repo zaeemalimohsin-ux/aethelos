@@ -57,6 +57,8 @@ function poolSummary(pool: PoolState) {
 
     parentSuperstructures: pool.parentSuperstructures,
 
+    fractures: pool.fractures ?? [],
+
     pendingInviteCount: Object.keys(pool.pendingInvites).length,
 
     proposalCount: Object.keys(pool.proposals).length,
@@ -246,6 +248,28 @@ export function installTestBridge(): void {
           skipped: 0,
         }
       );
+    },
+
+    async disasterRecoveryImport(json: string) {
+      const parsed = JSON.parse(json);
+      if (!parsed.length) return;
+      const ns = parsed[0].namespaceId;
+      const { importEventLog } = await import("../storage/event-log.js");
+      await importEventLog(json);
+      const sessionStr = localStorage.getItem("aethelos-session");
+      if (sessionStr) {
+        const session = JSON.parse(sessionStr);
+        session.namespaceId = ns;
+        localStorage.setItem("aethelos-session", JSON.stringify(session));
+      }
+    },
+
+    async dispatchDoubleSpend(to: string, amount: string) {
+      await useStore.getState().controller?.dispatchMaliciousEventForTesting({
+        type: "transaction",
+        to,
+        amount,
+      });
     },
   };
 

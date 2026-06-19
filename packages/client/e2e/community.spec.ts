@@ -272,3 +272,58 @@ test.describe("sub-Cell depth & linkage", () => {
     expect(child.cellName).toBe("Wide Cell — Ward B");
   });
 });
+
+test.describe("fracture recovery", () => {
+  test("double spend causes fracture and is resolved by community proposal", async ({
+    browser,
+  }) => {
+    const ctxA = await freshContext(browser);
+    const ctxB = await freshContext(browser);
+    const pageA = await ctxA.newPage();
+    const pageB = await ctxB.newPage();
+
+    // 1. Setup Alice and Bob
+    await onboardGenesis(pageA, "Alice", "Safe Cell");
+    const inviteLink = await buildInviteLink(pageA);
+    await joinViaInviteLink(pageB, inviteLink);
+    const joinerKey = await getPublicKey(pageB);
+    await admitJoiner(pageA, pageB, joinerKey);
+    await waitForMemberCount(pageA, 2);
+    await waitForMemberCount(pageB, 2);
+
+    // 1.5. Alice gives Bob some points so he has voting power to unfreeze her
+    await pageA.getByLabel("Send to").selectOption(joinerKey);
+    await pageA.getByLabel("Amount (Value)").fill("10");
+    await pageA.getByRole("button", { name: "Send transaction" }).click();
+    await waitForPool(pageB, (p) => p.balances[joinerKey] > 0);
+
+    // 2. Alice attempts a double-spend via the test bridge backdoor
+    await pageA.evaluate(
+      (bobKey) => window.__aethelosTest?.dispatchDoubleSpend(bobKey, "9999999999999"),
+      joinerKey,
+    );
+
+    // 3. Consequence: Alice is added to fractures list on both nodes
+    await waitForPool(pageA, (p) => p.fractures.length > 0);
+    await waitForPool(pageB, (p) => p.fractures.length > 0, 30_000);
+
+    // 4. UX Verification: Bob sees the danger alert and resolves it
+    await pageB.getByRole("button", { name: "Proposals" }).click();
+    await expect(pageB.locator(".alert.danger")).toContainText("paused after suspicious activity");
+    await pageB.locator("#kind").selectOption("resolve_fracture");
+    const aliceKey = await getPublicKey(pageA);
+    await pageB.getByLabel("About who?").selectOption(aliceKey);
+    await pageB.getByRole("button", { name: "Start proposal" }).click();
+    await pageB.getByRole("button", { name: "Approve" }).first().click();
+
+    // The proposal passes instantly because Bob holds 100% of the unfrozen voting weight.
+    await waitForPool(pageA, (p) => p.proposalCount >= 2, 30_000);
+    
+    // 5. Validation: The proposal executes and Alice is removed from fractures
+    await waitForPool(pageA, (p) => p.fractures.length === 0, 30_000);
+    await waitForPool(pageB, (p) => p.fractures.length === 0, 30_000);
+
+    await ctxA.close();
+    await ctxB.close();
+  });
+});

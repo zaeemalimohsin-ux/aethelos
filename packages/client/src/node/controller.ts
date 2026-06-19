@@ -613,6 +613,20 @@ export class NodeController {
       m.exportEventLog(this.namespaceId),
     );
   }
+
+  async dispatchMaliciousEventForTesting(payload: unknown): Promise<void> {
+    const e2eEnabled = __PROOF_E2E__ === "1" || import.meta.env.VITE_E2E === "1";
+    if (!e2eEnabled) throw new Error("Not allowed outside E2E tests");
+    await this.sync.publish({
+      namespaceId: this.namespaceId,
+      prevHash: null,
+      lamport: 0,
+      author: this.keyPair.publicKeyHex,
+      timestamp: Date.now(),
+      payload: payload as any,
+    });
+    this.recompute();
+  }
 }
 
 export function generateNamespaceId(): string {
