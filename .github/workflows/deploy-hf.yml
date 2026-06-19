@@ -24,10 +24,10 @@ jobs:
           mkdir -p ../deploy_tmp
           cp -r ./* ../deploy_tmp/
           cd ../deploy_tmp
-          
+
           # Strip the website folder containing binary images
           rm -rf website
-          
+
           # Initialize fresh git with no binary history
           git init
           git config user.email "action@github.com"

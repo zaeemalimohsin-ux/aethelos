@@ -309,7 +309,9 @@ test.describe("fracture recovery", () => {
 
     // 4. UX Verification: Bob sees the danger alert and resolves it
     await pageB.getByRole("button", { name: "Proposals" }).click();
-    await expect(pageB.locator(".alert.danger")).toContainText("paused after suspicious activity");
+    await expect(pageB.locator(".alert.danger")).toContainText(
+      "paused after suspicious activity",
+    );
     await pageB.locator("#kind").selectOption("resolve_fracture");
     const aliceKey = await getPublicKey(pageA);
     await pageB.getByLabel("About who?").selectOption(aliceKey);
@@ -318,7 +320,7 @@ test.describe("fracture recovery", () => {
 
     // The proposal passes instantly because Bob holds 100% of the unfrozen voting weight.
     await waitForPool(pageA, (p) => p.proposalCount >= 2, 30_000);
-    
+
     // 5. Validation: The proposal executes and Alice is removed from fractures
     await waitForPool(pageA, (p) => p.fractures.length === 0, 30_000);
     await waitForPool(pageB, (p) => p.fractures.length === 0, 30_000);

@@ -33,7 +33,7 @@ test.describe("disaster recovery", () => {
     await pageA.getByRole("button", { name: "Send transaction" }).click();
 
     await waitForPool(pageA, (p) => parseFloat(p.balances[joinerKey] || "0") > 990);
-    
+
     const originalPool = await getPoolSummary(pageA);
 
     // 2. Export: Alice exports her full event log
@@ -48,13 +48,10 @@ test.describe("disaster recovery", () => {
     await onboardGenesis(pageC, "Alice Recovered", "Temp Local");
 
     // Then inject the log
-    await pageC.evaluate(
-      async (logJson) => {
-        const bridge = window.__aethelosTest as any;
-        await bridge.disasterRecoveryImport(logJson!);
-      },
-      exportedLog
-    );
+    await pageC.evaluate(async (logJson) => {
+      const bridge = window.__aethelosTest as any;
+      await bridge.disasterRecoveryImport(logJson!);
+    }, exportedLog);
 
     await pageC.reload();
 
@@ -64,11 +61,13 @@ test.describe("disaster recovery", () => {
 
     // 5. Validation: The new state should perfectly match the original state
     await waitForPool(pageC, (p) => p.memberCount === 2);
-    
+
     const recoveredPool = await getPoolSummary(pageC);
-    
+
     expect(recoveredPool!.totalPoints).toBe(originalPool!.totalPoints);
-    expect(recoveredPool!.members.sort().join()).toBe(originalPool!.members.sort().join());
+    expect(recoveredPool!.members.sort().join()).toBe(
+      originalPool!.members.sort().join(),
+    );
     expect(recoveredPool!.balances[joinerKey]).toBe(originalPool!.balances[joinerKey]);
     expect(recoveredPool!.namespaceId).toBe(originalPool!.namespaceId);
 
