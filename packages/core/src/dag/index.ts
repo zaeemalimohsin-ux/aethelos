@@ -96,7 +96,7 @@ export function topologicalSort(events: SignedEvent[]): SignedEvent[] {
   }
 
   // We maintain the ready pool. Sort descending so we can pop() from the end in O(1).
-  let ready = sorted.filter((e) => inDegree.get(e.id) === 0).sort((a, b) => compareEvents(b, a));
+  const ready = sorted.filter((e) => inDegree.get(e.id) === 0).sort((a, b) => compareEvents(b, a));
   const result: SignedEvent[] = [];
 
   while (ready.length > 0) {

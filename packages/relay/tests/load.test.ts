@@ -26,7 +26,6 @@ describe("relay load and chaos testing", () => {
     server = await startRelayServer({ port: 0, maxConnections: MAX_CONN });
     
     const sockets: WebSocket[] = [];
-    let rejections = 0;
 
     // Attempt to spawn MAX_CONN + 50 sockets
     const spawnAttempts = Array.from({ length: MAX_CONN + 50 }).map(() => {

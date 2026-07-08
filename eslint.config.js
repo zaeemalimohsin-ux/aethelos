@@ -11,6 +11,7 @@ export default tseslint.config(
       "**/target/**",
       "**/gen/**",
       "packages/client-tauri/src-tauri/resources/**",
+      "packages/client/android/**/nodejs-project/**",
       "**/*.config.ts",
       "**/*.config.js",
       "**/vite-env.d.ts",
