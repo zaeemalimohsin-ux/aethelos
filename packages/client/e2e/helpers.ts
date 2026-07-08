@@ -41,11 +41,51 @@ export interface BootstrappedCommunity {
   contexts: BrowserContext[];
 }
 
-export async function freshContext(browser: {
-  newContext: (opts?: object) => Promise<BrowserContext>;
-}): Promise<BrowserContext> {
-  return browser.newContext();
+import { OmniHarness, PeerDevice } from './harness.js';
+
+export async function freshPeer(browser: any): Promise<PeerDevice> {
+  const peer = await OmniHarness.launchPeer(browser as any);
+  return peer;
 }
+
+/**
+ * Backwards-compatible shim for legacy tests that use:
+ *   const ctx = await freshContext(browser);
+ *   const page = await ctx.newPage();
+ *
+ * Returns a BrowserContext. The first navigation in each test (via goto or
+ * onboardGenesis) will load the app fresh with any hash URL intact.
+ * The shim does NOT pre-navigate to the base URL — doing so would cause
+ * hash-based invite links to fail because the store's init() reads the
+ * URL hash only on initial page load.
+ */
+export async function freshContext(browser: any): Promise<any> {
+  const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
+  const ctx = await browser.newContext();
+  const origNewPage = ctx.newPage.bind(ctx);
+  ctx.newPage = async () => {
+    const page = await origNewPage();
+    page.on('pageerror', (err: Error) => console.log(`[Web Error]`, err));
+    page.on('console', (msg: any) => console.log(`[Web Console]`, msg.type(), msg.text()));
+    // Navigate to base URL so the app is loaded - this is needed for onboardGenesis to work.
+    // Tests that do page.goto(inviteLink) as their FIRST navigation should not call
+    // onboardGenesis first, so this pre-navigation is safe for those tests too since
+    // joinViaInviteLink replaces with page.goto(inviteLink) which is a full navigation.
+    await page.goto(baseUrl);
+    return page;
+  };
+  return ctx;
+}
+
+export async function closeContexts(contexts: any[]): Promise<void> {
+  await Promise.all(contexts.map(async (c) => {
+    if (c.close && typeof c.close === 'function') {
+      await c.close();
+    }
+  }));
+}
+
+
 
 export async function createIdentity(
   page: Page,
@@ -53,7 +93,8 @@ export async function createIdentity(
   opts?: { fromInvite?: boolean },
 ): Promise<void> {
   if (!opts?.fromInvite) {
-    await page.goto("/");
+    // We don't need to page.goto("/") here because OmniHarness already navigates to the app.
+    // If we navigate while it's initializing it might break IndexedDB
     await page.getByRole("button", { name: "Create a new identity" }).click();
   }
   await page.getByLabel("Display name").fill(displayName);
@@ -81,6 +122,9 @@ export async function onboardGenesis(
   displayName: string,
   cellName: string,
 ): Promise<void> {
+  if (page.url() === 'about:blank') {
+    await page.goto(process.env.BASE_URL || 'http://localhost:5173');
+  }
   await createIdentity(page, displayName);
   await startCommunity(page, cellName);
 }
@@ -115,7 +159,21 @@ export async function waitForSyncConnected(
 }
 
 export async function getPoolSummary(page: Page): Promise<PoolSummary | null> {
-  return page.evaluate(() => window.__aethelosTest?.getPoolSummary() ?? null);
+  const res = await page.evaluate(() => {
+    if (!window.__aethelosTest) {
+      return { 
+        error: "no test bridge", 
+        href: window.location.href, 
+        hasRoot: !!document.getElementById("root")?.innerHTML 
+      };
+    }
+    return window.__aethelosTest.getPoolSummary();
+  });
+  if (res && (res as any).error) {
+    console.log("getPoolSummary error:", res);
+    return null;
+  }
+  return res as PoolSummary | null;
 }
 
 export async function waitForPool(
@@ -124,13 +182,15 @@ export async function waitForPool(
   timeoutMs = 45_000,
 ): Promise<PoolSummary> {
   const deadline = Date.now() + timeoutMs;
+  let lastPool: PoolSummary | null = null;
   while (Date.now() < deadline) {
     const pool = await getPoolSummary(page);
+    lastPool = pool;
     if (pool && predicate(pool)) return pool;
     await page.waitForTimeout(500);
   }
-  const last = await getPoolSummary(page);
-  throw new Error(`waitForPool timeout; last=${JSON.stringify(last)}`);
+  console.log('waitForPool timed out. lastPool:', lastPool);
+  throw new Error(`waitForPool timeout; last=${JSON.stringify(lastPool)}`);
 }
 
 export async function waitForMemberCount(
@@ -209,6 +269,7 @@ export async function joinViaInviteLink(
   displayName = "Joiner",
 ): Promise<void> {
   await page.goto(inviteLink);
+  await page.reload(); // Force full reload so app parses hash URL during init
   await expect(page.getByText("You've been invited")).toBeVisible({ timeout: 20_000 });
   await page.getByRole("button", { name: "Create identity" }).click();
   await createIdentity(page, displayName, { fromInvite: true });
@@ -343,14 +404,14 @@ export async function bridgeVouch(
 
 /** Star topology: one founder vouches for N joiners via the real invite UX + bridge accept. */
 export async function bootstrapStarCommunity(
-  browser: { newContext: (opts?: object) => Promise<BrowserContext> },
+  browser: any,
   cellName: string,
   joinerLabels: string[],
 ): Promise<BootstrappedCommunity> {
-  const contexts: BrowserContext[] = [];
-  const founderCtx = await freshContext(browser);
-  contexts.push(founderCtx);
-  const founder = await founderCtx.newPage();
+  const contexts: PeerDevice[] = [];
+  const founderPeer = await freshPeer(browser);
+  contexts.push(founderPeer);
+  const founder = founderPeer.page;
   await onboardGenesis(founder, "Founder", cellName);
   const link = await buildInviteLink(founder);
 
@@ -359,9 +420,9 @@ export async function bootstrapStarCommunity(
   const expectedCount = 1 + joinerLabels.length;
 
   for (let i = 0; i < joinerLabels.length; i++) {
-    const ctx = await freshContext(browser);
-    contexts.push(ctx);
-    const page = await ctx.newPage();
+    const peer = await freshPeer(browser);
+    contexts.push(peer);
+    const page = peer.page;
     await joinViaInviteLink(page, link, joinerLabels[i]!);
     const key = await getPublicKey(page);
     keys.push(key);
@@ -377,6 +438,4 @@ export async function bootstrapStarCommunity(
   return { founder, joiners, keys, contexts };
 }
 
-export async function closeContexts(contexts: BrowserContext[]): Promise<void> {
-  await Promise.all(contexts.map((c) => c.close()));
-}
+

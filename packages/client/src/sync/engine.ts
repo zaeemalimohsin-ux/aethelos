@@ -327,6 +327,52 @@ export class SyncEngine {
 
     return event;
   }
+
+  /**
+   * E2E-only: publish two sibling spends that share the same prevHash (true fork /
+   * double-spend), instead of chaining tip→tip like a normal client.
+   */
+  async publishSiblingTransactions(
+    payloads: [UnsignedEvent["payload"], UnsignedEvent["payload"]],
+  ): Promise<SignedEvent[]> {
+    const tip = sortEvents(this.localEvents).at(-1);
+    const baseLamport = nextLamport(
+      maxLamport(this.localEvents),
+      0,
+      maxLamport(this.localEvents.filter((e) => e.author === this.keyPair.publicKeyHex)),
+    );
+    const now = Date.now();
+    const signed: SignedEvent[] = [];
+    for (let i = 0; i < payloads.length; i++) {
+      const event = await signEvent(
+        {
+          namespaceId: this.namespaceId,
+          prevHash: tip?.id ?? null,
+          lamport: baseLamport + i,
+          author: this.keyPair.publicKeyHex,
+          timestamp: now + i,
+          payload: payloads[i]!,
+        },
+        this.keyPair.privateKey,
+      );
+      signed.push(event);
+      await appendEvent(event);
+      const envelope: WireEnvelope = {
+        version: WIRE_VERSION,
+        namespaceId: this.namespaceId,
+        event,
+      };
+      const sent = this.broadcast({ type: "announce", envelope });
+      if (!sent) {
+        this.outbox.push(envelope);
+      }
+    }
+    await saveOutbox(this.namespaceId, this.outbox);
+    this.localEvents = mergeEventLogs(this.localEvents, signed);
+    this.emitEvents();
+    this.emitStatus();
+    return signed;
+  }
 }
 
 function dedupe(urls: string[]): string[] {

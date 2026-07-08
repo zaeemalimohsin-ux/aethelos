@@ -42,6 +42,8 @@ declare global {
       leaveSuperstructure: (parentId: string) => Promise<void>;
       exportLog: () => Promise<string>;
       importLog: (json: string) => Promise<{ imported: number; skipped: number }>;
+      dispatchDoubleSpend?: (to: string, amount: string) => Promise<void>;
+      dispatchSiblingDoubleSpend?: (to: string, amount: string) => Promise<void>;
     };
   }
 }

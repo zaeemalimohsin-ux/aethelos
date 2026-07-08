@@ -63,6 +63,11 @@ describe("invite signatures", () => {
       inviteCanonicalBody({ ...payload, sig: undefined }),
     );
   });
+
+  it("rejects excessively large payloads (DoS protection)", () => {
+    const massive = "A".repeat(10000); // Exceeds 8192 bytes
+    expect(decodeInvite(massive)).toBeNull();
+  });
 });
 
 describe("invite link base URL", () => {

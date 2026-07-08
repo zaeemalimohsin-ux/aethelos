@@ -7,6 +7,11 @@ const mirroredStorageKey = (namespaceId: string) =>
 
 const MIRROR_EVENT_TYPES = new Set(["bridge_transaction", "relay_cell_governance"]);
 
+/** Deterministic receive-proposal id on the destination namespace for an origin bridge event. */
+export function inboundBridgeProposalId(originEventId: string): string {
+  return `inbound:${originEventId}`;
+}
+
 function loadMirroredIds(namespaceId: string): Set<string> {
   try {
     const raw = sessionStorage.getItem(mirroredStorageKey(namespaceId));
@@ -40,6 +45,8 @@ function mirrorTarget(pool: PoolState, event: SignedEvent): string | null {
 
 /**
  * When this node holds the bridge role, mirror seam events into linked namespaces.
+ * Inbound bridge credits on the destination require a local executed bridge_transfer
+ * proposal — the mirror opens, votes, then delivers against that proposal id.
  */
 export class BridgeMirrorCoordinator {
   private remoteEngines = new Map<string, SyncEngine>();
@@ -108,16 +115,47 @@ export class BridgeMirrorCoordinator {
 
       if (event.payload.type === "bridge_transaction") {
         const payload = event.payload;
+        const receiveId = inboundBridgeProposalId(event.id);
+        const now = event.timestamp;
         await engine.publish({
           namespaceId: remoteId,
           prevHash: null,
           lamport: 0,
           author: myKey,
-          timestamp: event.timestamp,
+          timestamp: now,
+          payload: {
+            type: "proposal_create",
+            proposalId: receiveId,
+            kind: "bridge_transfer",
+            data: {
+              target: pool.namespaceId,
+              to: payload.to,
+              amount: payload.amount,
+            },
+          },
+        });
+        await engine.publish({
+          namespaceId: remoteId,
+          prevHash: null,
+          lamport: 0,
+          author: myKey,
+          timestamp: now + 1,
+          payload: {
+            type: "proposal_vote",
+            proposalId: receiveId,
+            approve: true,
+          },
+        });
+        await engine.publish({
+          namespaceId: remoteId,
+          prevHash: null,
+          lamport: 0,
+          author: myKey,
+          timestamp: now + 2,
           payload: {
             type: "bridge_transaction",
             superstructureId: pool.namespaceId,
-            localProposalId: event.id,
+            localProposalId: receiveId,
             to: payload.to,
             amount: payload.amount,
           },

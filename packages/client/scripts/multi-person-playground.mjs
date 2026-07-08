@@ -150,7 +150,7 @@ async function main() {
   console.log("");
   console.log("Quick manual flow:");
   console.log("  1. In Founder: create identity → start a community");
-  console.log("  2. Community → Share invite link → copy link");
+  console.log("  2. Community → Invite people → copy link");
   console.log("  3. In another window: paste link in address bar → join");
   console.log("  4. Founder: paste join code → vouch → other window: Accept invite");
   console.log("");

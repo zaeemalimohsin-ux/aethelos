@@ -115,6 +115,12 @@ export function buildInviteLink(payload: InvitePayload, linkBase?: string): stri
 
 export function decodeInvite(encoded: string): InvitePayload | null {
   try {
+    // Prevent DoS attacks by rejecting excessively large payloads
+    // A typical invite is ~500-800 bytes base64 encoded.
+    if (encoded.length > 8192) {
+      return null;
+    }
+
     const parsed = JSON.parse(fromBase64Url(encoded)) as Partial<InvitePayload>;
     if (
       parsed.v !== 1 ||

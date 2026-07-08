@@ -318,6 +318,16 @@ export const useStore = create<AppStore>((set, get) => ({
 
   async startCommunity(cellName, options) {
     if (!keyPair) return;
+
+    const { isBootstrapPoolConfigured } = await import("./bootstrap-relays.js");
+    if (!isDesktopApp() && !options?.customRelay && !isBootstrapPoolConfigured()) {
+      get().toast(
+        "This copy of the app has no community mailbox. Use the desktop app, a published site with hosting, or open Identity → Advanced → Network to add a connection point — then try again.",
+        "error",
+      );
+      return;
+    }
+
     const namespaceId = generateNamespaceId();
     const online = await ensureOnline({
       namespaceId,
@@ -325,9 +335,9 @@ export const useStore = create<AppStore>((set, get) => ({
       probe: !import.meta.env.DEV,
     });
 
-    if (!online.ok) {
+    if (!online.ok || online.relays.length === 0) {
       get().toast(
-        "Can't reach your community right now. Open Identity → Advanced → Network for help.",
+        "Can't reach a connection point. Open Identity → Advanced → Network for help — empty bootstrap alone cannot start a community.",
         "error",
       );
       return;

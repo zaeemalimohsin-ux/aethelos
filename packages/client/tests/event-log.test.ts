@@ -93,4 +93,65 @@ describe("event log storage", () => {
   it("rejects non-array JSON on import", async () => {
     await expect(importEventLog('{"x":1}')).rejects.toThrow("invalid_log_format");
   });
+
+  it("rejects orphan-only logs that lack causal roots", async () => {
+    const kp = await generateKeyPair();
+    const ns = "storage-orphan";
+    const orphan = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: "ab".repeat(32),
+        lamport: 2,
+        author: kp.publicKeyHex,
+        timestamp: 2,
+        payload: {
+          type: "slider_update",
+          parameter: "decay_rate",
+          value: 5,
+        },
+      },
+      kp.privateKey,
+    );
+    await expect(importEventLog(JSON.stringify([orphan]), ns)).rejects.toThrow(
+      "causal_orphan_log",
+    );
+  });
+
+  it("imports reachable chain and skips orphan siblings", async () => {
+    const kp = await generateKeyPair();
+    const ns = "storage-partial-ok";
+    const g = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: null,
+        lamport: 1,
+        author: kp.publicKeyHex,
+        timestamp: 1,
+        payload: {
+          type: "genesis",
+          cellName: "Partial",
+          initialPoints: "10",
+          parameters: DEFAULT_PARAMETERS,
+        },
+      },
+      kp.privateKey,
+    );
+    const orphan = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: "cd".repeat(32),
+        lamport: 3,
+        author: kp.publicKeyHex,
+        timestamp: 3,
+        payload: { type: "slider_update", parameter: "decay_rate", value: 4 },
+      },
+      kp.privateKey,
+    );
+    const result = await importEventLog(JSON.stringify([g, orphan]), ns);
+    expect(result.imported).toBe(1);
+    expect(result.skipped).toBe(1);
+    const loaded = await loadEvents(ns);
+    expect(loaded.some((e) => e.id === g.id)).toBe(true);
+    expect(loaded.some((e) => e.id === orphan.id)).toBe(false);
+  });
 });

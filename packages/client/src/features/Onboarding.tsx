@@ -424,12 +424,36 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
   const start = useStore((s) => s.startCommunity);
   const [cell, setCell] = useState("My Community");
   const [busy, setBusy] = useState(false);
+  const [mailboxReady, setMailboxReady] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    void import("../app/bootstrap-relays.js").then((m) => {
+      if (cancelled) return;
+      // DESKTOP / DEV always ready; warn only when neither operator pool nor same-origin path.
+      const ready =
+        isDesktopApp() ||
+        m.isBootstrapPoolConfigured();
+      setMailboxReady(ready);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <Card title="Start a community">
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
         You will hold all the starting stake. When it's created, invite people from the
         Community tab.
       </p>
+      {!mailboxReady ? (
+        <p className="error-text" style={{ marginBottom: "var(--sp-3)" }}>
+          This browser copy has no automatic connection points. Use the desktop app, a
+          hosted install, or add a connection point under Identity → Advanced → Network
+          before creating a community.
+        </p>
+      ) : null}
       <Field
         label="Community name"
         value={cell}
@@ -437,7 +461,7 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
       />
       <Button
         block
-        disabled={!cell.trim() || busy}
+        disabled={!cell.trim() || busy || !mailboxReady}
         style={{ marginTop: "var(--sp-3)" }}
         onClick={async () => {
           setBusy(true);

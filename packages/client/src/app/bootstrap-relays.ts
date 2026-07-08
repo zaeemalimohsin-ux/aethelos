@@ -271,6 +271,11 @@ export async function resolveRelaysForCommunity(
       if (custom && url === custom) continue;
       if (await probeRelay(url)) bootstrap.push(url);
     }
+    if (bootstrap.length === 0 && !custom) {
+      // Do not silently fall back to unprobed URLs — genesis would appear to work
+      // against a dead same-origin /ws.
+      return [];
+    }
   }
 
   if (bootstrap.length === 0) {
@@ -295,6 +300,15 @@ export function isBootstrapPoolConfigured(): boolean {
   if (import.meta.env.DEV) return true;
   if (typeof window !== "undefined" && sameOriginRelayUrl()) return true;
   return getBootstrapRelayPool().length > 0;
+}
+
+/**
+ * Soft UX signal: operator bootstrap file/env is empty. Same-origin publisher and
+ * desktop still work; pure static PWA without /ws should fail at probe time.
+ */
+export function hasOperatorBootstrapPool(): boolean {
+  if (import.meta.env.DEV) return true;
+  return envBootstrapRelays().length > 0 || FILE_BOOTSTRAP_RELAYS.length > 0;
 }
 
 export function isValidRelayUrl(url: string): boolean {

@@ -92,7 +92,12 @@ describe("BridgeMirrorCoordinator", () => {
     await coordinator.mirrorOutboundEvents(pool, [event], kp.publicKeyHex);
     await coordinator.mirrorOutboundEvents(pool, [event], kp.publicKeyHex);
 
-    expect(mockPublishes.length).toBe(1);
+    // Destination receive proposal + vote + credit (idempotent per origin event id).
+    expect(mockPublishes.length).toBe(3);
+    const creates = mockPublishes.filter(
+      (m) => (m as { payload?: { type?: string } }).payload?.type === "proposal_create",
+    );
+    expect(creates).toHaveLength(1);
     coordinator.stop();
   });
 });

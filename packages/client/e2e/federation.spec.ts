@@ -1,25 +1,22 @@
 import { test, expect } from "@playwright/test";
+import { OmniHarness, PeerDevice } from "./harness.js";
 import {
-  freshContext,
   onboardGenesis,
   waitForPool,
   getPoolSummary,
   bridgeVoteProposal,
   bridgeUpdateSlider,
-  closeContexts,
 } from "./helpers.js";
 
-async function linkParentChild(browser: {
-  newContext: (opts?: object) => Promise<import("@playwright/test").BrowserContext>;
-}) {
-  const ctxParent = await freshContext(browser);
-  const ctxChild = await freshContext(browser);
-  const pageParent = await ctxParent.newPage();
-  const pageChild = await ctxChild.newPage();
+async function linkParentChild(browser: any) {
+  const parentPeer = await OmniHarness.launchPeer(browser);
+  const childPeer = await OmniHarness.launchPeer(browser);
+  const pageParent = parentPeer.page;
+  const pageChild = childPeer.page;
 
   await onboardGenesis(pageParent, "Parent Head", "Parent Federation");
-  await onboardGenesis(pageChild, "Child Head", "Child Federation");
   await waitForPool(pageParent, (p) => p.memberCount === 1);
+  await onboardGenesis(pageChild, "Child Head", "Child Federation");
   await waitForPool(pageChild, (p) => p.memberCount === 1);
 
   const parentNs = (await getPoolSummary(pageParent))!.namespaceId;
@@ -44,12 +41,12 @@ async function linkParentChild(browser: {
   await pageParent.getByRole("button", { name: "Approve" }).first().click();
   await waitForPool(pageParent, (p) => (p.childCells ?? []).includes(childNs));
 
-  return { ctxParent, ctxChild, pageParent, pageChild, parentNs, childNs, childHead };
+  return { parentPeer, childPeer, pageParent, pageChild, parentNs, childNs, childHead };
 }
 
 test.describe("federation seam", () => {
   test("bridge_transfer requires approval before escrow release", async ({ browser }) => {
-    const { ctxParent, ctxChild, pageChild, pageParent, parentNs, childHead } =
+    const { parentPeer, childPeer, pageChild, pageParent, parentNs, childHead } =
       await linkParentChild(browser);
 
     await pageChild.evaluate(
@@ -79,13 +76,14 @@ test.describe("federation seam", () => {
       60_000,
     );
 
-    await closeContexts([ctxParent, ctxChild]);
+    await parentPeer.close();
+    await childPeer.close();
   });
 
   test("child governance slider relay shifts parent resolved decay_rate", async ({
     browser,
   }) => {
-    const { ctxParent, ctxChild, pageParent, pageChild } = await linkParentChild(browser);
+    const { parentPeer, childPeer, pageParent, pageChild } = await linkParentChild(browser);
 
     const beforeParent = (await getPoolSummary(pageParent))!.parameters.decay_rate;
     await bridgeUpdateSlider(pageChild, "decay_rate", 18);
@@ -99,11 +97,12 @@ test.describe("federation seam", () => {
     const afterParent = (await getPoolSummary(pageParent))!.parameters.decay_rate;
     expect(afterParent).toBeGreaterThan(beforeParent);
 
-    await closeContexts([ctxParent, ctxChild]);
+    await parentPeer.close();
+    await childPeer.close();
   });
 
   test("leave_superstructure clears parent link on child", async ({ browser }) => {
-    const { ctxParent, ctxChild, pageChild, parentNs } = await linkParentChild(browser);
+    const { parentPeer, childPeer, pageChild, parentNs } = await linkParentChild(browser);
 
     await pageChild.evaluate(
       (pid) => window.__aethelosTest?.leaveSuperstructure(pid),
@@ -118,10 +117,13 @@ test.describe("federation seam", () => {
       60_000,
     );
 
-    await closeContexts([ctxParent, ctxChild]);
+    await parentPeer.close();
+    await childPeer.close();
   });
 
-  test("event log export and import conserve pool summary", async ({ page }) => {
+  test("event log export and import conserve pool summary", async ({ browser }) => {
+    const peer = await OmniHarness.launchPeer(browser);
+    const page = peer.page;
     await onboardGenesis(page, "Exporter", "Log Cell");
     await waitForPool(page, (p) => p.memberCount === 1);
 

@@ -1,5 +1,9 @@
 import type { SignedEvent } from "@aethelos/core";
-import { isValidSignedEvent, verifyEventSync } from "@aethelos/core";
+import {
+  filterCausalClosure,
+  isValidSignedEvent,
+  verifyEventSync,
+} from "@aethelos/core";
 
 const DB_NAME = "aethelos-eventlog";
 const STORE = "events";
@@ -56,7 +60,8 @@ export async function exportEventLog(namespaceId: string): Promise<string> {
 
 /**
  * Import a JSON event log after structural validation, signature verification,
- * and optional namespace filtering. Invalid entries are skipped.
+ * causal closure checks, and optional namespace filtering. Orphans / broken
+ * chains are skipped; poison logs with nothing causally reachable throw.
  */
 export async function importEventLog(
   json: string,
@@ -90,6 +95,21 @@ export async function importEventLog(
     throw new Error(parsed.length === 0 ? "empty_log" : "no_valid_entries");
   }
 
-  await appendEvents(valid);
-  return { imported: valid.length, skipped };
+  const existing = namespaceId ? await loadEvents(namespaceId) : [];
+  const existingIds = new Set(existing.map((e) => e.id));
+  const alreadyKnown = valid.filter((e) => existingIds.has(e.id));
+  const novel = valid.filter((e) => !existingIds.has(e.id));
+  const { accepted, rejected } = filterCausalClosure(novel, existing);
+  skipped += rejected.length + alreadyKnown.length;
+
+  if (accepted.length === 0) {
+    if (alreadyKnown.length > 0 && rejected.length === 0) {
+      // Idempotent re-import of an already-stored causal log.
+      return { imported: alreadyKnown.length, skipped: skipped - alreadyKnown.length };
+    }
+    throw new Error("causal_orphan_log");
+  }
+
+  await appendEvents(accepted);
+  return { imported: accepted.length + alreadyKnown.length, skipped };
 }

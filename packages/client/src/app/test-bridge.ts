@@ -265,11 +265,17 @@ export function installTestBridge(): void {
     },
 
     async dispatchDoubleSpend(to: string, amount: string) {
+      // Overspend single tip (insufficient-balance fracture path).
       await useStore.getState().controller?.dispatchMaliciousEventForTesting({
         type: "transaction",
         to,
         amount,
       });
+    },
+
+    async dispatchSiblingDoubleSpend(to: string, amount: string) {
+      // True fork: two signed spends sharing the same prevHash.
+      await useStore.getState().controller?.dispatchSiblingDoubleSpendForTesting(to, amount);
     },
   };
 

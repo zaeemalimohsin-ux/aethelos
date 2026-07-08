@@ -627,6 +627,17 @@ export class NodeController {
     });
     this.recompute();
   }
+
+  /** E2E-only: two signed sibling transfers sharing one prevHash tip. */
+  async dispatchSiblingDoubleSpendForTesting(to: string, amount: string): Promise<void> {
+    const e2eEnabled = __PROOF_E2E__ === "1" || import.meta.env.VITE_E2E === "1";
+    if (!e2eEnabled) throw new Error("Not allowed outside E2E tests");
+    await this.sync.publishSiblingTransactions([
+      { type: "transaction", to, amount, memo: "sibling-a" },
+      { type: "transaction", to, amount, memo: "sibling-b" },
+    ]);
+    this.recompute();
+  }
 }
 
 export function generateNamespaceId(): string {

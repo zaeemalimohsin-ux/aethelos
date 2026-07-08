@@ -110,9 +110,16 @@ export function CellView({ pool }: { pool: PoolState }) {
 
       <Members pool={pool} />
 
-      {(pool.childCells?.length ?? 0) > 0 && <ChildCellsCard pool={pool} />}
-      <FederationCard pool={pool} />
-      <BridgeEscrowCard pool={pool} myKey={myKey} />
+      {(pool.childCells?.length ?? 0) > 0 ||
+      (pool.parentSuperstructures?.length ?? 0) > 0 ||
+      Object.values(pool.superstructureEscrow ?? {}).some((v) => v > 0n) ||
+      Object.values(pool.childCellEscrow ?? {}).some((v) => v > 0n) ? (
+        <Disclosure summary="Linked chapters & bridges">
+          {(pool.childCells?.length ?? 0) > 0 && <ChildCellsCard pool={pool} />}
+          <FederationCard pool={pool} />
+          <BridgeEscrowCard pool={pool} myKey={myKey} />
+        </Disclosure>
+      ) : null}
 
       {pool.members.includes(myKey) && !isFrozen && (
         <>

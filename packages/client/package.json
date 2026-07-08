@@ -36,6 +36,7 @@
     "@types/react-dom": "^18.3.5",
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "10.0.3",
     "fake-indexeddb": "^6.0.0",
     "playwright": "^1.49.1",
     "typescript": "^5.7.2",
