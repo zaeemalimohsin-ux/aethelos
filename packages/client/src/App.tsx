@@ -87,6 +87,9 @@ function MainApp() {
   const setView = useStore((s) => s.setView);
   const pool = useStore((s) => s.pool);
   const session = useStore((s) => s.session);
+  const myKey = useStore((s) => s.myKey);
+  const isWaitingMember =
+    pool && myKey && !pool.members.includes(myKey) && pool.pendingInvites[myKey];
 
   return (
     <div className="app-shell">
@@ -94,6 +97,11 @@ function MainApp() {
         <span className="brand">
           Aethel<span>OS</span>
           {pool?.cellName ? <span className="muted"> · {pool.cellName}</span> : null}
+          {isWaitingMember ? (
+            <span className="badge neutral" style={{ marginLeft: "var(--sp-2)" }}>
+              Waiting to join
+            </span>
+          ) : null}
         </span>
         <SyncIndicator />
       </header>

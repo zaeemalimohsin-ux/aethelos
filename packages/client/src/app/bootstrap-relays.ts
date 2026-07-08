@@ -1,3 +1,4 @@
+import { isLocalOnlyRelayUrl } from "@aethelos/core";
 import { fileBootstrapRelays } from "./bootstrap-relays.default.js";
 
 const FILE_BOOTSTRAP_RELAYS: string[] = fileBootstrapRelays();
@@ -201,6 +202,14 @@ export async function probeRelay(
   }
 }
 
+/** Returns true when at least one relay responds on /healthz. */
+export async function probeAnyRelay(urls: string[]): Promise<boolean> {
+  for (const url of urls) {
+    if (await probeRelay(url)) return true;
+  }
+  return false;
+}
+
 export interface RelaySelectionOptions {
   customRelay?: string;
   bootstrapCount?: number;
@@ -284,11 +293,34 @@ export async function resolveRelaysForCommunity(
   return mergeCustomRelay(custom, bootstrap.slice(0, count));
 }
 
-/** True when prod builds have at least one fallback mailbox configured. */
+/** Explicit env/file bootstrap entries (excludes auto same-origin /ws). */
+export function hasExplicitBootstrapRelays(): boolean {
+  const companion = companionRelay();
+  return (
+    dedupeRelays([
+      ...(companion ? [companion] : []),
+      ...envBootstrapRelays(),
+      ...FILE_BOOTSTRAP_RELAYS,
+    ]).length > 0
+  );
+}
+
+/** True when prod builds have at least one explicit bootstrap relay configured. */
 export function isBootstrapPoolConfigured(): boolean {
   if (import.meta.env.DEV) return true;
-  if (typeof window !== "undefined" && sameOriginRelayUrl()) return true;
-  return getBootstrapRelayPool().length > 0;
+  return hasExplicitBootstrapRelays();
+}
+
+/**
+ * Sync pre-gate for genesis: allow attempt when explicit env relays exist or the
+ * host bundles same-origin /ws (docker-compose, combined Dockerfile). Liveness
+ * is proven later via ensureOnline({ probe: true }).
+ */
+export function canAttemptCommunityGenesis(): boolean {
+  if (import.meta.env.DEV) return true;
+  if (hasExplicitBootstrapRelays()) return true;
+  const sameOrigin = sameOriginRelayUrl();
+  return sameOrigin !== null && !isLocalOnlyRelayUrl(sameOrigin);
 }
 
 export function isValidRelayUrl(url: string): boolean {

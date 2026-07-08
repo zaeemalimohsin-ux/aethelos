@@ -73,7 +73,7 @@ test.describe('AethelOS Multi-Peer Mesh (3 Peers)', () => {
     const bobPubkey = await bobPubkeyCode.innerText();
 
     // Alice vouches and approves
-    await alicePage.click('text=Someone opened your link');
+    await alicePage.getByRole("button", { name: "Community" }).click();
     await alicePage.getByLabel('Join code').fill(bobPubkey);
     await alicePage.click('button:has-text("Vouch and send invite")');
     await alicePage.click('button.tab:has-text("Proposals")');
@@ -128,7 +128,7 @@ test.describe('AethelOS Multi-Peer Mesh (3 Peers)', () => {
     const charliePubkey = await charliePubkeyCode.innerText();
 
     // Bob vouches for Charlie
-    await bobPage.click('text=Someone opened your link');
+    await bobPage.getByRole("button", { name: "Community" }).click();
     await bobPage.getByLabel('Join code').fill(charliePubkey);
     await bobPage.click('button:has-text("Vouch and send invite")');
     

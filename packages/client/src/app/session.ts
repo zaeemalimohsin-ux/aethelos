@@ -7,7 +7,9 @@ export {
   resolveRelaysForCommunity,
   getBootstrapRelayPool,
   isBootstrapPoolConfigured,
+  canAttemptCommunityGenesis,
   isValidRelayUrl,
   probeRelay,
+  probeAnyRelay,
   pickBootstrapRelaysFromPool,
 } from "./bootstrap-relays.js";

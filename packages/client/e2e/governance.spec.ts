@@ -61,7 +61,7 @@ test.describe('Governance & Fixes', () => {
     const bobPubkey = await bobPubkeyCode.innerText();
 
     // Alice vouches and approves
-    await alicePage.click('text=Someone opened your link');
+    await alicePage.getByRole("button", { name: "Community" }).click();
     await alicePage.getByLabel('Join code').fill(bobPubkey);
     await alicePage.click('button:has-text("Vouch and send invite")');
     await alicePage.click('button.tab:has-text("Proposals")');

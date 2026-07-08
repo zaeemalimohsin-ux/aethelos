@@ -1,10 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   pickBootstrapRelaysFromPool,
   sameOriginRelayUrl,
   relayHealthUrl,
   getBootstrapRelayPool,
   isLocalAppHost,
+  hasExplicitBootstrapRelays,
+  isBootstrapPoolConfigured,
+  canAttemptCommunityGenesis,
+  probeAnyRelay,
 } from "../src/app/bootstrap-relays.js";
 
 describe("bootstrap relay pool", () => {
@@ -68,5 +72,140 @@ describe("bootstrap relay pool", () => {
     });
     expect(getBootstrapRelayPool()).toEqual(["wss://abc.trycloudflare.com/ws"]);
     vi.unstubAllGlobals();
+  });
+
+  it("hasExplicitBootstrapRelays is false without env overrides despite same-origin", () => {
+    vi.stubEnv("VITE_BOOTSTRAP_RELAYS", "");
+    vi.stubEnv("VITE_DEFAULT_RELAY_URL", "");
+    vi.stubGlobal("window", {
+      location: {
+        protocol: "https:",
+        host: "app.example.com",
+        pathname: "/",
+        origin: "https://app.example.com",
+      },
+    });
+    expect(hasExplicitBootstrapRelays()).toBe(false);
+    expect(getBootstrapRelayPool()).toContain("wss://app.example.com/ws");
+    expect(canAttemptCommunityGenesis()).toBe(true);
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("canAttemptCommunityGenesis true for docker-style same-origin host", () => {
+    vi.stubEnv("VITE_BOOTSTRAP_RELAYS", "");
+    vi.stubEnv("VITE_DEFAULT_RELAY_URL", "");
+    vi.stubGlobal("window", {
+      location: {
+        protocol: "http:",
+        host: "localhost:8080",
+        hostname: "localhost",
+        pathname: "/",
+        origin: "http://localhost:8080",
+      },
+    });
+    expect(hasExplicitBootstrapRelays()).toBe(false);
+    expect(canAttemptCommunityGenesis()).toBe(true);
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("probeAnyRelay returns true when one relay is live", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchMock);
+    const result = await probeAnyRelay(["wss://live.example.com/ws", "wss://dead.example.com/ws"]);
+    expect(result).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
+
+  it("probeAnyRelay returns false when all relays fail", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    expect(await probeAnyRelay(["wss://dead1.example.com/ws", "wss://dead2.example.com/ws"])).toBe(
+      false,
+    );
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("bootstrap relay pool (production)", () => {
+  const originalDev = import.meta.env.DEV;
+  const originalProd = import.meta.env.PROD;
+
+  beforeEach(() => {
+    // @ts-expect-error vitest runtime override
+    import.meta.env.DEV = false;
+    // @ts-expect-error vitest runtime override
+    import.meta.env.PROD = true;
+  });
+
+  afterEach(() => {
+    // @ts-expect-error vitest runtime override
+    import.meta.env.DEV = originalDev;
+    // @ts-expect-error vitest runtime override
+    import.meta.env.PROD = originalProd;
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("localhost same-origin → canAttemptCommunityGenesis false in prod", () => {
+    vi.stubEnv("VITE_BOOTSTRAP_RELAYS", "");
+    vi.stubEnv("VITE_DEFAULT_RELAY_URL", "");
+    vi.stubGlobal("window", {
+      location: {
+        protocol: "http:",
+        host: "localhost:8080",
+        hostname: "localhost",
+        pathname: "/",
+        origin: "http://localhost:8080",
+      },
+    });
+    expect(canAttemptCommunityGenesis()).toBe(false);
+  });
+
+  it("public host same-origin → canAttemptCommunityGenesis true in prod", () => {
+    vi.stubEnv("VITE_BOOTSTRAP_RELAYS", "");
+    vi.stubEnv("VITE_DEFAULT_RELAY_URL", "");
+    vi.stubGlobal("window", {
+      location: {
+        protocol: "https:",
+        host: "app.example.com",
+        hostname: "app.example.com",
+        pathname: "/",
+        origin: "https://app.example.com",
+      },
+    });
+    expect(canAttemptCommunityGenesis()).toBe(true);
+  });
+
+  it("explicit env relays → canAttemptCommunityGenesis true in prod", () => {
+    vi.stubEnv("VITE_BOOTSTRAP_RELAYS", "wss://relay.example.com/ws");
+    vi.stubEnv("VITE_DEFAULT_RELAY_URL", "");
+    vi.stubGlobal("window", {
+      location: {
+        protocol: "http:",
+        host: "localhost:5173",
+        hostname: "localhost",
+        pathname: "/",
+        origin: "http://localhost:5173",
+      },
+    });
+    expect(canAttemptCommunityGenesis()).toBe(true);
+  });
+
+  it("isBootstrapPoolConfigured vs canAttemptCommunityGenesis divergence on bundled host", () => {
+    vi.stubEnv("VITE_BOOTSTRAP_RELAYS", "");
+    vi.stubEnv("VITE_DEFAULT_RELAY_URL", "");
+    vi.stubGlobal("window", {
+      location: {
+        protocol: "https:",
+        host: "deploy.example.com",
+        hostname: "deploy.example.com",
+        pathname: "/",
+        origin: "https://deploy.example.com",
+      },
+    });
+    expect(isBootstrapPoolConfigured()).toBe(false);
+    expect(canAttemptCommunityGenesis()).toBe(true);
   });
 });

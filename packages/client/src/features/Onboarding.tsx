@@ -5,14 +5,26 @@ import { Card } from "../design/components/Card.js";
 import { Button } from "../design/components/Button.js";
 import { Field } from "../design/components/Field.js";
 import { isValidMnemonic } from "../storage/keystore.js";
-import { defaultRelay } from "../app/session.js";
+import { isValidRelayUrl, defaultRelay } from "../app/session.js";
 import { isDesktopApp } from "../app/local-node.js";
 import { shortKey } from "../app/format.js";
 import { Disclosure } from "../design/components/Disclosure.js";
 import { parseInviteInput, type InvitePayload } from "../app/invite.js";
 import { PwaInstallHint } from "../components/PwaInstallHint.js";
 
-type Step = "welcome" | "create" | "restore" | "choose" | "start" | "joinPaste" | "join";
+import { loadBootstrapRelay, saveBootstrapRelay } from "../app/session-storage.js";
+
+type Step =
+  | "welcome"
+  | "create"
+  | "restore"
+  | "choose"
+  | "start"
+  | "joinPaste"
+  | "join"
+  | "lostDevice"
+  | "recoverMethod"
+  | "importLog";
 
 export function Onboarding() {
   const phase = useStore((s) => s.phase);
@@ -34,6 +46,9 @@ function Shell({ children }: { children: React.ReactNode }) {
           Aethel<span>OS</span>
         </div>
         <p className="muted">Community life, owned by its people.</p>
+        <p className="hint" style={{ marginTop: "var(--sp-2)" }}>
+          Beta software — back up your recovery phrase. We cannot reset lost keys.
+        </p>
       </div>
       {children}
     </div>
@@ -65,7 +80,10 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
       step === "create" ||
       step === "restore" ||
       step === "start" ||
-      step === "joinPaste"
+      step === "joinPaste" ||
+      step === "lostDevice" ||
+      step === "recoverMethod" ||
+      step === "importLog"
     ) {
       return;
     }
@@ -89,6 +107,7 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
           onCreate={() => setStep("create")}
           onRestore={() => setStep("restore")}
           onJoinLink={() => setStep("joinPaste")}
+          onLostDevice={() => setStep("lostDevice")}
         />
       )}
       {step === "create" && (
@@ -99,7 +118,7 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
       )}
       {step === "restore" && (
         <RestoreIdentity
-          onDone={() => setStep(pendingInvite ? "join" : "choose")}
+          onDone={() => setStep(pendingInvite ? "join" : "recoverMethod")}
           onBack={() => setStep("welcome")}
         />
       )}
@@ -127,6 +146,17 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
           onChangeLink={() => setStep("joinPaste")}
         />
       )}
+      {step === "lostDevice" && (
+        <LostDeviceIntro onContinue={() => setStep("restore")} onBack={() => setStep("welcome")} />
+      )}
+      {step === "recoverMethod" && (
+        <RecoverMethod
+          onInviteLink={() => setStep("joinPaste")}
+          onEventLog={() => setStep("importLog")}
+          onSkip={() => setStep("choose")}
+        />
+      )}
+      {step === "importLog" && <ImportEventLog onBack={() => setStep("recoverMethod")} />}
     </Shell>
   );
 }
@@ -135,10 +165,12 @@ function Welcome({
   onCreate,
   onRestore,
   onJoinLink,
+  onLostDevice,
 }: {
   onCreate: () => void;
   onRestore: () => void;
   onJoinLink: () => void;
+  onLostDevice: () => void;
 }) {
   const downloadUrl = import.meta.env.VITE_DOWNLOAD_URL?.trim();
   const showDownload = downloadUrl && !isDesktopApp();
@@ -159,6 +191,9 @@ function Welcome({
         </Button>
         <Button block variant="ghost" onClick={onJoinLink}>
           I have an invite link
+        </Button>
+        <Button block variant="ghost" onClick={onLostDevice}>
+          I lost my device
         </Button>
         {showDownload ? (
           <a
@@ -251,9 +286,9 @@ function BackupScreen({ mnemonic }: { mnemonic: string }) {
     <Shell>
       <Card title="Save your recovery phrase">
         <div className="alert warning">
-          These 12 words are the ONLY way to recover your identity if you lose this device
-          or forget your passphrase. Write them down and store them safely. Never share
-          them.
+          These 12 words restore your <strong>identity only</strong> — not your community
+          membership. To get back into a community you also need an invite link or an event
+          log export from another device. Write them down safely. Never share them.
         </div>
         <div className="recovery-grid">
           {words.map((w, i) => (
@@ -305,6 +340,10 @@ function RestoreIdentity({ onDone, onBack }: { onDone: () => void; onBack: () =>
 
   return (
     <Card title="Restore identity">
+      <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+        Your recovery phrase restores your cryptographic identity. Community history syncs
+        from a mailbox after you rejoin with an invite link or import an event log backup.
+      </p>
       <div className="field">
         <label htmlFor="phrase">Recovery phrase</label>
         <textarea
@@ -422,18 +461,19 @@ function PasteInviteLink({
 
 function StartCommunity({ onBack }: { onBack: () => void }) {
   const start = useStore((s) => s.startCommunity);
+  const toast = useStore((s) => s.toast);
   const [cell, setCell] = useState("My Community");
   const [busy, setBusy] = useState(false);
-  const [mailboxReady, setMailboxReady] = useState(true);
+  const [mailboxReady, setMailboxReady] = useState(false);
+  const [customRelay, setCustomRelay] = useState(() => loadBootstrapRelay() ?? "");
+  const [probeBusy, setProbeBusy] = useState(false);
+  const [relayProbed, setRelayProbed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     void import("../app/bootstrap-relays.js").then((m) => {
       if (cancelled) return;
-      // DESKTOP / DEV always ready; warn only when neither operator pool nor same-origin path.
-      const ready =
-        isDesktopApp() ||
-        m.isBootstrapPoolConfigured();
+      const ready = isDesktopApp() || m.canAttemptCommunityGenesis();
       setMailboxReady(ready);
     });
     return () => {
@@ -441,18 +481,72 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
     };
   }, []);
 
+  const relayValid = !customRelay.trim() || isValidRelayUrl(customRelay.trim());
+  const canCreate =
+    cell.trim() &&
+    !busy &&
+    (mailboxReady || (customRelay.trim() && relayValid && relayProbed));
+
+  const probeRelay = async () => {
+    const url = customRelay.trim();
+    if (!isValidRelayUrl(url)) {
+      toast("Enter a valid ws:// or wss:// mailbox URL", "error");
+      return;
+    }
+    setProbeBusy(true);
+    const { probeRelay: probe } = await import("../app/bootstrap-relays.js");
+    const ok = await probe(url);
+    setProbeBusy(false);
+    setRelayProbed(ok);
+    saveBootstrapRelay(url);
+    toast(
+      ok ? "Connection point reachable" : "Can't reach that mailbox — check the URL",
+      ok ? "success" : "error",
+    );
+  };
+
   return (
     <Card title="Start a community">
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
         You will hold all the starting stake. When it's created, invite people from the
         Community tab.
       </p>
-      {!mailboxReady ? (
-        <p className="error-text" style={{ marginBottom: "var(--sp-3)" }}>
-          This browser copy has no automatic connection points. Use the desktop app, a
-          hosted install, or add a connection point under Identity → Advanced → Network
-          before creating a community.
+      {mailboxReady ? (
+        <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+          This install can use its built-in mailbox automatically.
         </p>
+      ) : (
+        <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+          This copy has no automatic mailbox. Enter a reachable{" "}
+          <code className="mono">wss://</code> connection point below, or use the desktop
+          app / a hosted install.
+        </p>
+      )}
+      {!mailboxReady ? (
+        <>
+          <Field
+            label="Connection point (mailbox)"
+            hint="ws:// or wss:// URL where your community syncs"
+            value={customRelay}
+            onChange={(e) => {
+              setCustomRelay(e.target.value);
+              setRelayProbed(false);
+            }}
+            className="mono"
+            {...(customRelay.trim() && !relayValid
+              ? { error: "Invalid relay URL" }
+              : {})}
+          />
+          <Button
+            variant="secondary"
+            block
+            disabled={!customRelay.trim() || !relayValid || probeBusy}
+            style={{ marginTop: "var(--sp-2)" }}
+            onClick={() => void probeRelay()}
+          >
+            Test connection
+          </Button>
+        </>
       ) : null}
       <Field
         label="Community name"
@@ -461,11 +555,12 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
       />
       <Button
         block
-        disabled={!cell.trim() || busy || !mailboxReady}
+        disabled={!canCreate}
         style={{ marginTop: "var(--sp-3)" }}
         onClick={async () => {
           setBusy(true);
-          await start(cell.trim());
+          const relay = customRelay.trim() || undefined;
+          await start(cell.trim(), relay ? { customRelay: relay } : undefined);
           setBusy(false);
         }}
       >
@@ -559,6 +654,125 @@ function JoinCommunity({
           <BackButton onClick={onBack} />
         </div>
       )}
+    </Card>
+  );
+}
+
+function LostDeviceIntro({
+  onContinue,
+  onBack,
+}: {
+  onContinue: () => void;
+  onBack: () => void;
+}) {
+  return (
+    <Card title="I lost my device">
+      <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+        Your <strong>recovery phrase</strong> brings back your identity on a new device.
+        Your <strong>community</strong> comes back when you either paste your invite link
+        again (the mailbox syncs history) or import an event log file you exported earlier.
+      </p>
+      <Button block onClick={onContinue}>
+        Continue with recovery phrase
+      </Button>
+      <BackButton onClick={onBack} />
+    </Card>
+  );
+}
+
+function RecoverMethod({
+  onInviteLink,
+  onEventLog,
+  onSkip,
+}: {
+  onInviteLink: () => void;
+  onEventLog: () => void;
+  onSkip: () => void;
+}) {
+  return (
+    <Card title="Reconnect to your community">
+      <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+        Identity restored. How do you want to load your community?
+      </p>
+      <div className="stack">
+        <Button block onClick={onInviteLink}>
+          I have my invite link
+        </Button>
+        <Button block variant="secondary" onClick={onEventLog}>
+          I have an event log export (.json)
+        </Button>
+        <Button block variant="ghost" onClick={onSkip}>
+          Skip for now
+        </Button>
+      </div>
+      <p className="hint" style={{ marginTop: "var(--sp-3)" }}>
+        Without an invite or backup file, ask a member for a fresh invite link.
+      </p>
+    </Card>
+  );
+}
+
+function ImportEventLog({ onBack }: { onBack: () => void }) {
+  const recover = useStore((s) => s.recoverCommunityFromEventLog);
+  const unlock = useStore((s) => s.unlock);
+  const toast = useStore((s) => s.toast);
+  const myKey = useStore((s) => s.myKey);
+  const session = useStore((s) => s.session);
+  const [busy, setBusy] = useState(false);
+  const [pw, setPw] = useState("");
+  const [imported, setImported] = useState(false);
+
+  const onFile = async (file: File) => {
+    setBusy(true);
+    const text = await file.text();
+    const result = await recover(text);
+    setBusy(false);
+    if (!result.ok) {
+      toast("Could not import that file — check the export and try again", "error");
+      return;
+    }
+    setImported(true);
+    toast(`Imported ${result.imported} events — enter your passphrase to open`, "success");
+  };
+
+  return (
+    <Card title="Import community backup">
+      <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+        Choose an event log JSON you exported from Identity → Data on a device that was
+        still in the community.
+      </p>
+      <input
+        type="file"
+        accept="application/json,.json"
+        disabled={busy}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void onFile(file);
+        }}
+      />
+      {imported && session ? (
+        <div style={{ marginTop: "var(--sp-3)" }}>
+          <Field
+            label="Passphrase"
+            type="password"
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+          />
+          <Button
+            block
+            disabled={!pw || busy}
+            style={{ marginTop: "var(--sp-3)" }}
+            onClick={async () => {
+              setBusy(true);
+              await unlock(myKey, pw);
+              setBusy(false);
+            }}
+          >
+            Unlock community
+          </Button>
+        </div>
+      ) : null}
+      <BackButton onClick={onBack} />
     </Card>
   );
 }

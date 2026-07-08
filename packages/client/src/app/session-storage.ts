@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   session: "aethelos-session",
   theme: "aethelos-theme",
   subcellParent: "aethelos-subcell-parent",
+  bootstrapRelay: "aethelos-bootstrap-relay",
 } as const;
 
 const KEY = STORAGE_KEYS.session;
@@ -39,4 +40,13 @@ export function saveSession(s: Session): void {
 
 export function clearSession(): void {
   localStorage.removeItem(KEY);
+}
+
+export function loadBootstrapRelay(): string | null {
+  const raw = localStorage.getItem(STORAGE_KEYS.bootstrapRelay)?.trim();
+  return raw || null;
+}
+
+export function saveBootstrapRelay(url: string): void {
+  localStorage.setItem(STORAGE_KEYS.bootstrapRelay, url.trim());
 }

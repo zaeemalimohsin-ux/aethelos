@@ -31,7 +31,11 @@ function defaultProposalKind(pool: PoolState): ProposalKind {
 export function ProposalsView({ pool }: { pool: PoolState }) {
   const myKey = useStore((s) => s.myKey);
   const isMember = pool.members.includes(myKey);
-  const proposals = Object.values(pool.proposals);
+  const proposals = Object.values(pool.proposals).sort((a, b) => {
+    const aAdmit = a.kind === "admit_member" && !a.executed ? 0 : 1;
+    const bAdmit = b.kind === "admit_member" && !b.executed ? 0 : 1;
+    return aAdmit - bAdmit;
+  });
 
   if (!isMember) {
     return (
@@ -231,10 +235,8 @@ function ProposalRow({
 }
 
 function SuperstructureCard({ pool }: { pool: PoolState }) {
-  const myKey = useStore((s) => s.myKey);
   const join = useStore((s) => s.joinSuperstructure);
   const leave = useStore((s) => s.leaveSuperstructure);
-  const isHead = pool.head === myKey;
   const [id, setId] = useState("");
   return (
     <>
@@ -257,15 +259,14 @@ function SuperstructureCard({ pool }: { pool: PoolState }) {
       )}
       <Field
         label="Parent community ID"
-        hint="Only the Head can propose joining."
+        hint="Any member can propose joining; the community votes."
         value={id}
         onChange={(e) => setId(e.target.value)}
         className="mono"
-        disabled={!isHead}
       />
       <Button
         variant="secondary"
-        disabled={!isHead || !id.trim()}
+        disabled={!id.trim()}
         onClick={() => {
           void join(id.trim());
           setId("");
@@ -273,11 +274,6 @@ function SuperstructureCard({ pool }: { pool: PoolState }) {
       >
         Propose join to parent
       </Button>
-      {!isHead && (
-        <p className="hint" style={{ marginTop: "var(--sp-2)" }}>
-          Only the Head can start this proposal.
-        </p>
-      )}
     </>
   );
 }

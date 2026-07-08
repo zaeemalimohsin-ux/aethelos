@@ -443,6 +443,171 @@ describe("governance fixes", () => {
     expect(r.state.proposals["join-by-bob"]?.author).toBe(bob.publicKeyHex);
   });
 
+  it("executes join_superstructure when non-head proposer's proposal passes", async () => {
+    const alice = await generateKeyPair();
+    const bob = await generateKeyPair();
+    const ns = "join-nonhead-exec";
+    const superId = "parent-ns-exec";
+    const g = await genesis(ns, alice, "1000");
+
+    const invite = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: alice.publicKeyHex,
+        timestamp: 2,
+        payload: {
+          type: "invite",
+          invitee: bob.publicKeyHex,
+          vouchBondAmount: "100",
+          parameters: { ...DEFAULT_PARAMETERS },
+        },
+      },
+      alice.privateKey,
+    );
+    const admitVote = await signAdmissionVote(ns, alice, bob.publicKeyHex, invite.id, 3);
+    const accept = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: admitVote.id,
+        lamport: 4,
+        author: bob.publicKeyHex,
+        timestamp: 4,
+        payload: { type: "accept_invite", inviter: alice.publicKeyHex },
+      },
+      bob.privateKey,
+    );
+
+    const events: SignedEvent[] = [g, invite, admitVote, accept];
+    let lamport = 5;
+    let prev = accept.id;
+
+    const push = async (
+      author: Awaited<ReturnType<typeof generateKeyPair>>,
+      payload: SignedEvent["payload"],
+    ) => {
+      const e = await signEvent(
+        {
+          namespaceId: ns,
+          prevHash: prev,
+          lamport: lamport++,
+          author: author.publicKeyHex,
+          timestamp: lamport,
+          payload,
+        },
+        author.privateKey,
+      );
+      events.push(e);
+      prev = e.id;
+    };
+
+    await push(bob, {
+      type: "proposal_create",
+      proposalId: "join-by-bob",
+      kind: "join_superstructure",
+      data: { target: superId },
+    });
+    await push(alice, { type: "proposal_vote", proposalId: "join-by-bob", approve: true });
+    await push(bob, { type: "proposal_vote", proposalId: "join-by-bob", approve: true });
+
+    const s = reduceEvents(ns, events);
+    expect(s.parentSuperstructures).toContain(superId);
+    expect(s.bridges).toContain(bob.publicKeyHex);
+    expect(s.proposals["join-by-bob"]?.executed).toBe(true);
+  });
+
+  it("executes join_superstructure in headless cell when proposer's proposal passes", async () => {
+    const alice = await generateKeyPair();
+    const bob = await generateKeyPair();
+    const ns = "headless-join";
+    const superId = "parent-super-headless";
+    const g = await genesis(ns, alice, "10000");
+
+    const invite = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: alice.publicKeyHex,
+        timestamp: 2,
+        payload: {
+          type: "invite",
+          invitee: bob.publicKeyHex,
+          vouchBondAmount: "100",
+          parameters: { ...DEFAULT_PARAMETERS },
+        },
+      },
+      alice.privateKey,
+    );
+    const admitVote = await signAdmissionVote(ns, alice, bob.publicKeyHex, invite.id, 3);
+    const accept = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: admitVote.id,
+        lamport: 4,
+        author: bob.publicKeyHex,
+        timestamp: 4,
+        payload: { type: "accept_invite", inviter: alice.publicKeyHex },
+      },
+      bob.privateKey,
+    );
+
+    const events: SignedEvent[] = [g, invite, admitVote, accept];
+    let lamport = 5;
+    let prev = accept.id;
+
+    const push = async (
+      author: Awaited<ReturnType<typeof generateKeyPair>>,
+      payload: SignedEvent["payload"],
+    ) => {
+      const e = await signEvent(
+        {
+          namespaceId: ns,
+          prevHash: prev,
+          lamport: lamport++,
+          author: author.publicKeyHex,
+          timestamp: lamport,
+          payload,
+        },
+        author.privateKey,
+      );
+      events.push(e);
+      prev = e.id;
+    };
+
+    await push(alice, {
+      type: "transaction",
+      to: bob.publicKeyHex,
+      amount: "9000",
+    });
+    await push(bob, {
+      type: "proposal_create",
+      proposalId: "expel-head",
+      kind: "expel_member",
+      data: { target: alice.publicKeyHex },
+    });
+    await push(bob, { type: "proposal_vote", proposalId: "expel-head", approve: true });
+
+    const headless = reduceEvents(ns, events);
+    expect(headless.members).toEqual([bob.publicKeyHex]);
+    expect(headless.head).toBeNull();
+
+    await push(bob, {
+      type: "proposal_create",
+      proposalId: "join-headless",
+      kind: "join_superstructure",
+      data: { target: superId },
+    });
+    await push(bob, { type: "proposal_vote", proposalId: "join-headless", approve: true });
+
+    const s = reduceEvents(ns, events);
+    expect(s.parentSuperstructures).toContain(superId);
+    expect(s.bridges).toContain(bob.publicKeyHex);
+    expect(s.proposals["join-headless"]?.executed).toBe(true);
+    expect(s.head).toBeNull();
+  });
+
   it("cancel_invite releases lien without moving points", async () => {
     const alice = await generateKeyPair();
     const bob = await generateKeyPair();

@@ -34,7 +34,7 @@ test.describe("Community & UI Edge Cases", () => {
     await page.getByRole("button", { name: "Community" }).click();
     
     // Try to invite someone with an invalid or short code
-    await page.getByText("Someone opened your link — vouch for them").click();
+    await page.getByRole("button", { name: "Community" }).click();
     await page.getByLabel("Join code").fill("invalid_code");
     
     // The vouch button might be enabled, but the network request should fail

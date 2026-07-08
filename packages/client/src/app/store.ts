@@ -50,7 +50,7 @@ import {
   type LocalNodeStatus,
 } from "./local-node.js";
 import { rejectionMessage } from "./rejection-messages.js";
-import { STORAGE_KEYS } from "./session-storage.js";
+import { loadBootstrapRelay, saveBootstrapRelay, STORAGE_KEYS } from "./session-storage.js";
 import {
   httpsToWssRelayUrl,
   tunnelStatusFromLocalNode,
@@ -133,9 +133,21 @@ interface AppStore {
   shareUrl: string | null;
   ensureDesktopShare(): Promise<void>;
   setRelaySharing(on: boolean): Promise<void>;
+  recoverCommunityFromEventLog(json: string): Promise<{
+    ok: boolean;
+    namespaceId?: string;
+    imported: number;
+    error?: string;
+  }>;
 }
 
 let keyPair: KeyPair | null = null;
+let forceJoinProbeForTests = false;
+
+/** E2E-only: run join-time relay probe even in Vite dev. */
+export function setForceJoinProbeForTests(value: boolean): void {
+  forceJoinProbeForTests = value;
+}
 
 function desktopStartupErrorMessage(node: LocalNodeStatus | null): string | null {
   const detail = node?.startupError?.trim();
@@ -320,10 +332,16 @@ export const useStore = create<AppStore>((set, get) => ({
   async startCommunity(cellName, options) {
     if (!keyPair) return;
 
-    const { isBootstrapPoolConfigured } = await import("./bootstrap-relays.js");
-    if (!isDesktopApp() && !options?.customRelay && !isBootstrapPoolConfigured()) {
+    const customRelay =
+      options?.customRelay?.trim() || loadBootstrapRelay() || undefined;
+    const { canAttemptCommunityGenesis } = await import("./bootstrap-relays.js");
+    if (
+      !isDesktopApp() &&
+      !customRelay &&
+      !canAttemptCommunityGenesis()
+    ) {
       get().toast(
-        "This copy of the app has no community mailbox. Use the desktop app, a published site with hosting, or open Identity → Advanced → Network to add a connection point — then try again.",
+        "This copy has no automatic mailbox. Use the desktop app, a hosted install, or enter a connection point on this screen.",
         "error",
       );
       return;
@@ -332,17 +350,19 @@ export const useStore = create<AppStore>((set, get) => ({
     const namespaceId = generateNamespaceId();
     const online = await ensureOnline({
       namespaceId,
-      ...(options?.customRelay ? { customRelay: options.customRelay } : {}),
+      ...(customRelay ? { customRelay } : {}),
       probe: !import.meta.env.DEV,
     });
 
     if (!online.ok || online.relays.length === 0) {
       get().toast(
-        "Can't reach a connection point. Open Identity → Advanced → Network for help — empty bootstrap alone cannot start a community.",
+        "Can't reach that connection point. Check the address or try a hosted install.",
         "error",
       );
       return;
     }
+
+    if (customRelay) saveBootstrapRelay(customRelay);
 
     const { relays, publicUrl: publicRelayUrl, tunnelStatus } = online;
 
@@ -383,6 +403,17 @@ export const useStore = create<AppStore>((set, get) => ({
       return;
     }
     const relays = resolveInviteRelays(invite);
+    if (!import.meta.env.DEV || forceJoinProbeForTests) {
+      const { probeAnyRelay } = await import("./bootstrap-relays.js");
+      const live = await probeAnyRelay(relays);
+      if (!live) {
+        get().toast(
+          "Can't reach the community mailbox. Check the invite link or ask your inviter for a fresh link.",
+          "error",
+        );
+        return;
+      }
+    }
     await startNode(set, get, invite.ns, relays);
     persistSession(get);
     clearInviteFromUrl();
@@ -423,7 +454,8 @@ export const useStore = create<AppStore>((set, get) => ({
       return;
     }
     await controller.invite(trimmed, parameters);
-    get().toast("Invite sent — community must approve admission", "success");
+    get().toast("Vouch sent — vote to admit them in Proposals", "success");
+    set({ view: "proposals" });
   },
   async cancelInvite(pubkey) {
     await get().controller?.cancelInvite(pubkey);
@@ -465,13 +497,7 @@ export const useStore = create<AppStore>((set, get) => ({
     await get().controller?.voteProposal(id, approve);
   },
   async joinSuperstructure(id) {
-    const pool = get().pool;
-    const myKey = get().myKey;
     const controller = get().controller;
-    if (pool?.head !== myKey) {
-      get().toast("Only the Head can propose joining a superstructure", "error");
-      return;
-    }
     const parentId = id.trim();
     let parentPool = get().linkedPools[parentId];
     if (!parentPool && controller) {
@@ -624,6 +650,40 @@ export const useStore = create<AppStore>((set, get) => ({
     set({ relaySharing: false, tunnelStatus: "idle", shareUrl: null });
     syncShareUrlFile(null);
     get().toast("Stopped hosting from this computer", "info");
+  },
+
+  async recoverCommunityFromEventLog(json) {
+    try {
+      const parsed = JSON.parse(json) as Array<{ namespaceId?: string }>;
+      if (!parsed.length || !parsed[0]?.namespaceId) {
+        return { ok: false, imported: 0, error: "no_valid_entries" };
+      }
+      const ns = parsed[0].namespaceId;
+      const { importEventLog } = await import("../storage/event-log.js");
+      const result = await importEventLog(json, ns);
+      const relayUrls = selectRelaysForCommunity(ns);
+      const state = get();
+      if (!state.myKey) {
+        return { ok: false, imported: result.imported, error: "no_identity" };
+      }
+      saveSession({
+        publicKeyHex: state.myKey,
+        displayName: state.displayName,
+        namespaceId: ns,
+        relayUrls,
+      });
+      set({
+        session: {
+          publicKeyHex: state.myKey,
+          displayName: state.displayName,
+          namespaceId: ns,
+          relayUrls,
+        },
+      });
+      return { ok: true, namespaceId: ns, imported: result.imported };
+    } catch {
+      return { ok: false, imported: 0, error: "invalid_json" };
+    }
   },
 }));
 

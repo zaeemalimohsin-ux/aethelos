@@ -88,16 +88,17 @@ Each Node holds a full Event Log backup in IndexedDB. To reconstitute after devi
 
 Capturing a Node achieves nothing alone — the community carries their Shares, relationships, and logs with them.
 
-## Superstructures (scaffold)
+## Superstructures
 
 Parent–child relationships between Cells are recorded via governance proposals.
-**Cross-Cell pools, bridging, and upward escrow consumption are not fully live
-yet** — treat superstructures as linkage and exit architecture, not nation-scale
-federation today.
+Cross-Cell bridging, upward escrow consumption, and population routing are live
+in the reducer and covered by `superstructure.test.ts`, `federation.spec.ts`,
+and federation reader sync — treat superstructures as linkage architecture with
+real economic routing, not a future scaffold.
 
 When a Cell is stable and you have a real parent namespace to join:
 
-1. Head creates a `join_superstructure` proposal (target = parent namespace ID)
+1. Any member proposes `join_superstructure` (target = parent namespace ID)
 2. Members vote (share-weighted until threshold)
 3. Parent Cell creates a `link_subcell` proposal (target = child namespace ID)
 
@@ -117,7 +118,7 @@ Past that, growth continues in new sub-Cells that federate upward.
 
 ### Link parent and child
 
-**In the sub-Cell (Head):**
+**In the sub-Cell (any member):**
 
 1. Follow the linkage banner, or go to **Proposals → Superstructures**
 2. Propose join with the **parent namespace ID**

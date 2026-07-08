@@ -115,7 +115,10 @@ export function createRelayServer(opts: RelayOptions = {}): RelayServer {
   const httpServer = createServer((req: IncomingMessage, res: ServerResponse) => {
     const url = req.url ?? "/";
     if (url === "/healthz" || url === "/livez") {
-      res.writeHead(200, { "Content-Type": "application/json" });
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      });
       res.end(JSON.stringify({ status: "ok" }));
       return;
     }

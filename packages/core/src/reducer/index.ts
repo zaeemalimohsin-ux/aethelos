@@ -1162,8 +1162,8 @@ function tryExecuteProposal(state: PoolState, proposalId: string): PoolState {
     case "join_superstructure": {
       const superstructureId = proposal.data["target"];
       const parentParameters = parseParentParameters(proposal.data["parameters"]);
-      if (superstructureId && s.head) {
-        s = applyJoinSuperstructure(s, s.head, superstructureId, parentParameters);
+      if (superstructureId && proposal.author) {
+        s = applyJoinSuperstructure(s, proposal.author, superstructureId, parentParameters);
       }
       break;
     }

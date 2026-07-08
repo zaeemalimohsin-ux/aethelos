@@ -3,19 +3,37 @@ import { generateKeyPair, DEFAULT_PARAMETERS, type PoolState } from "@aethelos/c
 import { FederationReader } from "../src/node/federation-reader.js";
 
 const { mockEngines } = vi.hoisted(() => ({
-  mockEngines: [] as Array<{ ns: string; started: boolean }>,
+  mockEngines: [] as Array<{
+    ns: string;
+    started: boolean;
+    engine: { deliverEvents: (events: unknown[]) => void } | null;
+  }>,
 }));
 
 vi.mock("../src/sync/engine.js", () => ({
   SyncEngine: class {
     ns: string;
     started = false;
+    private listener: ((events: unknown[]) => void) | null = null;
     constructor(_urls: string[], namespaceId: string) {
       this.ns = namespaceId;
-      mockEngines.push({ ns: namespaceId, started: false });
+      const entry = {
+        ns: namespaceId,
+        started: false,
+        engine: null as { deliverEvents: (events: unknown[]) => void } | null,
+      };
+      entry.engine = {
+        deliverEvents: (events: unknown[]) => {
+          this.listener?.(events);
+        },
+      };
+      mockEngines.push(entry);
     }
-    onEvents() {
-      return () => {};
+    onEvents(fn: (events: unknown[]) => void) {
+      this.listener = fn;
+      return () => {
+        this.listener = null;
+      };
     }
     async start() {
       this.started = true;
@@ -99,6 +117,26 @@ describe("FederationReader", () => {
 
     await reader.sync({ ...base, parentSuperstructures: [] }, kp, ["ws://127.0.0.1:1"]);
     expect(Object.keys(reader.getPools())).toHaveLength(0);
+    reader.stop();
+  });
+
+  it("ensureNamespace waits for sync before returning pool state", async () => {
+    const kp = await generateKeyPair();
+    const parentId = "parent-await-sync";
+    const reader = new FederationReader();
+
+    const promise = reader.ensureNamespace(parentId, kp, ["ws://127.0.0.1:1"]);
+    await expect(
+      Promise.race([
+        promise.then(() => "done"),
+        new Promise((resolve) => setTimeout(() => resolve("pending"), 30)),
+      ]),
+    ).resolves.toBe("pending");
+
+    const entry = mockEngines.find((e) => e.ns === parentId);
+    entry?.engine?.deliverEvents([]);
+    await promise;
+    expect(reader.getPool(parentId)).toBeDefined();
     reader.stop();
   });
 });

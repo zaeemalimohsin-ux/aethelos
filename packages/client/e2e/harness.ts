@@ -44,7 +44,18 @@ export class OmniHarness {
       console.log(`[Web Console]`, msg.type(), msg.text());
     });
 
-    await page.goto(baseUrl);
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+        lastError = undefined;
+        break;
+      } catch (err) {
+        lastError = err;
+        if (attempt < 2) await page.waitForTimeout(1000);
+      }
+    }
+    if (lastError) throw lastError;
     
     return {
       context,

@@ -80,9 +80,8 @@ test.describe('AethelOS Multi-Peer Mesh E2E', () => {
     const bobPubkey = await bobPubkeyCode.innerText();
 
     // === 3. ALICE VOUCHES FOR BOB ===
-    // In Alice's Community tab
-    await alicePage.click('text=Someone opened your link');
-    await alicePage.getByLabel('Join code').fill(bobPubkey);
+    await alicePage.getByRole("button", { name: "Community" }).click();
+    await alicePage.getByLabel("Join code").fill(bobPubkey);
     await alicePage.click('button:has-text("Vouch and send invite")');
 
     // === 3.5. ALICE VOTES ON ADMISSION ===

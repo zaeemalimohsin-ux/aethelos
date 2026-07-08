@@ -6,6 +6,8 @@ import {
   getPoolSummary,
   bridgeVoteProposal,
   bridgeUpdateSlider,
+  bootstrapStarCommunity,
+  closeContexts,
 } from "./helpers.js";
 
 async function linkParentChild(browser: any) {
@@ -119,6 +121,54 @@ test.describe("federation seam", () => {
 
     await parentPeer.close();
     await childPeer.close();
+  });
+
+  test("non-head member proposes join to parent via Proposals UI", async ({ browser }) => {
+    test.setTimeout(180_000);
+    const parentPeer = await OmniHarness.launchPeer(browser);
+    const parentPage = parentPeer.page;
+    await onboardGenesis(parentPage, "Parent Head", "Parent Cell");
+    await waitForPool(parentPage, (p) => p.memberCount === 1);
+    const parentNs = (await getPoolSummary(parentPage))!.namespaceId;
+
+    const { founder, joiners, keys, contexts } = await bootstrapStarCommunity(
+      browser,
+      "Child Cell",
+      ["Bob"],
+    );
+    const bobPage = joiners[0]!;
+    const bobKey = keys[0]!;
+
+    const childPool = await waitForPool(founder, (p) => p.memberCount === 2);
+    expect(childPool.head).not.toBe(bobKey);
+
+    await bobPage.getByRole("button", { name: "Proposals" }).click();
+    await bobPage.getByText("Advanced: link chapters").click();
+    await bobPage.getByLabel("Parent community ID").fill(parentNs);
+    await bobPage.getByRole("button", { name: "Propose join to parent" }).click();
+    await expect(bobPage.getByText("Join superstructure proposal created")).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await waitForPool(
+      bobPage,
+      (p) => (p.proposals ?? []).some((x) => x.kind === "join_superstructure"),
+      60_000,
+    );
+    const joinProposal = (await getPoolSummary(bobPage))!.proposals!.find(
+      (p) => p.kind === "join_superstructure",
+    )!;
+    await bridgeVoteProposal(founder, joinProposal.id, true);
+    await bridgeVoteProposal(bobPage, joinProposal.id, true);
+
+    await waitForPool(
+      bobPage,
+      (p) => p.parentSuperstructures.includes(parentNs),
+      60_000,
+    );
+
+    await parentPeer.close();
+    await closeContexts(contexts);
   });
 
   test("event log export and import conserve pool summary", async ({ browser }) => {

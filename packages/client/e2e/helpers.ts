@@ -67,11 +67,18 @@ export async function freshContext(browser: any): Promise<any> {
     const page = await origNewPage();
     page.on('pageerror', (err: Error) => console.log(`[Web Error]`, err));
     page.on('console', (msg: any) => console.log(`[Web Console]`, msg.type(), msg.text()));
-    // Navigate to base URL so the app is loaded - this is needed for onboardGenesis to work.
-    // Tests that do page.goto(inviteLink) as their FIRST navigation should not call
-    // onboardGenesis first, so this pre-navigation is safe for those tests too since
-    // joinViaInviteLink replaces with page.goto(inviteLink) which is a full navigation.
-    await page.goto(baseUrl);
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+        lastError = undefined;
+        break;
+      } catch (err) {
+        lastError = err;
+        if (attempt < 2) await page.waitForTimeout(1000);
+      }
+    }
+    if (lastError) throw lastError;
     return page;
   };
   return ctx;
@@ -284,14 +291,8 @@ export async function sendOnChainInvite(
   inviteePubkey: string,
 ): Promise<void> {
   await page.getByRole("button", { name: "Community" }).click();
-  const panel = page.locator("details").filter({
-    has: page.getByText("Someone opened your link — vouch for them"),
-  });
-  if ((await panel.getAttribute("open")) === null) {
-    await panel.locator("summary").click();
-  }
-  await panel.getByLabel("Join code").fill(inviteePubkey);
-  await panel.getByRole("button", { name: "Vouch and send invite" }).click();
+  await page.getByLabel("Join code").fill(inviteePubkey);
+  await page.getByRole("button", { name: "Vouch and send invite" }).click();
 }
 
 export async function bridgeApproveAdmission(page: Page, invitee: string): Promise<void> {
@@ -322,6 +323,7 @@ export async function admitJoiner(
     (a, b) => a.memberCount === expectedMembers && b.memberCount === expectedMembers,
     60_000,
   );
+  await founderPage.getByRole("button", { name: "Community" }).click();
 }
 
 export async function bridgeTransfer(

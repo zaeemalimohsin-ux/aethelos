@@ -204,6 +204,7 @@ test.describe("invite cancel", () => {
     await sendOnChainInvite(pageA, joinerKey);
     await waitForPool(pageA, (p) => p.pendingInviteCount >= 1);
 
+    await pageA.getByRole("button", { name: "Community" }).click();
     await pageA.getByRole("button", { name: "Cancel" }).click();
     await waitForPool(pageA, (p) => p.pendingInviteCount === 0);
 

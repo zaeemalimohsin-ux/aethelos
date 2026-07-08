@@ -45,17 +45,18 @@ http {
             }
         }
 
-        # Health check endpoint
+        # Health check — proxy to relay so same-origin probe proves liveness
         location /healthz {
             access_log off;
-            return 200 "ok\n";
-            add_header Content-Type text/plain;
+            proxy_pass http://127.0.0.1:RELAY_PORT/healthz;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
         }
 
         # WebSocket proxy to the stateless relay
         # Philosophy: "A Relay holds no authoritative state... disposable and swappable."
         location /ws {
-            proxy_pass http://127.0.0.1:8787;
+            proxy_pass http://127.0.0.1:RELAY_PORT;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";

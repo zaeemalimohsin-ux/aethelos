@@ -17,7 +17,7 @@ import {
   type ProposalKind,
 } from "@aethelos/core";
 
-import { useStore } from "./store.js";
+import { useStore, setForceJoinProbeForTests } from "./store.js";
 
 function poolSummary(pool: PoolState) {
   return {
@@ -195,6 +195,10 @@ export function installTestBridge(): void {
       await useStore.getState().joinSuperstructure(parentId);
     },
 
+    setForceJoinProbe(enabled: boolean) {
+      setForceJoinProbeForTests(enabled);
+    },
+
     async invite(invitee: string) {
       await useStore.getState().invite(invitee);
     },
@@ -251,17 +255,7 @@ export function installTestBridge(): void {
     },
 
     async disasterRecoveryImport(json: string) {
-      const parsed = JSON.parse(json);
-      if (!parsed.length) return;
-      const ns = parsed[0].namespaceId;
-      const { importEventLog } = await import("../storage/event-log.js");
-      await importEventLog(json);
-      const sessionStr = localStorage.getItem("aethelos-session");
-      if (sessionStr) {
-        const session = JSON.parse(sessionStr);
-        session.namespaceId = ns;
-        localStorage.setItem("aethelos-session", JSON.stringify(session));
-      }
+      await useStore.getState().recoverCommunityFromEventLog(json);
     },
 
     async dispatchDoubleSpend(to: string, amount: string) {

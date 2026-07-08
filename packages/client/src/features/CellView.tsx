@@ -46,13 +46,24 @@ export function CellView({ pool }: { pool: PoolState }) {
   const isFrozen = pool.frozen.includes(myKey);
   const pendingInvite = pool.pendingInvites[myKey];
   const hasPendingInvite = !!pendingInvite && !pool.members.includes(myKey);
-  const isGuest = !pool.members.includes(myKey) && !hasPendingInvite;
+  const isGuest = !pool.members.includes(myKey);
+  const waitingToJoin = isGuest && (hasPendingInvite || pool.pendingInvites[myKey]);
   const countdown = useCirculationCountdown(pool);
+  const sync = useStore((s) => s.sync);
 
   return (
     <div className="stack">
       <PhilosophyCard />
-      {isGuest && <GuestJoinCodeBanner myKey={myKey} />}
+      {sync?.overall === "offline" ? (
+        <div className="alert warning">
+          Offline — actions queue on this device until a connection point is reachable.
+          Others won't see them yet.
+        </div>
+      ) : null}
+      {waitingToJoin ? (
+        <JoinProgressCard pool={pool} myKey={myKey} hasPendingInvite={hasPendingInvite} />
+      ) : null}
+      {isGuest && !waitingToJoin && <GuestJoinCodeBanner myKey={myKey} />}
       {isFrozen && (
         <div className="alert danger">
           Your account is frozen after suspicious activity. Open{" "}
@@ -60,7 +71,7 @@ export function CellView({ pool }: { pool: PoolState }) {
         </div>
       )}
       <SubCellCapBanner pool={pool} isHead={isHead} />
-      <SubCellLinkageBanner pool={pool} isHead={isHead} />
+      <SubCellLinkageBanner pool={pool} />
       {hasPendingInvite && (
         <div className="alert info">
           {pendingInvite!.admissionApproved ? (
@@ -160,6 +171,54 @@ function PhilosophyCard() {
         </p>
       </div>
     </Disclosure>
+  );
+}
+
+function JoinProgressCard({
+  pool,
+  myKey,
+  hasPendingInvite,
+}: {
+  pool: PoolState;
+  myKey: string;
+  hasPendingInvite: boolean;
+}) {
+  const pendingInvite = pool.pendingInvites[myKey];
+  const proposalId = admissionProposalId(myKey);
+  const proposal = pool.proposals[proposalId];
+  const totalStake = pool.members.reduce((sum, m) => sum + votingWeight(pool, m), 0n);
+  const approvalPct =
+    proposal && totalStake > 0n
+      ? Number((proposal.votesFor * 100n) / totalStake)
+      : 0;
+
+  let step = 1;
+  let label = "Connected — tell your inviter you're waiting";
+  if (hasPendingInvite && pendingInvite && !proposal) {
+    step = 2;
+    label = "Waiting for inviter to vouch for you";
+  } else if (
+    pendingInvite &&
+    proposal &&
+    !proposal.executed &&
+    !pendingInvite.admissionApproved
+  ) {
+    step = 3;
+    label = `Community voting (${approvalPct.toFixed(0)}% of stake)`;
+  } else if (pendingInvite?.admissionApproved) {
+    step = 4;
+    label = "Approved — accept your invitation below";
+  }
+
+  return (
+    <div className="alert info">
+      <strong>Waiting to join</strong> — step {step} of 4: {label}
+      {step === 1 ? (
+        <div className="join-code-box" style={{ marginTop: "var(--sp-2)" }}>
+          <code className="mono">{myKey}</code>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -300,6 +359,7 @@ function ActiveVouchLiensCard({ pool, myKey }: { pool: PoolState; myKey: string 
 
 function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
   const cancelInvite = useStore((s) => s.cancelInvite);
+  const setView = useStore((s) => s.setView);
   const displayName = useStore((s) => s.displayName);
   const pending = Object.entries(pool.pendingInvites).filter(
     ([, inv]) => inv.inviter === myKey,
@@ -331,6 +391,15 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
               </span>
               <span>{formatPts(inv.lienAmount)} Value pledged (lien)</span>
               <span className="muted">{status}</span>
+              {!inv.admissionApproved && !proposal?.executed ? (
+                <button
+                  className="btn sm"
+                  type="button"
+                  onClick={() => setView("proposals")}
+                >
+                  Vote to admit
+                </button>
+              ) : null}
               <button className="btn ghost sm" onClick={() => void cancelInvite(invitee)}>
                 Cancel
               </button>
@@ -406,55 +475,55 @@ function InviteCard({
       <Button variant="secondary" block onClick={() => setShowLink(true)}>
         Invite people
       </Button>
+      <p className="hint" style={{ marginTop: "var(--sp-4)", marginBottom: "var(--sp-2)" }}>
+        <strong>Step 2:</strong> Someone opened your link? Paste their join code and vouch.
+      </p>
+      <Field
+        label="Join code"
+        hint="Paste the code from their Community tab."
+        value={pubkey}
+        onChange={(e) => setPubkey(e.target.value)}
+        className="mono"
+      />
+      <p className="hint">
+        This vouch pledges <strong>{lienPercent.toFixed(1)}%</strong> of your Share (
+        {formatPts(lienAmount)} Value) as a forfeitable lien. Value stays in your
+        wallet; you just can't spend or transfer it while the invite is pending.{" "}
+        {formatPts(pledgeCapacity)} Value still available to pledge.
+      </p>
+      <Slider
+        label="Invitee default annual circulation (%)"
+        value={Math.round(inviteDecay * 10) / 10}
+        min={0}
+        max={20}
+        step={0.1}
+        onCommit={setInviteDecay}
+      />
+      <Slider
+        label="Invitee default redistribution interval (minutes)"
+        value={inviteInterval}
+        min={MIN_EPOCH_INTERVAL_MINUTES}
+        max={10_080}
+        step={MIN_EPOCH_INTERVAL_MINUTES}
+        onCommit={setInviteInterval}
+      />
+      <Button
+        block
+        disabled={!pubkey.trim() || atCap || lienAmount > pledgeCapacity}
+        onClick={() => {
+          void onInvite(pubkey.trim(), {
+            ...pool.parameters,
+            decay_rate: inviteDecay,
+            epoch_interval: inviteInterval,
+          });
+          setPubkey("");
+        }}
+      >
+        Vouch and send invite
+      </Button>
       <p className="hint" style={{ marginTop: "var(--sp-3)" }}>
         {statusLine}
       </p>
-
-      <Disclosure summary="Someone opened your link — vouch for them">
-        <Field
-          label="Join code"
-          hint="Paste the code from their screen (Community tab)."
-          value={pubkey}
-          onChange={(e) => setPubkey(e.target.value)}
-          className="mono"
-        />
-        <p className="hint">
-          This vouch pledges <strong>{lienPercent.toFixed(1)}%</strong> of your Share (
-          {formatPts(lienAmount)} Value) as a forfeitable lien. Value stays in your
-          wallet; you just can't spend or transfer it while the invite is pending.{" "}
-          {formatPts(pledgeCapacity)} Value still available to pledge.
-        </p>
-        <Slider
-          label="Invitee default annual circulation (%)"
-          value={Math.round(inviteDecay * 10) / 10}
-          min={0}
-          max={20}
-          step={0.1}
-          onCommit={setInviteDecay}
-        />
-        <Slider
-          label="Invitee default redistribution interval (minutes)"
-          value={inviteInterval}
-          min={MIN_EPOCH_INTERVAL_MINUTES}
-          max={10_080}
-          step={MIN_EPOCH_INTERVAL_MINUTES}
-          onCommit={setInviteInterval}
-        />
-        <Button
-          block
-          disabled={!pubkey.trim() || atCap || lienAmount > pledgeCapacity}
-          onClick={() => {
-            void onInvite(pubkey.trim(), {
-              ...pool.parameters,
-              decay_rate: inviteDecay,
-              epoch_interval: inviteInterval,
-            });
-            setPubkey("");
-          }}
-        >
-          Vouch and send invite
-        </Button>
-      </Disclosure>
 
       {showLink && inviteLink && (
         <Modal title="Invite people" onClose={() => setShowLink(false)}>
@@ -545,7 +614,7 @@ function SubCellCapBanner({ pool, isHead }: { pool: PoolState; isHead: boolean }
   );
 }
 
-function SubCellLinkageBanner({ pool, isHead }: { pool: PoolState; isHead: boolean }) {
+function SubCellLinkageBanner({ pool }: { pool: PoolState }) {
   const joinSuperstructure = useStore((s) => s.joinSuperstructure);
   const toast = useStore((s) => s.toast);
   const parent = loadSubCellParentContext();
@@ -557,8 +626,8 @@ function SubCellLinkageBanner({ pool, isHead }: { pool: PoolState; isHead: boole
 
   return (
     <div className="alert info">
-      <strong>Link to parent:</strong> {parent.parentCellName}. In this sub-Cell, the Head
-      proposes joining the parent namespace. In the parent Cell, create a{" "}
+      <strong>Link to parent:</strong> {parent.parentCellName}. In this sub-Cell, any
+      member can propose joining the parent namespace. In the parent Cell, create a{" "}
       <em>Link a chapter</em> proposal with this community ID:
       <div
         className="mono faint"
@@ -577,14 +646,12 @@ function SubCellLinkageBanner({ pool, isHead }: { pool: PoolState; isHead: boole
         >
           Copy this Community ID
         </Button>
-        {isHead && (
-          <Button
-            size="sm"
-            onClick={() => void joinSuperstructure(parent.parentNamespaceId)}
-          >
-            Propose join to parent
-          </Button>
-        )}
+        <Button
+          size="sm"
+          onClick={() => void joinSuperstructure(parent.parentNamespaceId)}
+        >
+          Propose join to parent
+        </Button>
         <button className="btn ghost sm" onClick={() => clearSubCellParentContext()}>
           Dismiss
         </button>

@@ -67,6 +67,7 @@ export class FederationReader {
   ): Promise<PoolState | undefined> {
     if (this.pools[namespaceId]) return this.pools[namespaceId];
     if (this.engines.has(namespaceId)) {
+      await this.waitForNamespaceState(namespaceId);
       return this.pools[namespaceId];
     }
     const engine = new SyncEngine(relayUrls, namespaceId, keyPair);
@@ -76,7 +77,21 @@ export class FederationReader {
     });
     await engine.start();
     this.engines.set(namespaceId, engine);
+    await this.waitForNamespaceState(namespaceId);
     return this.pools[namespaceId];
+  }
+
+  /** Await first reducer state (local cache or sync_batch) before join proposals. */
+  private async waitForNamespaceState(
+    namespaceId: string,
+    timeoutMs = 15_000,
+  ): Promise<void> {
+    if (this.pools[namespaceId]) return;
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (this.pools[namespaceId]) return;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
   }
 
   stop(): void {

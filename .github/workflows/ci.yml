@@ -50,6 +50,26 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Scan client dist for test bridge
+        run: node scripts/scan-no-test-bridge.mjs packages/client/dist
+
+  deploy-artifact-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @aethelos/core build && pnpm --filter @aethelos/client build
+      - run: node scripts/scan-no-test-bridge.mjs packages/client/dist
+      - run: docker build -f packages/client/Dockerfile -t aethelos/client:scan .
+      - run: docker run --rm aethelos/client:scan sh -c "grep -r __aethelosTest /usr/share/nginx/html && exit 1 || exit 0"
+
   tauri-check:
     runs-on: ubuntu-latest
     steps:
@@ -180,6 +200,12 @@ jobs:
           docker compose logs
           exit 1
 
+      - name: WebSocket smoke on publish stack
+        run: node scripts/publish-ws-smoke.mjs ws://localhost:8080/ws
+
+      - name: Publisher preflight (localhost)
+        run: sh scripts/publisher-preflight.sh http://localhost:8080
+
       - name: Install Playwright browsers
         run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
 
@@ -194,6 +220,31 @@ jobs:
         with:
           name: playwright-founder-docker-report
           path: packages/client/playwright-report/
+
+  docker-combined:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build combined image
+        run: docker build -f Dockerfile -t aethelos/combined:test .
+
+      - name: Run combined container
+        run: docker run -d --name aethelos-combined -p 10000:10000 aethelos/combined:test
+
+      - name: Wait for combined health
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:10000/healthz && break
+            sleep 2
+            if [ "$i" -eq 60 ]; then
+              echo "Combined container did not become healthy"
+              docker logs aethelos-combined
+              exit 1
+            fi
+          done
+          curl -sf http://localhost:10000/ | head -c 200 | grep -qi html
+          docker exec aethelos-combined wget -qO- "http://127.0.0.1:8787/healthz"
 
   security-scan:
     runs-on: ubuntu-latest

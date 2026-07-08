@@ -38,7 +38,8 @@ See [USER_GUIDE.md](./USER_GUIDE.md) for everyday use.
 
 | Problem | Fix |
 |---------|-----|
-| Can't create a community | Open **Identity → Advanced → network** or install the Windows app |
+| Can't create a community | Use a **hosted install**, the **desktop app**, or enter a **connection point** on the Start a community screen |
+| Lost device / new phone | Recovery phrase restores **identity only** — rejoin with your **invite link** or **import an event log** export |
 | Stuck offline | Wait a moment; actions queue and send when back online |
 | Invite link doesn't open | Ask the sender for a fresh link from **Invite people** |
 
