@@ -21,15 +21,15 @@ The relay listens on `ws://localhost:8787` by default. For remote peers, expose 
 ## Step 2 — Person A: Genesis
 
 1. Open the client (`pnpm dev:client` → http://localhost:5173)
-2. Enter a display name and a strong passphrase
-3. Set a Cell name (e.g. "Oak Street Collective")
-4. Set the Relay URL
-5. Click **Create Identity & Genesis**
+2. Create an identity (display name + passphrase) and save the recovery phrase
+3. Choose **Start a community** and set a name (e.g. "Oak Street Collective")
+4. Click **Create community** — connection points are chosen automatically (localhost in
+   dev; desktop/hosted installs supply a mailbox)
 
 This generates an Ed25519 keypair (encrypted in IndexedDB), creates a namespace ID, signs the genesis event, and broadcasts it.
 
 **Person A shares one thing — the invite link.** In the **Community** tab, tap
-**Share invite link** and send the link (or QR). It encodes the relay(s),
+**Invite people** and send the link (or QR). It encodes the connection point(s),
 namespace ID, inviter key, and community name, so Person B never copies anything
 by hand.
 

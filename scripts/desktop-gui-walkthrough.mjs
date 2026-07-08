@@ -250,7 +250,7 @@ async function main() {
     await ensurePublicMailbox(page);
     console.log("PASS: Connection shows share link ready");
 
-    await page.getByRole("button", { name: "Share invite link" }).click();
+    await page.getByRole("button", { name: "Invite people" }).click();
     const textarea = page.locator(".modal textarea.textarea");
     await textarea.waitFor({ timeout: 60_000 });
     const inviteLink = await textarea.inputValue();

@@ -29,7 +29,7 @@ function Write-ShareCard {
     } else {
         Write-Host "  Share link:    see Connection tab in the app"
     }
-    Write-Host "  Then: Community -> Share invite link"
+    Write-Host "  Then: Community -> Invite people"
     Write-Host ""
 }
 

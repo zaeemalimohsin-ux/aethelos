@@ -54,7 +54,7 @@ function Start-PublicTunnel {
     Write-Host ""
     Write-Host "=== Share this link (phone or PC) ===" -ForegroundColor Green
     Write-Host "  $publicUrl"
-    Write-Host "  Open on your phone, create a community, then Share invite link."
+    Write-Host "  Open on your phone, create a community, then Invite people."
     Write-Host ""
     return $publicUrl
 }

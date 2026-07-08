@@ -2,6 +2,17 @@
 
 Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon check, E2E).
 
+## Deploy-path honesty
+
+| Gate | What it proves | Where |
+|------|----------------|-------|
+| `pnpm test:e2e` | Local vite + `dev:relay` product flows | Local + CI `e2e` job |
+| CI `docker-founder` | Same-origin `/ws` publish stack (nginx) | Ubuntu CI — **required** publish-path proof |
+| `founder-share-url` / `joiner-share-url` | Live public tunnel URLs | Env-gated (`AETHELOS_SHARE_URL`); not default CI |
+| `pnpm desktop:proof` / `proof-product.ps1` | Windows desktop + Android smoke | Windows only; skipped on Linux verify |
+
+Empty operator bootstrap (`DEFAULT_BOOTSTRAP_RELAYS: []`) is intentional: genesis must use desktop sidecar, same-origin publish, or a configured pool. Failed probe to empty/dead mailboxes must not silently invent connectivity.
+
 ## Release sign-off checklist
 
 Before tagging a release candidate, confirm:
@@ -11,7 +22,8 @@ Before tagging a release candidate, confirm:
 - [ ] `pnpm lint:eslint` and `pnpm format:check` pass
 - [ ] `pnpm --filter @aethelos/core build && pnpm test` — all core + relay + client unit tests green
 - [ ] `pnpm test:e2e` — all Playwright specs green
-- [ ] [Philosophy Traceability Matrix](./PHILOSOPHY_TRACEABILITY.md) — no **P0** gaps for shipped features
+- [ ] CI `docker-founder` job green (same-origin publish path)
+- [ ] [Philosophy Traceability Matrix](./PHILOSOPHY_TRACEABILITY.md) — statuses accurate; residuals listed honestly
 - [ ] No new conservation violations in `simulation.test.ts` / `adversarial.test.ts`
 - [ ] Relay tests green if `@aethelos/relay` changed
 - [ ] Manual smoke: identity → community → invite → transfer → proposal → (if federation) bridge

@@ -11,7 +11,7 @@ $proofAvdHome = Join-Path $Root ".android-avd"
 if (-not (Test-Path $proofAvdHome)) {
     New-Item -ItemType Directory -Path $proofAvdHome -Force | Out-Null
 }
-$env:ANDROID_AVD_HOME = $proofAvdHome
+# Removed: $env:ANDROID_AVD_HOME = $proofAvdHome
 
 function Get-EmulatorExe {
     $sdk = $env:ANDROID_HOME
@@ -62,7 +62,7 @@ if (-not $AvdName) {
     $AvdName = $list[0]
 }
 
-$avdDir = Join-Path $proofAvdHome "$AvdName.avd"
+$avdDir = Join-Path $env:USERPROFILE ".android\avd\$AvdName.avd"
 $snapshotsDir = Join-Path $avdDir "snapshots"
 $emuLog = Join-Path $env:TEMP "aethelos-emulator.log"
 if (Test-Path $emuLog) { Remove-Item $emuLog -Force -ErrorAction SilentlyContinue }
@@ -71,7 +71,6 @@ $emuArgs = @(
     "-avd", $AvdName,
     "-no-boot-anim",
     "-no-window",
-    "-gpu", "swiftshader_indirect",
     "-partition-size", "512"
 )
 if (Test-Path $snapshotsDir) {
@@ -105,10 +104,15 @@ while ((Get-Date) -lt $deadline) {
         & $adb shell settings put system screen_off_timeout 600000 2>$null
         
         Write-Host "Environment configured."
-        exit 0
+        break
     }
     Start-Sleep -Seconds 5
 }
 
-$tail = if (Test-Path $emuLog) { Get-Content $emuLog -Tail 30 -ErrorAction SilentlyContinue } else { @() }
-throw ("Emulator did not boot within 10 minutes. Log tail:`n{0}" -f ($tail -join "`n"))
+if ($emuProc.HasExited) {
+    $tail = if (Test-Path $emuLog) { Get-Content $emuLog -Tail 30 -ErrorAction SilentlyContinue } else { @() }
+    throw ("Emulator did not boot within 10 minutes. Log tail:`n{0}" -f ($tail -join "`n"))
+}
+
+Write-Host "Keeping emulator task alive..."
+Wait-Process -Id $emuProc.Id
