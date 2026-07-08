@@ -81,9 +81,12 @@ export function isValidPayload(p: unknown): p is EventPayload {
     case "vouch_update":
       return isNonEmptyString(p["target"]) && typeof p["weight"] === "number";
     case "invite":
+      // vouchBondAmount is legacy/advisory: the reducer always derives the binding
+      // lien from requiredVouchLien(), so accept invites with or without it.
       return (
         isNonEmptyString(p["invitee"]) &&
-        isValidPointsAmountString(p["vouchBondAmount"]) &&
+        (p["vouchBondAmount"] === undefined ||
+          isValidPointsAmountString(p["vouchBondAmount"])) &&
         isObject(p["parameters"])
       );
     case "cancel_invite":

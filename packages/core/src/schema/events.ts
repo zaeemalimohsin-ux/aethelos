@@ -79,7 +79,11 @@ export interface VouchUpdatePayload {
 export interface InvitePayload {
   type: "invite";
   invitee: PublicKeyHex;
-  vouchBondAmount: string;
+  /**
+   * Legacy/advisory. The binding lien is always derived by the reducer via
+   * requiredVouchLien(); this wire field is ignored for economics and is optional.
+   */
+  vouchBondAmount?: string;
   parameters: Record<GovernanceParameter, number>;
 }
 

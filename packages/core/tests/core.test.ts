@@ -8,6 +8,7 @@ import {
   mergeEventLogs,
   sortEvents,
   reduceEvents,
+  reduceWithSnapshot,
   reduceOne,
   applyDecay,
   distributeRedistribution,
@@ -570,5 +571,63 @@ describe("slider pruning on expulsion", () => {
     for (const inner of Object.values(state.vouchSliders)) {
       expect(inner[joiner.publicKeyHex]).toBeUndefined();
     }
+  });
+});
+
+describe("snapshot resume vs late-arriving parent reorder", () => {
+  it("full-replays and matches when an orphan's parent arrives later", async () => {
+    const kp = await generateKeyPair();
+    const ns = "snap-reorder";
+    const g = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: null,
+        lamport: 1,
+        author: kp.publicKeyHex,
+        timestamp: 1,
+        payload: {
+          type: "genesis",
+          cellName: "Snap",
+          initialPoints: "100",
+          parameters: { ...DEFAULT_PARAMETERS },
+        },
+      },
+      kp.privateKey,
+    );
+    const credit = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: kp.publicKeyHex,
+        timestamp: 2,
+        payload: { type: "slider_update", parameter: "decay_rate", value: 6 },
+      },
+      kp.privateKey,
+    );
+    const spend = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: credit.id,
+        lamport: 3,
+        author: kp.publicKeyHex,
+        timestamp: 3,
+        payload: { type: "slider_update", parameter: "decay_rate", value: 7 },
+      },
+      kp.privateKey,
+    );
+
+    // First pass sees genesis + spend but NOT the parent credit: spend is orphaned
+    // and held aside, so only genesis is applied.
+    const snap1 = reduceWithSnapshot(ns, [g, spend]);
+    expect(snap1.appliedCount).toBe(1);
+
+    // Parent credit arrives: the ordered prefix changes, forcing a full replay.
+    const snap2 = reduceWithSnapshot(ns, [g, spend, credit], snap1);
+    const fresh = reduceEvents(ns, [g, spend, credit]);
+    expect(snap2.appliedCount).toBe(3);
+    expect(snap2.state.parameters.decay_rate).toBe(fresh.parameters.decay_rate);
+    expect(totalPoolPoints(snap2.state)).toBe(totalPoolPoints(fresh));
+    expect(snap2.state.parameters.decay_rate).toBe(7);
   });
 });
