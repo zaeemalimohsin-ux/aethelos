@@ -53,8 +53,9 @@ COPY deploy/nginx.conf.template /etc/nginx/nginx.conf.template
 COPY deploy/start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Hugging Face Spaces (and similar) assign PORT via env var
-ENV PORT=7860
+# Platforms override PORT at runtime (Render 10000, Hugging Face 7860, etc.)
+ARG DEFAULT_PORT=10000
+ENV PORT=${DEFAULT_PORT}
 ENV RELAY_PORT=8787
 
 # Grant non-root user permissions to nginx directories

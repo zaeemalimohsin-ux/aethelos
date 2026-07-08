@@ -92,13 +92,13 @@ jobs:
       - name: Bundle relay sidecar
         run: node scripts/bundle-relay-sidecar.mjs
 
-      - name: Fetch Node sidecar placeholder
+      - name: Fetch Node sidecar
         run: node scripts/fetch-node-sidecar.mjs
 
-      - name: Bundle static sidecar placeholder
-        run: node scripts/bundle-static-sidecar.mjs
+      - name: Bundle static sidecar for Tauri
+        run: node scripts/prepare-release-client.mjs
 
-      - name: Fetch cloudflared sidecar placeholder
+      - name: Fetch cloudflared sidecar
         run: node scripts/fetch-cloudflared.mjs --tauri
 
       - name: Cargo check (desktop shell)

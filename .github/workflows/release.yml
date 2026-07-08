@@ -31,25 +31,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Bundle relay sidecar
-        run: node scripts/bundle-relay-sidecar.mjs
-
-      - name: Fetch Node sidecar
-        run: node scripts/fetch-node-sidecar.mjs
-
-      - name: Generate Tauri icons
-        run: pnpm --filter @aethelos/client-tauri exec tauri icon ../client/public/favicon.svg
-
-      - name: Build Windows desktop installer
-        run: pnpm --filter @aethelos/client-tauri desktop:build:release
+      - name: Build Windows desktop release
+        run: node scripts/build-release.mjs
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: |
-            packages/client-tauri/src-tauri/target/release/bundle/**/*.exe
-            packages/client-tauri/src-tauri/target/release/bundle/**/*.msi
+          path: dist/releases/**/*
 
   publish:
     needs: build-windows

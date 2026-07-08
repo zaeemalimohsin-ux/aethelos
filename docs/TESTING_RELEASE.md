@@ -2,14 +2,26 @@
 
 Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon check, E2E).
 
+## Proof tiers
+
+| Tier | Command / job | What it proves | Required for |
+|------|----------------|----------------|--------------|
+| **1 — CI core** | `pnpm typecheck`, `pnpm lint:eslint`, `pnpm test` | Kernel, relay, client units | Every merge |
+| **2 — Local product E2E** | `pnpm test:e2e` (Playwright `chromium` project) | Vite dev + relay dev flows | Every merge (CI `e2e` job) |
+| **3 — Publish path** | CI `docker-founder` → Playwright `founder-docker` | Same-origin `/ws` via nginx on port 8080 | Every merge |
+| **4 — Windows product proof** | `pnpm proof:product` | Desktop installer, live tunnel share URL, `share-url-mobile` Playwright | Release sign-off (Windows) |
+| **5 — Deep desktop** | `pnpm desktop:proof`, `pnpm desktop:gui-walkthrough` | Tunnel smoke, two-person sync, Tauri `local_node` | Optional pre-tag desktop review |
+
+`desktop-proof.mjs` is the scripted subset of tier 5 (tunnel + community E2E + Rust tests). Prefer `proof:product` for full Windows sign-off.
+
 ## Deploy-path honesty
 
 | Gate | What it proves | Where |
 |------|----------------|-------|
 | `pnpm test:e2e` | Local vite + `dev:relay` product flows | Local + CI `e2e` job |
 | CI `docker-founder` | Same-origin `/ws` publish stack (nginx) | Ubuntu CI — **required** publish-path proof |
-| `founder-share-url` / `joiner-share-url` | Live public tunnel URLs | Env-gated (`AETHELOS_SHARE_URL`); not default CI |
-| `pnpm desktop:proof` / `proof-product.ps1` | Windows desktop + Android smoke | Windows only; skipped on Linux verify |
+| Playwright `share-url-mobile` | Live public tunnel URLs | Env-gated (`AETHELOS_SHARE_URL`); `proof:product` on Windows |
+| `pnpm desktop:proof` / `proof-product.ps1` | Windows desktop remote path | Windows only; skipped on Linux verify |
 
 Empty operator bootstrap (`DEFAULT_BOOTSTRAP_RELAYS: []`) is intentional: genesis must use desktop sidecar, same-origin publish, or a configured pool. Failed probe to empty/dead mailboxes must not silently invent connectivity.
 
@@ -27,7 +39,7 @@ Before tagging a release candidate, confirm:
 - [ ] No new conservation violations in `simulation.test.ts` / `adversarial.test.ts`
 - [ ] Relay tests green if `@aethelos/relay` changed
 - [ ] Manual smoke: identity → community → invite → transfer → proposal → (if federation) bridge
-- [ ] **Windows:** `pnpm desktop:proof` and `pnpm desktop:gui-walkthrough` (remote founder path)
+- [ ] **Windows:** `pnpm proof:product` (tiers 4–5)
 
 ## Standard test commands
 

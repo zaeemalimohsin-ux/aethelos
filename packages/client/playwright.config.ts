@@ -1,5 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const dockerStack = process.env.AETHELOS_DOCKER === '1';
+const shareUrlSpecs = /(?:founder|joiner)-share-url\.spec\.ts$/;
+const dockerFounderSpec = /founder-mobile\.spec\.ts$/;
+
 export default defineConfig({
   timeout: 120000,
   testDir: './e2e',
@@ -14,15 +18,31 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testIgnore: [dockerFounderSpec, shareUrlSpecs],
       use: { ...devices['Desktop Chrome'] },
     },
-  ],
-  webServer: {
-    command: 'npx concurrently "vite" "pnpm --filter @aethelos/relay dev"',
-    port: 5173,
-    reuseExistingServer: !process.env.CI,
-    env: {
-      VITE_E2E: '1',
+    {
+      name: 'founder-docker',
+      testMatch: dockerFounderSpec,
+      use: {
+        ...devices['Pixel 5'],
+        baseURL: 'http://localhost:8080',
+      },
     },
-  },
+    {
+      name: 'share-url-mobile',
+      testMatch: shareUrlSpecs,
+      use: { ...devices['Pixel 5'] },
+    },
+  ],
+  webServer: dockerStack
+    ? undefined
+    : {
+        command: 'npx concurrently "vite" "pnpm --filter @aethelos/relay dev"',
+        port: 5173,
+        reuseExistingServer: !process.env.CI,
+        env: {
+          VITE_E2E: '1',
+        },
+      },
 });

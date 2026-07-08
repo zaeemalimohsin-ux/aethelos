@@ -11,7 +11,7 @@ services:
     name: aethelos
     runtime: docker
     plan: free
-    dockerfilePath: deploy/Dockerfile
+    dockerfilePath: Dockerfile
     dockerContext: .
     healthCheckPath: /healthz
     envVars:

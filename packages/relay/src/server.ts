@@ -1,7 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
 import { isValidRelayMessage, type RelayMessage, type SignedEvent } from "@aethelos/core";
-import { isTunnelAvailable, getPublicUrl } from "./android-tunnel.js";
 
 export interface RelayOptions {
   port?: number;
@@ -123,14 +122,6 @@ export function createRelayServer(opts: RelayOptions = {}): RelayServer {
     if (url === "/readyz") {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ ready: true }));
-      return;
-    }
-    if (url === "/android-tunnel") {
-      res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
-      res.end(JSON.stringify({
-        cloudflaredAvailable: isTunnelAvailable(),
-        publicUrl: getPublicUrl()
-      }));
       return;
     }
     if (url === "/metrics") {

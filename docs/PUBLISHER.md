@@ -77,26 +77,26 @@ pnpm --filter @aethelos/client build
 
 Host `packages/client/dist` with [`nginx.conf`](../packages/client/nginx.conf) or use the provided Dockerfile.
 
+## Managed demo (Hugging Face Spaces)
+
+Optional public demo — **not** the canonical publisher path. Use `docker compose` for production-style deploys.
+
+1. Root [`Dockerfile`](../Dockerfile) builds PWA + relay in one container (same-origin `/ws`).
+2. Hugging Face injects `PORT=7860` at runtime; Render and other hosts use `PORT=10000` (see [`render.yaml`](../render.yaml)).
+3. [`deploy-hf.yml`](../.github/workflows/deploy-hf.yml) syncs a trimmed tree (no website binaries, build artifacts, or android remnants) to the Space on each `main` push.
+4. Space README front matter should set `app_port: 7860` (see root [`README.md`](../README.md)).
+
+For a permanent URL you control, prefer **Option A** (VPS + compose) or **Option B** (named Cloudflare Tunnel) below.
+
 ## Release verification
 
 ```bash
 pnpm verify:release
 ```
 
-Runs typecheck, unit tests, user-doc grep, and E2E (including docker-founder). On Windows, also runs `pnpm proof:product` (desktop share URL, mobile E2E, Android smoke, release exe).
-
-### Android emulator smoke
-
-With an emulator running in Android Studio:
-
-```powershell
-pnpm android:smoke -- -Url https://your-share-url.trycloudflare.com -WaitSeconds 30 -Screenshot
-```
-
-Optional: `scripts/start-android-emulator.ps1` starts the first configured AVD.
+Runs typecheck, unit tests, user-doc grep, and local E2E. CI also runs `docker-founder` (same-origin publish stack). On Windows, `pnpm proof:product` exercises desktop share URL + mobile tunnel E2E + release installer.
 
 Full sign-off on Windows: `pnpm proof:product`.
-
 ## Two-person genesis (test)
 
 See [GENESIS.md](./GENESIS.md).

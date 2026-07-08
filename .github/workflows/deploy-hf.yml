@@ -3,7 +3,6 @@ name: Sync to Hugging Face Spaces
 on:
   push:
     branches: [main]
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -13,26 +12,36 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           lfs: true
 
-      - name: Push to Hugging Face
+      - name: Push trimmed artifact to Hugging Face
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # Copy current state to a temp directory to build a flat single-commit repo
+          set -euo pipefail
           mkdir -p ../deploy_tmp
-          cp -r ./* ../deploy_tmp/
+          rsync -a \
+            --exclude '.git' \
+            --exclude 'website' \
+            --exclude 'archive' \
+            --exclude 'dist' \
+            --exclude 'packages/.temp' \
+            --exclude 'packages/client/android' \
+            --exclude 'packages/client/scratch' \
+            --exclude 'packages/client/playwright-report' \
+            --exclude 'packages/client/test-results' \
+            --exclude 'packages/client-tauri/src-tauri/target' \
+            --exclude '*.log' \
+            --exclude 'release-build*.log' \
+            --exclude 'cargo-release-quick.log' \
+            . ../deploy_tmp/
           cd ../deploy_tmp
 
-          # Strip the website folder containing binary images
-          rm -rf website
-
-          # Initialize fresh git with no binary history
           git init
           git config user.email "action@github.com"
           git config user.name "GitHub Actions"
           git checkout -b main
           git add -A
           git commit -m "deploy: aethelos browser release"
-          git push --force https://TheGritz:$HF_TOKEN@huggingface.co/spaces/TheGritz/aethelos main
+          git push --force "https://TheGritz:${HF_TOKEN}@huggingface.co/spaces/TheGritz/aethelos" main

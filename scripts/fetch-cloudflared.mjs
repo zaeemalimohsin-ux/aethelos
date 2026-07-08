@@ -11,7 +11,6 @@ import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 
 const tauri = process.argv.includes("--tauri");
-const android = process.argv.includes("--android");
 const VERSION = process.env.CLOUDFLARED_VERSION ?? "2025.2.0";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const targets = [];
@@ -19,19 +18,6 @@ if (tauri) {
   targets.push({
     path: join(root, "packages/client-tauri/src-tauri/resources/cloudflared/win-x64/cloudflared.exe"),
     url: `https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-windows-amd64.exe`
-  });
-} else if (android) {
-  targets.push({
-    path: join(root, "packages/client/android/app/src/main/assets/nodejs-project/cloudflared-linux-arm64"),
-    url: `https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-linux-arm64`
-  });
-  targets.push({
-    path: join(root, "packages/client/android/app/src/main/assets/nodejs-project/cloudflared-linux-amd64"),
-    url: `https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-linux-amd64`
-  });
-  targets.push({
-    path: join(root, "packages/client/android/app/src/main/assets/nodejs-project/cloudflared-linux-386"),
-    url: `https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-linux-386`
   });
 } else {
   targets.push({
