@@ -1,7 +1,13 @@
 import type { Session } from "./session-types.js";
 import { selectRelaysForCommunity } from "./bootstrap-relays.js";
 
-const KEY = "aethelos-session";
+export const STORAGE_KEYS = {
+  session: "aethelos-session",
+  theme: "aethelos-theme",
+  subcellParent: "aethelos-subcell-parent",
+} as const;
+
+const KEY = STORAGE_KEYS.session;
 
 export function loadSession(): Session | null {
   try {
@@ -17,6 +23,10 @@ export function loadSession(): Session | null {
         Array.isArray(parsed.relayUrls) && parsed.relayUrls.length > 0
           ? parsed.relayUrls
           : selectRelaysForCommunity(parsed.namespaceId),
+      ...(Array.isArray(parsed.ignoredCommunityRelays) &&
+      parsed.ignoredCommunityRelays.length > 0
+        ? { ignoredCommunityRelays: parsed.ignoredCommunityRelays }
+        : {}),
     };
   } catch {
     return null;

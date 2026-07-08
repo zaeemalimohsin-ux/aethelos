@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Component, type ErrorInfo, type ReactNode } from "react";
 import { useStore, type View } from "./app/store.js";
 import { applySwUpdate, onSwUpdateReady } from "./app/sw-update.js";
 import { Onboarding } from "./features/Onboarding.js";
@@ -8,6 +8,35 @@ import { ProposalsView } from "./features/ProposalsView.js";
 import { IdentityView } from "./features/IdentityView.js";
 import { ToastHost } from "./components/ToastHost.js";
 import { SyncIndicator } from "./components/SyncIndicator.js";
+
+class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  override state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  override componentDidCatch(error: Error, info: ErrorInfo): void {
+    console.error("[aethelos] UI error", error, info.componentStack);
+  }
+
+  override render() {
+    if (this.state.error) {
+      return (
+        <div className="app-main center" style={{ padding: "var(--sp-6)" }}>
+          <h1>Something went wrong</h1>
+          <p className="muted">
+            Reload the page. Your community data is stored locally and should be safe.
+          </p>
+          <button type="button" className="btn" onClick={() => window.location.reload()}>
+            Reload
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const NAV: { id: View; label: string }[] = [
   { id: "cell", label: "Community" },
@@ -42,7 +71,9 @@ export function App() {
           <p className="muted">Loading…</p>
         </div>
       ) : phase === "ready" ? (
-        <MainApp />
+        <AppErrorBoundary>
+          <MainApp />
+        </AppErrorBoundary>
       ) : (
         <Onboarding />
       )}

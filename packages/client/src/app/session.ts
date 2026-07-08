@@ -6,7 +6,6 @@ export {
   selectRelaysForCommunity,
   resolveRelaysForCommunity,
   getBootstrapRelayPool,
-  usesAutomaticBootstrapRelays,
   isBootstrapPoolConfigured,
   isValidRelayUrl,
   probeRelay,

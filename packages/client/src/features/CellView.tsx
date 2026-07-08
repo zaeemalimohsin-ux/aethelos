@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { PoolState } from "@aethelos/core";
+import type { PoolState, GovernanceParameter } from "@aethelos/core";
 import {
   SOFT_CELL_CAP,
   requiredVouchLien,
@@ -8,6 +8,7 @@ import {
   admissionProposalId,
   totalPoolPoints,
   votingWeight,
+  MIN_EPOCH_INTERVAL_MINUTES,
 } from "@aethelos/core";
 import { useStore } from "../app/store.js";
 import { Card } from "../design/components/Card.js";
@@ -24,6 +25,7 @@ import {
 import { CONCEPT } from "../app/concept-help.js";
 import { HelpTip } from "../design/components/HelpTip.js";
 import { Disclosure } from "../design/components/Disclosure.js";
+import { Slider } from "../design/components/Slider.js";
 import { MemberSelect } from "../design/components/MemberSelect.js";
 import { useCirculationCountdown } from "../app/useCirculationCountdown.js";
 import { connectionStatusMessage } from "../app/active-relays.js";
@@ -340,7 +342,11 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
   );
 }
 
-function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> }) {
+function InviteCard({
+  onInvite,
+}: {
+  onInvite: (pubkey: string, parameters?: Record<GovernanceParameter, number>) => Promise<void>;
+}) {
   const controller = useStore((s) => s.controller)!;
   const pool = useStore((s) => s.pool)!;
   const sync = useStore((s) => s.sync);
@@ -356,6 +362,8 @@ function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> 
   const pledgeCapacity = availableToPledge(pool, myKey);
   const [showLink, setShowLink] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
+  const [inviteDecay, setInviteDecay] = useState(pool.parameters.decay_rate);
+  const [inviteInterval, setInviteInterval] = useState(pool.parameters.epoch_interval);
   const atCap = pool.members.length >= SOFT_CELL_CAP;
   const nearCap = pool.members.length >= SOFT_CELL_CAP - 10;
 
@@ -416,11 +424,31 @@ function InviteCard({ onInvite }: { onInvite: (pubkey: string) => Promise<void> 
           wallet; you just can't spend or transfer it while the invite is pending.{" "}
           {formatPts(pledgeCapacity)} Value still available to pledge.
         </p>
+        <Slider
+          label="Invitee default annual circulation (%)"
+          value={Math.round(inviteDecay * 10) / 10}
+          min={0}
+          max={20}
+          step={0.1}
+          onCommit={setInviteDecay}
+        />
+        <Slider
+          label="Invitee default redistribution interval (minutes)"
+          value={inviteInterval}
+          min={MIN_EPOCH_INTERVAL_MINUTES}
+          max={10_080}
+          step={MIN_EPOCH_INTERVAL_MINUTES}
+          onCommit={setInviteInterval}
+        />
         <Button
           block
           disabled={!pubkey.trim() || atCap || lienAmount > pledgeCapacity}
           onClick={() => {
-            void onInvite(pubkey.trim());
+            void onInvite(pubkey.trim(), {
+              ...pool.parameters,
+              decay_rate: inviteDecay,
+              epoch_interval: inviteInterval,
+            });
             setPubkey("");
           }}
         >
@@ -567,6 +595,7 @@ function SubCellLinkageBanner({ pool, isHead }: { pool: PoolState; isHead: boole
 
 function ChildCellsCard({ pool }: { pool: PoolState }) {
   const myKey = useStore((s) => s.myKey);
+  const displayName = useStore((s) => s.displayName);
   const linkSubcell = useStore((s) => s.linkSubcell);
   const [childId, setChildId] = useState("");
   const children = pool.childCells ?? [];
@@ -577,7 +606,7 @@ function ChildCellsCard({ pool }: { pool: PoolState }) {
           <li key={id}>
             <span className="mono">
               {id === myKey
-                ? `${useStore.getState().displayName || "You"} (You)`
+                ? `${displayName || "You"} (You)`
                 : shortKey(id, 16)}
             </span>
           </li>
@@ -611,6 +640,7 @@ function ChildCellsCard({ pool }: { pool: PoolState }) {
 
 function FederationCard({ pool }: { pool: PoolState }) {
   const myKey = useStore((s) => s.myKey);
+  const displayName = useStore((s) => s.displayName);
   const linkedPools = useStore((s) => s.linkedPools);
   const ids = [...pool.parentSuperstructures, ...(pool.childCells ?? [])];
   if (ids.length === 0) return null;
@@ -621,17 +651,31 @@ function FederationCard({ pool }: { pool: PoolState }) {
         {ids.map((id) => {
           const linked = linkedPools[id];
           const role = pool.parentSuperstructures.includes(id) ? "Parent" : "Child";
+          const relayedPop = pool.childPopulation?.[id];
+          const verifiedPop = linked?.members.length;
+          const popMismatch =
+            role === "Child" &&
+            relayedPop !== undefined &&
+            verifiedPop !== undefined &&
+            relayedPop !== verifiedPop;
           return (
             <li key={id}>
               <span className="badge neutral">{role}</span>
               <span className="mono">
                 {id === myKey
-                  ? `${useStore.getState().displayName || "You"} (You)`
+                  ? `${displayName || "You"} (You)`
                   : shortKey(id, 16)}
               </span>
               {linked ? (
                 <span className="muted">
-                  {linked.cellName || "—"} · {linked.members.length} members ·{" "}
+                  {linked.cellName || "—"} · {linked.members.length} members
+                  {popMismatch ? (
+                    <span className="warning">
+                      {" "}
+                      (reported {relayedPop} — mismatch)
+                    </span>
+                  ) : null}
+                  {" · "}
                   {formatPts(
                     linked.members.reduce((s, m) => s + (linked.balances[m] ?? 0n), 0n),
                   )}{" "}
@@ -649,6 +693,7 @@ function FederationCard({ pool }: { pool: PoolState }) {
 }
 
 function BridgeEscrowCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
+  const displayName = useStore((s) => s.displayName);
   const bridgeEscrow = useStore((s) => s.bridgeEscrow);
   const linkedPools = useStore((s) => s.linkedPools);
   const linked =
@@ -673,7 +718,7 @@ function BridgeEscrowCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
             <li key={id}>
               <span className="mono">
                 {id === myKey
-                  ? `${useStore.getState().displayName || "You"} (You)`
+                  ? `${displayName || "You"} (You)`
                   : shortKey(id, 12)}
               </span>
               <span>{formatPts(pts)} Value held for bridge delivery</span>

@@ -1,9 +1,14 @@
-import type { PoolState, GovernanceParameter } from "@aethelos/core";
+import type { PoolState, GovernanceParameter, PublicKeyHex } from "@aethelos/core";
 import {
   DEFAULT_PARAMETERS,
   MIN_EPOCH_INTERVAL_MINUTES,
   formatIntervalMinutes,
   formatPointsAmount,
+  resolveVouchHead,
+  votingWeight,
+  livenessWindowMs,
+  isLiveSoul,
+  MS_PER_MINUTE,
 } from "@aethelos/core";
 import { useStore } from "../app/store.js";
 import { useCirculationCountdown } from "../app/useCirculationCountdown.js";
@@ -11,7 +16,6 @@ import { CONCEPT, GOVERNANCE_HELP } from "../app/concept-help.js";
 import { Card } from "../design/components/Card.js";
 import { Slider } from "../design/components/Slider.js";
 import { HelpTip } from "../design/components/HelpTip.js";
-import { Disclosure } from "../design/components/Disclosure.js";
 import { shortKey } from "../app/format.js";
 
 const PARAM_LABELS: Record<GovernanceParameter, string> = {
@@ -43,6 +47,46 @@ function sliderValue(pool: PoolState, myKey: string, p: GovernanceParameter): nu
   return Math.round(raw);
 }
 
+function vouchScores(pool: PoolState): {
+  scores: Map<PublicKeyHex, number>;
+  totalWeight: number;
+} {
+  const members = pool.members.filter((m) => !pool.frozen.includes(m));
+  const scores = new Map<PublicKeyHex, number>();
+  let totalWeight = 0;
+  for (const voter of members) {
+    const voterWeight = Number(votingWeight(pool, voter));
+    totalWeight += voterWeight;
+    const sliders = pool.vouchSliders[voter] ?? {};
+    for (const [target, weight] of Object.entries(sliders)) {
+      if (target === voter) continue;
+      scores.set(target, (scores.get(target) ?? 0) + weight * voterWeight);
+    }
+  }
+  return { scores, totalWeight };
+}
+
+function headElectionSummary(pool: PoolState): {
+  resolvedHead: PublicKeyHex | null;
+  leaderScore: number;
+  thresholdScore: number;
+  maxPossible: number;
+} {
+  const { scores, totalWeight } = vouchScores(pool);
+  const threshold = pool.parameters.vouch_threshold;
+  const maxPossible = totalWeight * 100;
+  const thresholdScore = maxPossible > 0 ? (threshold / 100) * maxPossible : 0;
+  const resolvedHead = resolveVouchHead(pool);
+  let leaderScore = 0;
+  for (const score of scores.values()) {
+    if (score > leaderScore) leaderScore = score;
+  }
+  if (resolvedHead) {
+    leaderScore = Math.max(leaderScore, scores.get(resolvedHead) ?? 0);
+  }
+  return { resolvedHead, leaderScore, thresholdScore, maxPossible };
+}
+
 export function GovernanceView({ pool }: { pool: PoolState }) {
   const myKey = useStore((s) => s.myKey);
   const updateSlider = useStore((s) => s.updateSlider);
@@ -50,6 +94,10 @@ export function GovernanceView({ pool }: { pool: PoolState }) {
   const params = Object.keys(DEFAULT_PARAMETERS) as GovernanceParameter[];
   const isMember = pool.members.includes(myKey);
   const countdown = useCirculationCountdown(pool);
+  const livenessMinutes = Math.round(livenessWindowMs(pool) / MS_PER_MINUTE);
+  const liveCount = pool.members.filter((m) =>
+    isLiveSoul(pool, m, Date.now()),
+  ).length;
 
   if (!isMember) {
     return (
@@ -62,6 +110,11 @@ export function GovernanceView({ pool }: { pool: PoolState }) {
   const annualCirculation = pool.parameters.decay_rate;
   const intervalMinutes = pool.parameters.epoch_interval;
   const intervalLabel = formatIntervalMinutes(intervalMinutes);
+  const headSummary = headElectionSummary(pool);
+  const headProgress =
+    headSummary.maxPossible > 0
+      ? Math.min(100, (headSummary.leaderScore / headSummary.thresholdScore) * 100)
+      : 0;
 
   return (
     <div className="stack">
@@ -92,27 +145,14 @@ export function GovernanceView({ pool }: { pool: PoolState }) {
         {countdown.label ? (
           <p className={`hint${countdown.due ? " warning" : ""}`}>{countdown.label}</p>
         ) : null}
-      </Card>
-
-      <Card eyebrow="Who leads?" title="Vouch for the Head">
-        <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-          Point your trust at someone you want coordinating certain proposals. You cannot
-          vouch for yourself. <HelpTip text={CONCEPT.head} />
+        <p className="hint" style={{ marginTop: "var(--sp-2)" }}>
+          Liveness: stay active within {livenessMinutes} minutes to keep your equal share
+          of redistribution ({liveCount} of {pool.members.length} members live now).{" "}
+          <HelpTip text={CONCEPT.epoch} />
         </p>
-        {pool.members
-          .filter((m) => m !== myKey)
-          .map((m) => (
-            <Slider
-              key={m}
-              label={`Member ${shortKey(m, 8)}`}
-              value={pool.vouchSliders[myKey]?.[m] ?? 0}
-              onCommit={(v) => void updateVouch(m, v)}
-            />
-          ))}
-        {pool.members.length <= 1 && <p className="muted">No other members yet.</p>}
       </Card>
 
-      <Disclosure summary="Advanced: redistribution sliders">
+      <Card eyebrow="Direct your flow" title="Redistribution targets">
         <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
           Each redistribution flush shares out accumulated commons. Direct where your
           share should go — one person, one equal weight in the average.{" "}
@@ -126,7 +166,43 @@ export function GovernanceView({ pool }: { pool: PoolState }) {
             onCommit={(v) => void updateSlider("redistribution", v, m)}
           />
         ))}
-      </Disclosure>
+      </Card>
+
+      <Card eyebrow="Who leads?" title="Vouch for the Head">
+        <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+          Point your trust at someone you want coordinating certain proposals. You cannot
+          vouch for yourself. <HelpTip text={CONCEPT.head} />
+        </p>
+        {headSummary.resolvedHead ? (
+          <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+            Current Head:{" "}
+            <span className="mono">
+              {headSummary.resolvedHead === myKey
+                ? "You"
+                : shortKey(headSummary.resolvedHead, 12)}
+            </span>
+            {" · "}
+            Trust toward election: {Math.round(headProgress)}% of{" "}
+            {pool.parameters.vouch_threshold.toFixed(0)}% needed
+          </p>
+        ) : (
+          <p className="hint warning" style={{ marginBottom: "var(--sp-3)" }}>
+            No Head currently holds enough trust — proposals still run; only Head-only
+            close actions wait until support re-forms.
+          </p>
+        )}
+        {pool.members
+          .filter((m) => m !== myKey)
+          .map((m) => (
+            <Slider
+              key={m}
+              label={`Member ${shortKey(m, 8)}`}
+              value={pool.vouchSliders[myKey]?.[m] ?? 0}
+              onCommit={(v) => void updateVouch(m, v)}
+            />
+          ))}
+        {pool.members.length <= 1 && <p className="muted">No other members yet.</p>}
+      </Card>
     </div>
   );
 }

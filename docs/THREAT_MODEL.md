@@ -41,7 +41,8 @@ flowchart LR
 | Capture of a single Node or Head | State lives across the community; participants carry Shares + Event Logs and reconstitute elsewhere. The bridge is a revocable role, not a single fixed key. |
 | Malicious invite **shell URL** (wrong PWA origin) | Signed payload (namespace, relays) is verified on join; the **page origin** is only the client shell — founders must open the app from their share link first. See [GET_STARTED.md](./GET_STARTED.md). |
 | Ephemeral desktop tunnel mailboxes | Desktop founders may publish `*.trycloudflare.com` URLs via cloudflared; treat as convenience, not long-term infrastructure. |
-| Bridge / federation secondary sync | Linked inbound credits require a **destination** executed `bridge_transfer` proposal (unpaired mirror credit rejected). Same identity may automate create/vote/deliver via bridge mirror — still not a free mint. Poison event-log imports must pass causal closure. |
+| Bridge / federation secondary sync | Linked inbound credits require a **destination** executed `bridge_transfer` proposal (unpaired mirror credit rejected). Same identity may automate create/vote/deliver via bridge mirror — still not a free mint. Poison event-log imports must pass causal closure. Child population counts are self-reported via `relay_cell_governance`; the client cross-checks federation-reader member counts and surfaces mismatches in the linked-chapter UI. |
+| Relay sync cursor manipulation | `request_sync` returns events strictly after `(lamport,id)` cursor; unknown cursor falls back to full buffer (no silent skip). |
 | Client-side abuse / spam | **Relay-only** rate and size limits; client outbox is unbounded; social resolution (expulsion) remains the backstop. |
 
 ## Explicit non-goals

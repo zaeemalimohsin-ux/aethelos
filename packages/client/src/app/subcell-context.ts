@@ -5,7 +5,9 @@ export interface SubCellParentContext {
   parentRelayUrls: string[];
 }
 
-const KEY = "aethelos-subcell-parent";
+import { STORAGE_KEYS } from "./session-storage.js";
+
+const KEY = STORAGE_KEYS.subcellParent;
 
 export function saveSubCellParentContext(ctx: SubCellParentContext): void {
   sessionStorage.setItem(KEY, JSON.stringify(ctx));

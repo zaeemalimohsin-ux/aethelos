@@ -20,6 +20,13 @@ test.describe("philosophy UX", () => {
     ).toBeVisible();
   });
 
+  test("governance shows redistribution as a primary card", async ({ page }) => {
+    await onboardGenesis(page, "Founder", "Redistribution Cell");
+    await page.getByRole("button", { name: "Governance", exact: true }).click();
+    await expect(page.getByText("Direct your flow")).toBeVisible();
+    await expect(page.getByText("Advanced: redistribution sliders")).toHaveCount(0);
+  });
+
   test("relay settings live under Identity → Advanced: network", async ({ page }) => {
     await onboardGenesis(page, "Founder", "Advanced Network Cell");
     await page.getByRole("button", { name: "Identity" }).click();

@@ -168,13 +168,6 @@ export function pickBootstrapRelaysFromPool(
   return indices.slice(0, count).map((idx) => pool[idx]!);
 }
 
-export function pickBootstrapRelays(
-  namespaceId: string,
-  count = DEFAULT_PICK_COUNT,
-): string[] {
-  return pickBootstrapRelaysFromPool(namespaceId, getBootstrapRelayPool(), count);
-}
-
 export function relayHealthUrl(wsUrl: string): string | null {
   try {
     const parsed = new URL(wsUrl.trim());
@@ -291,24 +284,11 @@ export async function resolveRelaysForCommunity(
   return mergeCustomRelay(custom, bootstrap.slice(0, count));
 }
 
-export function usesAutomaticBootstrapRelays(): boolean {
-  return true;
-}
-
 /** True when prod builds have at least one fallback mailbox configured. */
 export function isBootstrapPoolConfigured(): boolean {
   if (import.meta.env.DEV) return true;
   if (typeof window !== "undefined" && sameOriginRelayUrl()) return true;
   return getBootstrapRelayPool().length > 0;
-}
-
-/**
- * Soft UX signal: operator bootstrap file/env is empty. Same-origin publisher and
- * desktop still work; pure static PWA without /ws should fail at probe time.
- */
-export function hasOperatorBootstrapPool(): boolean {
-  if (import.meta.env.DEV) return true;
-  return envBootstrapRelays().length > 0 || FILE_BOOTSTRAP_RELAYS.length > 0;
 }
 
 export function isValidRelayUrl(url: string): boolean {

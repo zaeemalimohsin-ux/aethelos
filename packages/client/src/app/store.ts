@@ -50,6 +50,7 @@ import {
   type LocalNodeStatus,
 } from "./local-node.js";
 import { rejectionMessage } from "./rejection-messages.js";
+import { STORAGE_KEYS } from "./session-storage.js";
 import {
   httpsToWssRelayUrl,
   tunnelStatusFromLocalNode,
@@ -110,7 +111,7 @@ interface AppStore {
   joinCommunity(invite: InvitePayload): Promise<void>;
   acceptPendingInvite(): Promise<void>;
 
-  invite(pubkey: string): Promise<void>;
+  invite(pubkey: string, parameters?: Record<GovernanceParameter, number>): Promise<void>;
   cancelInvite(pubkey: string): Promise<void>;
   transfer(to: string, amount: string, memo?: string): Promise<void>;
   updateSlider(
@@ -161,7 +162,7 @@ function resolveInviteRelays(invite: InvitePayload): string[] {
 }
 
 export const useStore = create<AppStore>((set, get) => ({
-  theme: (localStorage.getItem("aethelos-theme") as Theme) ?? "dark",
+  theme: (localStorage.getItem(STORAGE_KEYS.theme) as Theme) ?? "dark",
   phase: "loading",
   view: "cell",
   session: null,
@@ -227,7 +228,7 @@ export const useStore = create<AppStore>((set, get) => ({
   },
 
   setTheme(t) {
-    localStorage.setItem("aethelos-theme", t);
+    localStorage.setItem(STORAGE_KEYS.theme, t);
     document.documentElement.setAttribute("data-theme", t);
     set({ theme: t });
   },
@@ -405,7 +406,7 @@ export const useStore = create<AppStore>((set, get) => ({
     get().toast("Invite accepted", "success");
   },
 
-  async invite(pubkey) {
+  async invite(pubkey, parameters) {
     const trimmed = pubkey.trim();
     const { pool, myKey, controller } = get();
     if (!controller || !pool || !myKey) return;
@@ -421,7 +422,7 @@ export const useStore = create<AppStore>((set, get) => ({
       );
       return;
     }
-    await controller.invite(trimmed);
+    await controller.invite(trimmed, parameters);
     get().toast("Invite sent — community must approve admission", "success");
   },
   async cancelInvite(pubkey) {
@@ -645,7 +646,7 @@ async function startNode(
         if (seen.has(r.reason)) continue;
         seen.add(r.reason);
         const msg = rejectionMessage(r.reason);
-        if (msg) get().toast(msg, "error");
+        get().toast(msg, "error");
       }
     },
     ...(session?.ignoredCommunityRelays?.length
