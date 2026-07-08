@@ -111,6 +111,79 @@ describe("relay server", () => {
     expect(server.bufferedEvents("ns-dedup")).toHaveLength(1);
   });
 
+  it("request_sync with sinceHash returns only events after the cursor", async () => {
+    server = await startRelayServer({ port: 0, maxBuffer: 100 });
+    const ns = "ns-cursor";
+    const { event: genesis, kp } = await signedGenesis(ns);
+    const second = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: genesis.id,
+        lamport: 2,
+        author: kp.publicKeyHex,
+        timestamp: 2,
+        payload: { type: "transaction", to: kp.publicKeyHex, amount: "1" },
+      },
+      kp.privateKey,
+    );
+    server.bufferEvent(genesis);
+    server.bufferEvent(second);
+
+    const batch = await new Promise<SignedEvent[]>((resolve, reject) => {
+      const ws = new WebSocket(wsUrl(server!.port));
+      ws.on("open", () => {
+        ws.send(
+          JSON.stringify({
+            type: "request_sync",
+            namespaceId: ns,
+            sinceHash: genesis.id,
+          } satisfies RelayMessage),
+        );
+      });
+      ws.on("message", (raw) => {
+        const msg = JSON.parse(raw.toString()) as RelayMessage;
+        if (msg.type === "sync_batch") {
+          ws.close();
+          resolve(msg.events);
+        }
+      });
+      ws.on("error", reject);
+    });
+
+    expect(batch.some((e) => e.id === genesis.id)).toBe(false);
+    expect(batch.some((e) => e.id === second.id)).toBe(true);
+  });
+
+  it("request_sync with unknown cursor falls back to full buffer", async () => {
+    server = await startRelayServer({ port: 0, maxBuffer: 100 });
+    const ns = "ns-cursor-unknown";
+    const { event: genesis } = await signedGenesis(ns);
+    server.bufferEvent(genesis);
+
+    const batch = await new Promise<SignedEvent[]>((resolve, reject) => {
+      const ws = new WebSocket(wsUrl(server!.port));
+      ws.on("open", () => {
+        ws.send(
+          JSON.stringify({
+            type: "request_sync",
+            namespaceId: ns,
+            sinceHash: "deadbeef".repeat(8),
+          } satisfies RelayMessage),
+        );
+      });
+      ws.on("message", (raw) => {
+        const msg = JSON.parse(raw.toString()) as RelayMessage;
+        if (msg.type === "sync_batch") {
+          ws.close();
+          resolve(msg.events);
+        }
+      });
+      ws.on("error", reject);
+    });
+
+    expect(batch.some((e) => e.id === genesis.id)).toBe(true);
+  });
+
   it("enforces max buffer size per namespace", async () => {
     server = await startRelayServer({ port: 0, maxBuffer: 3 });
     const kp = await generateKeyPair();

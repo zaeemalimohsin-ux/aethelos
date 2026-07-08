@@ -659,7 +659,8 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
           payload.kind === "leave_superstructure") &&
         !canInitiateSuperstructureProposal(state, event.author)
       ) {
-        return { ok: false, reason: "head_only", state };
+        // Any unfrozen member may initiate join/leave; only non-members are barred.
+        return { ok: false, reason: "not_eligible_member", state };
       }
       if (payload.kind === "bridge_transfer") {
         const remoteId = payload.data["target"];
@@ -769,7 +770,13 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
 
     case "relay_cell_governance": {
       const cellId = payload.cellId;
-      const pop = Math.max(1, Math.round(payload.population));
+      // Population is self-reported by the child's bridge. Reducer enforces only that
+      // it is a finite positive integer; the client FederationReader cross-checks the
+      // relayed count against the synced child membership and surfaces any mismatch
+      // (see docs/THREAT_MODEL.md — population attestation residual).
+      const pop = Number.isFinite(payload.population)
+        ? Math.max(1, Math.round(payload.population))
+        : 1;
 
       if ((state.childCells ?? []).includes(cellId)) {
         if (!isBridge(state, event.author)) {
@@ -1021,6 +1028,25 @@ function expelMemberReducer(state: PoolState, target: string): PoolState {
   const { [target]: _la, ...restActive } = state.lastActiveTimestamp;
   const { [target]: _laEv, ...restActiveEv } = state.lastActiveEvent;
 
+  // Sliders "disappear when they leave" (philosophy §2): drop the departing soul's
+  // own rows and every column pointing at them, so no stale per-member relationship
+  // survives and state does not grow unbounded across churn.
+  const pruneRow = <T,>(rec: Record<string, T>): Record<string, T> => {
+    const { [target]: _drop, ...rest } = rec;
+    return rest;
+  };
+  const pruneColumns = <T,>(
+    rec: Record<string, Record<string, T>>,
+  ): Record<string, Record<string, T>> => {
+    const out: Record<string, Record<string, T>> = {};
+    for (const [owner, inner] of Object.entries(rec)) {
+      if (owner === target) continue;
+      const { [target]: _dropCol, ...restInner } = inner;
+      out[owner] = restInner;
+    }
+    return out;
+  };
+
   let s: PoolState = {
     ...state,
     members: state.members.filter((m) => m !== target),
@@ -1029,6 +1055,9 @@ function expelMemberReducer(state: PoolState, target: string): PoolState {
     inviters: restInviters,
     lastActiveTimestamp: restActive,
     lastActiveEvent: restActiveEv,
+    governanceSliders: pruneRow(state.governanceSliders),
+    redistributionSliders: pruneColumns(state.redistributionSliders),
+    vouchSliders: pruneColumns(state.vouchSliders),
     bridges: state.bridges.filter((b) => b !== target),
     frozen: state.frozen.filter((f) => f !== target),
     fractures: state.fractures.filter((f) => f !== target),
@@ -1037,12 +1066,16 @@ function expelMemberReducer(state: PoolState, target: string): PoolState {
   if (severed > 0n) {
     const parents = s.parentSuperstructures;
     if (parents.length > 0) {
-      const top = parents[parents.length - 1]!;
+      // Forfeit escrows to this Cell's direct parent Superstructure (the highest Pool
+      // this namespace can name). Escalation to the true highest-level Pool happens
+      // hop-by-hop: each parent releases upward via an approved bridge_transfer, so a
+      // C->B->A chain carries the forfeit to the root through successive bridging.
+      const directParent = parents[parents.length - 1]!;
       s = {
         ...s,
         superstructureEscrow: {
           ...s.superstructureEscrow,
-          [top]: (s.superstructureEscrow[top] ?? 0n) + severed,
+          [directParent]: (s.superstructureEscrow[directParent] ?? 0n) + severed,
         },
       };
     } else {

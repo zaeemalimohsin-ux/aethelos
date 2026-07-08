@@ -417,7 +417,15 @@ export function resolveVouchHead(state: PoolState): PublicKeyHex | null {
   if (best && maxPossible > 0 && bestScore >= (threshold / 100) * maxPossible) {
     return best;
   }
-  return state.head;
+  // No challenger crossed the vouch threshold. Retain the sitting Head only while it
+  // remains an unfrozen member; otherwise the Head has effectively lost its mandate
+  // (departed, expelled, or frozen) and authority falls away rather than lingering on
+  // a stale key. A Cell with no qualifying Head is headless — proposals still run;
+  // only the Head-exclusive proposal_close is dormant until support re-forms.
+  if (state.head && isMember(state, state.head) && !isFrozen(state, state.head)) {
+    return state.head;
+  }
+  return null;
 }
 
 export function resolveRedistributionTargets(

@@ -206,15 +206,30 @@ export function createRelayServer(opts: RelayOptions = {}): RelayServer {
           broadcast(clients, msg, ws);
           break;
         case "request_sync": {
-          const events = bufferedEvents(msg.namespaceId);
-          const filtered = msg.sinceHash
-            ? events.filter((e) => e.id !== msg.sinceHash)
-            : events;
+          // Deterministic catch-up cursor: order the buffer by (lamport, id) and return
+          // only events strictly AFTER the client's cursor position. If the cursor is
+          // unknown to this relay (never buffered / evicted), fall back to the full
+          // buffer so the client can still re-sync. This replaces the old "exclude the
+          // single matching id" filter, which re-delivered everything on reconnect.
+          const ordered = bufferedEvents(msg.namespaceId).sort((a, b) =>
+            a.lamport !== b.lamport
+              ? a.lamport - b.lamport
+              : a.id < b.id
+                ? -1
+                : a.id > b.id
+                  ? 1
+                  : 0,
+          );
+          let batch = ordered;
+          if (msg.sinceHash) {
+            const idx = ordered.findIndex((e) => e.id === msg.sinceHash);
+            batch = idx >= 0 ? ordered.slice(idx + 1) : ordered;
+          }
           ws.send(
             JSON.stringify({
               type: "sync_batch",
               namespaceId: msg.namespaceId,
-              events: filtered,
+              events: batch,
             } satisfies RelayMessage),
           );
           metrics.messagesOut += 1;

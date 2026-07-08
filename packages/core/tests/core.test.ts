@@ -12,6 +12,10 @@ import {
   applyDecay,
   distributeRedistribution,
   totalPoolPoints,
+  resolveVouchHead,
+  createInitialState,
+  admissionProposalId,
+  type PoolState,
   DEFAULT_PARAMETERS,
   type UnsignedEvent,
   type SignedEvent,
@@ -449,5 +453,122 @@ describe("DAG causal ordering", () => {
     expect(accepted.map((e) => e.id).sort()).toEqual([g.id, child.id].sort());
     expect(rejected).toHaveLength(1);
     expect(rejected[0]!.id).toBe(orphan.id);
+  });
+});
+
+describe("Head auto-recall (vouch mandate)", () => {
+  it("retains a sitting Head that is still an unfrozen member with no challenger", () => {
+    const state: PoolState = {
+      ...createInitialState("recall-keep"),
+      initialized: true,
+      members: ["a", "b"],
+      balances: { a: points("100"), b: points("100") },
+      head: "a",
+      totalSupply: points("200"),
+    };
+    expect(resolveVouchHead(state)).toBe("a");
+  });
+
+  it("drops to null when the sitting Head is no longer a member and no challenger crosses threshold", () => {
+    const state: PoolState = {
+      ...createInitialState("recall-null"),
+      initialized: true,
+      members: ["b"],
+      balances: { b: points("100") },
+      head: "a", // 'a' departed/expelled — stale head must not linger
+      totalSupply: points("100"),
+    };
+    expect(resolveVouchHead(state)).toBeNull();
+  });
+
+  it("installs a challenger that crosses the vouch threshold", () => {
+    const state: PoolState = {
+      ...createInitialState("recall-elect"),
+      initialized: true,
+      members: ["a", "b"],
+      // 'a' holds >51% of stake so its single vouch can cross the threshold.
+      balances: { a: points("200"), b: points("100") },
+      head: "a",
+      vouchSliders: { a: { b: 100 } },
+      totalSupply: points("300"),
+    };
+    expect(resolveVouchHead(state)).toBe("b");
+  });
+});
+
+describe("slider pruning on expulsion", () => {
+  it("removes the expelled soul's slider rows and columns", async () => {
+    const founder = await generateKeyPair();
+    const joiner = await generateKeyPair();
+    const ns = "prune-expel";
+    const events: SignedEvent[] = [];
+    let prev: string | null = null;
+    let lamport = 0;
+    const push = async (
+      author: Awaited<ReturnType<typeof generateKeyPair>>,
+      payload: SignedEvent["payload"],
+    ) => {
+      lamport++;
+      const e = await signEvent(
+        {
+          namespaceId: ns,
+          prevHash: prev,
+          lamport,
+          author: author.publicKeyHex,
+          timestamp: lamport,
+          payload,
+        },
+        author.privateKey,
+      );
+      events.push(e);
+      prev = e.id;
+    };
+
+    await push(founder, {
+      type: "genesis",
+      cellName: "Prune",
+      initialPoints: "10000",
+      parameters: { ...DEFAULT_PARAMETERS },
+    });
+    await push(founder, {
+      type: "invite",
+      invitee: joiner.publicKeyHex,
+      vouchBondAmount: "100",
+      parameters: { ...DEFAULT_PARAMETERS },
+    });
+    await push(founder, {
+      type: "proposal_vote",
+      proposalId: admissionProposalId(joiner.publicKeyHex),
+      approve: true,
+    });
+    await push(joiner, { type: "accept_invite", inviter: founder.publicKeyHex });
+    // Joiner authors slider rows/columns that must be pruned on expulsion.
+    await push(joiner, {
+      type: "slider_update",
+      parameter: "redistribution",
+      target: founder.publicKeyHex,
+      value: 60,
+    });
+    await push(joiner, { type: "vouch_update", target: founder.publicKeyHex, weight: 40 });
+    // Expel the joiner (founder holds the stake to cross threshold).
+    await push(founder, {
+      type: "proposal_create",
+      proposalId: "expel-j",
+      kind: "expel_member",
+      data: { target: joiner.publicKeyHex },
+    });
+    await push(founder, { type: "proposal_vote", proposalId: "expel-j", approve: true });
+
+    const state = reduceEvents(ns, events);
+    expect(state.members).not.toContain(joiner.publicKeyHex);
+    expect(state.redistributionSliders[joiner.publicKeyHex]).toBeUndefined();
+    expect(state.vouchSliders[joiner.publicKeyHex]).toBeUndefined();
+    expect(state.governanceSliders[joiner.publicKeyHex]).toBeUndefined();
+    for (const inner of Object.values(state.redistributionSliders)) {
+      expect(inner[joiner.publicKeyHex]).toBeUndefined();
+    }
+    for (const inner of Object.values(state.vouchSliders)) {
+      expect(inner[joiner.publicKeyHex]).toBeUndefined();
+    }
   });
 });
