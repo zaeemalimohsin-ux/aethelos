@@ -6,7 +6,9 @@
  * Its only memory is a transient, unauthenticated, TTL- and size-bounded delivery
  * buffer of recent signed messages, kept solely so an offline Node can catch up.
  */
+import os from "node:os";
 import { startRelayServer } from "./server.js";
+import { startAndroidTunnel } from "./android-tunnel.js";
 
 const PORT = Number(process.env["PORT"] ?? 8787);
 
@@ -16,6 +18,10 @@ serverPromise.then((server) => {
   console.log(
     `AethelOS Relay listening on port ${server.port} (ws + http health/metrics)`,
   );
+  if (os.platform() === "android") {
+    console.log("Detected Android Capacitor NodeJS environment. Starting local ingress tunnel...");
+    startAndroidTunnel(server.port);
+  }
 });
 
 function shutdown(signal: string): void {

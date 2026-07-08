@@ -10,11 +10,16 @@ import {
   votingWeight,
 } from "../reducer/state.js";
 
+/**
+ * Cell join/leave Superstructure proposals may be initiated by any unfrozen member.
+ * (Philosophy §5: any participant may propose one-off join/leave; Head exclusivity
+ * is limited to summarily closing pending proposals via canCloseProposal.)
+ */
 export function canInitiateSuperstructureProposal(
   state: PoolState,
   author: PublicKeyHex,
 ): boolean {
-  return state.head === author;
+  return isMember(state, author) && !isFrozen(state, author);
 }
 
 export function canCloseProposal(state: PoolState, author: PublicKeyHex): boolean {

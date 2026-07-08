@@ -206,7 +206,7 @@ describe("bridge_transaction", () => {
     expect(r.reason).toBe("bridge_not_approved");
   });
 
-  it("credits inbound bridge from linked parent without debiting bridge float", async () => {
+  it("rejects unpaired inbound bridge from linked parent (no free mint)", async () => {
     const bridge = await generateKeyPair();
     const parentId = "parent-ns";
     const state: PoolState = {
@@ -236,9 +236,60 @@ describe("bridge_transaction", () => {
       bridge.privateKey,
     );
     const r = reduceOneSync(state, evt);
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe("bridge_not_approved");
+    expect(totalPoolPoints(state)).toBe(points("100"));
+  });
+
+  it("credits inbound bridge from linked parent only with local receive proposal", async () => {
+    const bridge = await generateKeyPair();
+    const parentId = "parent-ns";
+    const state: PoolState = {
+      ...createInitialState("child"),
+      initialized: true,
+      members: [bridge.publicKeyHex],
+      balances: { [bridge.publicKeyHex]: points("100") },
+      bridges: [bridge.publicKeyHex],
+      parentSuperstructures: [parentId],
+      totalSupply: points("100"),
+      proposals: {
+        recv1: {
+          id: "recv1",
+          kind: "bridge_transfer",
+          author: bridge.publicKeyHex,
+          data: { target: parentId, to: bridge.publicKeyHex, amount: "75" },
+          votesFor: points("100"),
+          votesAgainst: 0n,
+          voters: {},
+          closed: true,
+          executed: true,
+        },
+      },
+    };
+    const before = totalPoolPoints(state);
+    const evt = await signEvent(
+      {
+        namespaceId: "child",
+        prevHash: null,
+        lamport: 1,
+        author: bridge.publicKeyHex,
+        timestamp: 1,
+        payload: {
+          type: "bridge_transaction",
+          superstructureId: parentId,
+          localProposalId: "recv1",
+          to: bridge.publicKeyHex,
+          amount: "75",
+        },
+      },
+      bridge.privateKey,
+    );
+    const r = reduceOneSync(state, evt);
     expect(r.ok).toBe(true);
     expect(r.state.balances[bridge.publicKeyHex]).toBe(points("175"));
-    expect(totalPoolPoints(r.state)).toBe(points("175"));
+    expect(r.state.totalSupply).toBe(points("175"));
+    expect(totalPoolPoints(r.state)).toBe(before + points("75"));
+    expect(r.state.proposals.recv1?.bridgeCompleted).toBe(true);
   });
 
   it("cross-namespace seam conserves combined pool totals", async () => {
@@ -278,6 +329,19 @@ describe("bridge_transaction", () => {
       bridges: [bridge.publicKeyHex],
       childCells: [childId],
       totalSupply: points("500"),
+      proposals: {
+        recv1: {
+          id: "recv1",
+          kind: "bridge_transfer",
+          author: bridge.publicKeyHex,
+          data: { target: childId, to: bridge.publicKeyHex, amount: "120" },
+          votesFor: points("100"),
+          votesAgainst: 0n,
+          voters: {},
+          closed: true,
+          executed: true,
+        },
+      },
     };
 
     const outbound = await signEvent(
@@ -311,7 +375,7 @@ describe("bridge_transaction", () => {
         payload: {
           type: "bridge_transaction",
           superstructureId: childId,
-          localProposalId: outbound.id,
+          localProposalId: "recv1",
           to: bridge.publicKeyHex,
           amount: "120",
         },

@@ -67,7 +67,7 @@ describe("multi-node convergence", () => {
     const b = await generateKeyPair();
     const c = await generateKeyPair();
     const ns = "sim-converge";
-    const params = { ...DEFAULT_PARAMETERS, epoch_interval: 5 };
+    const params = { ...DEFAULT_PARAMETERS, epoch_interval: 15 };
 
     const events = await buildChain(ns, [
       {
@@ -127,7 +127,7 @@ describe("integer conservation at scale", () => {
     const a = await generateKeyPair();
     const b = await generateKeyPair();
     const ns = "sim-conserve";
-    const params = { ...DEFAULT_PARAMETERS, epoch_interval: 4, decay_rate: 10 };
+    const params = { ...DEFAULT_PARAMETERS, epoch_interval: 15, decay_rate: 10 };
 
     const steps = [
       {
@@ -181,7 +181,7 @@ describe("snapshot reduction equivalence", () => {
     const a = await generateKeyPair();
     const b = await generateKeyPair();
     const ns = "sim-snapshot";
-    const params = { ...DEFAULT_PARAMETERS, epoch_interval: 6 };
+    const params = { ...DEFAULT_PARAMETERS, epoch_interval: 15 };
     const events = await buildChain(ns, [
       {
         author: a,

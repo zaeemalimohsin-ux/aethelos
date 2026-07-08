@@ -185,7 +185,7 @@ describe("community-scale (8 members, deterministic core)", () => {
       const ns = "scale-epoch";
       const params = {
         ...DEFAULT_PARAMETERS,
-        epoch_interval: 5,
+        epoch_interval: 15,
         decay_rate: 10,
         vouch_bond_rate: 1,
       };

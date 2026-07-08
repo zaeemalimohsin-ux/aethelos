@@ -283,3 +283,171 @@ describe("economy integer conservation", () => {
     expect(afterTotal).toBe(before);
   });
 });
+
+describe("DAG causal ordering", () => {
+  it("orders child after parent", async () => {
+    const kp = await generateKeyPair();
+    const g = await signEvent(
+      {
+        namespaceId: "topo-1",
+        prevHash: null,
+        lamport: 2,
+        author: kp.publicKeyHex,
+        timestamp: 1,
+        payload: {
+          type: "genesis",
+          cellName: "Dag",
+          initialPoints: "100",
+          parameters: DEFAULT_PARAMETERS,
+        },
+      },
+      kp.privateKey,
+    );
+    const child = await signEvent(
+      {
+        namespaceId: "topo-1",
+        prevHash: g.id,
+        lamport: 1,
+        author: kp.publicKeyHex,
+        timestamp: 2,
+        payload: { type: "slider_update", parameter: "decay_rate", value: 5 },
+      },
+      kp.privateKey,
+    );
+    const { topologicalSort } = await import("../src/dag/index.js");
+    expect(topologicalSort([child, g]).map((e) => e.id)).toEqual([g.id, child.id]);
+  });
+
+  it("holds orphans aside under partial logs", async () => {
+    const { topologicalSort } = await import("../src/dag/index.js");
+    const kp = await generateKeyPair();
+    const g = await signEvent(
+      {
+        namespaceId: "topo-orphan",
+        prevHash: null,
+        lamport: 1,
+        author: kp.publicKeyHex,
+        timestamp: 1,
+        payload: {
+          type: "genesis",
+          cellName: "Dag",
+          initialPoints: "100",
+          parameters: DEFAULT_PARAMETERS,
+        },
+      },
+      kp.privateKey,
+    );
+    const orphan = await signEvent(
+      {
+        namespaceId: "topo-orphan",
+        prevHash: "ab".repeat(32),
+        lamport: 5,
+        author: kp.publicKeyHex,
+        timestamp: 5,
+        payload: { type: "slider_update", parameter: "decay_rate", value: 6 },
+      },
+      kp.privateKey,
+    );
+    const ordered = topologicalSort([g, orphan]);
+    expect(ordered.map((e) => e.id)).toEqual([g.id]);
+    expect(ordered.some((e) => e.id === orphan.id)).toBe(false);
+  });
+
+  it("partial logs defer until parent merge", async () => {
+    const { topologicalSort } = await import("../src/dag/index.js");
+    const kp = await generateKeyPair();
+    const g = await signEvent(
+      {
+        namespaceId: "topo-partial",
+        prevHash: null,
+        lamport: 1,
+        author: kp.publicKeyHex,
+        timestamp: 1,
+        payload: {
+          type: "genesis",
+          cellName: "Dag",
+          initialPoints: "100",
+          parameters: DEFAULT_PARAMETERS,
+        },
+      },
+      kp.privateKey,
+    );
+    const credit = await signEvent(
+      {
+        namespaceId: "topo-partial",
+        prevHash: g.id,
+        lamport: 2,
+        author: kp.publicKeyHex,
+        timestamp: 2,
+        payload: { type: "slider_update", parameter: "decay_rate", value: 4 },
+      },
+      kp.privateKey,
+    );
+    const spend = await signEvent(
+      {
+        namespaceId: "topo-partial",
+        prevHash: credit.id,
+        lamport: 3,
+        author: kp.publicKeyHex,
+        timestamp: 3,
+        payload: { type: "slider_update", parameter: "decay_rate", value: 3 },
+      },
+      kp.privateKey,
+    );
+    expect(topologicalSort([g, spend]).map((e) => e.id)).toEqual([g.id]);
+    expect(topologicalSort([g, spend, credit]).map((e) => e.id)).toEqual([
+      g.id,
+      credit.id,
+      spend.id,
+    ]);
+  });
+
+  it("filterCausalClosure drops orphans", async () => {
+    const { filterCausalClosure, isCausalClosure } = await import("../src/dag/index.js");
+    const kp = await generateKeyPair();
+    const g = await signEvent(
+      {
+        namespaceId: "closure-2",
+        prevHash: null,
+        lamport: 1,
+        author: kp.publicKeyHex,
+        timestamp: 1,
+        payload: {
+          type: "genesis",
+          cellName: "Dag",
+          initialPoints: "100",
+          parameters: DEFAULT_PARAMETERS,
+        },
+      },
+      kp.privateKey,
+    );
+    const child = await signEvent(
+      {
+        namespaceId: "closure-2",
+        prevHash: g.id,
+        lamport: 2,
+        author: kp.publicKeyHex,
+        timestamp: 2,
+        payload: { type: "slider_update", parameter: "decay_rate", value: 7 },
+      },
+      kp.privateKey,
+    );
+    const orphan = await signEvent(
+      {
+        namespaceId: "closure-2",
+        prevHash: "cc".repeat(32),
+        lamport: 9,
+        author: kp.publicKeyHex,
+        timestamp: 9,
+        payload: { type: "slider_update", parameter: "decay_rate", value: 8 },
+      },
+      kp.privateKey,
+    );
+    expect(isCausalClosure([g, child])).toBe(true);
+    expect(isCausalClosure([g, orphan])).toBe(false);
+    const { accepted, rejected } = filterCausalClosure([g, child, orphan]);
+    expect(accepted.map((e) => e.id).sort()).toEqual([g.id, child.id].sort());
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0]!.id).toBe(orphan.id);
+  });
+});

@@ -55,6 +55,36 @@ describe("time-proportional accrual", () => {
     expect(totalPoolPoints(after)).toBe(points("10000"));
   });
 
+  it("holds commons when no eligible live/vouched souls (P2.4)", () => {
+    const t0 = 1_700_000_000_000;
+    const asOf = t0 + 60 * MS_PER_MINUTE;
+    const s: PoolState = {
+      ...createInitialState("commons-hold"),
+      initialized: true,
+      members: ["alice", "bob"],
+      balances: { alice: points("5000"), bob: points("5000") },
+      commons: points("80"),
+      // No inviters / liens → not vouched; also stale activity → not live.
+      inviters: { alice: "alice", bob: "bob" },
+      vouchLiens: {},
+      parameters: { ...DEFAULT_PARAMETERS, epoch_interval: 60 },
+      lastAccrualTimestamp: asOf,
+      lastRedistributionTimestamp: t0,
+      genesisTimestamp: t0,
+      maxEventTimestamp: asOf,
+      lastActiveTimestamp: { alice: t0, bob: t0 },
+      totalSupply: points("10000"),
+      circulationCarry: 0n,
+    };
+    const before = totalPoolPoints(s);
+    const after = runRedistributionCycle(s, asOf);
+    expect(after.commons).toBe(points("80"));
+    expect(after.balances["alice"]).toBe(points("5000"));
+    expect(after.balances["bob"]).toBe(points("5000"));
+    expect(totalPoolPoints(after)).toBe(before);
+    expect(after.epochNumber).toBe(s.epochNumber + 1);
+  });
+
   it("redistribution flushes commons when interval met", () => {
     const t0 = 1_700_000_000_000;
     const asOf = t0 + 60 * MS_PER_MINUTE;

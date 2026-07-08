@@ -307,7 +307,7 @@ describe("R1 Sybil resistance", () => {
       balances: { alice: points("1000"), puppet: 0n },
       inviters: { puppet: "alice" },
       vouchLiens: { puppet: { inviter: "alice", amount: points("50") } },
-      parameters: { ...DEFAULT_PARAMETERS, epoch_interval: 10 },
+      parameters: { ...DEFAULT_PARAMETERS, epoch_interval: 15 },
       genesisTimestamp: t0,
       lastEpochTimestamp: t0,
       lastAccrualTimestamp: t0,
@@ -336,7 +336,7 @@ describe("R2 decay credits no agent", () => {
       inviters: { bob: "alice" },
       vouchLiens: { bob: { inviter: "alice", amount: 0n } },
       head: "alice",
-      parameters: { ...DEFAULT_PARAMETERS, decay_rate: 10, epoch_interval: 5 },
+      parameters: { ...DEFAULT_PARAMETERS, decay_rate: 10, epoch_interval: 15 },
       redistributionSliders: {
         alice: { alice: 50, bob: 50 },
         bob: { alice: 50, bob: 50 },
@@ -707,5 +707,107 @@ describe("Charter C (P5.2): Dictator Rejection", () => {
     const unfreezeResult = reduceOneSync(baseState, fiatUnfreeze);
     expect(unfreezeResult.ok).toBe(false);
     expect(unfreezeResult.reason).toBe("use_proposal");
+  });
+});
+
+describe("Malicious Payload Exploits", () => {
+  it("rejects NaN and Infinity in governance slider updates", async () => {
+    const head = await generateKeyPair();
+    const ns = "malicious-sliders";
+    const g = await genesis(ns, head, "1000");
+
+    // Attack 1: NaN Slider
+    const attackNan = await signEvent({
+      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 2,
+      payload: { type: "slider_update", parameter: "approval_threshold", value: NaN }
+    }, head.privateKey);
+
+    const resNan = reduceOneSync(reduceEvents(ns, [g]), attackNan);
+    // It should either reject it or sanitize it to a valid number. 
+    // Right now, NaN gets clamped to NaN because Math.max(0, Math.min(100, NaN)) -> NaN
+    // We expect the state after NaN to not have NaN. 
+    // Let's verify our clamp function gets patched to fix this!
+    expect(resNan.state.governanceSliders[head.publicKeyHex]!["approval_threshold"]).not.toBeNaN();
+
+    // Attack 2: Infinity Slider
+    const attackInf = await signEvent({
+      namespaceId: ns, prevHash: g.id, lamport: 3, author: head.publicKeyHex, timestamp: 3,
+      payload: { type: "slider_update", parameter: "approval_threshold", value: Infinity }
+    }, head.privateKey);
+
+    const resInf = reduceOneSync(reduceEvents(ns, [g]), attackInf);
+    // Should be clamped to 100
+    expect(resInf.state.governanceSliders[head.publicKeyHex]!["approval_threshold"]).toBe(100);
+  });
+
+  it("handles negative transaction amounts gracefully", async () => {
+    const head = await generateKeyPair();
+    const pleb = await generateKeyPair();
+    const ns = "negative-amount";
+    const g = await genesis(ns, head, "1000");
+    const invite = await signEvent({
+      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 2,
+      payload: { type: "invite", invitee: pleb.publicKeyHex, vouchBondAmount: "100", parameters: DEFAULT_PARAMETERS }
+    }, head.privateKey);
+    const admitVote = await signEvent({
+      namespaceId: ns, prevHash: invite.id, lamport: 3, author: head.publicKeyHex, timestamp: 3,
+      payload: { type: "proposal_vote", proposalId: admissionProposalId(pleb.publicKeyHex), approve: true }
+    }, head.privateKey);
+    const accept = await signEvent({
+      namespaceId: ns, prevHash: admitVote.id, lamport: 4, author: pleb.publicKeyHex, timestamp: 4,
+      payload: { type: "accept_invite", inviter: head.publicKeyHex }
+    }, pleb.privateKey);
+
+    // Attack 3: Send negative amount (to steal points)
+    const attackNeg = await signEvent({
+      namespaceId: ns, prevHash: accept.id, lamport: 5, author: pleb.publicKeyHex, timestamp: 5,
+      payload: { type: "transaction", to: head.publicKeyHex, amount: "-500" }
+    }, pleb.privateKey);
+
+    const resNeg = reduceOneSync(reduceEvents(ns, [g, invite, admitVote, accept]), attackNeg);
+    expect(resNeg.ok).toBe(false);
+    expect(resNeg.reason).toBe("invalid_amount");
+  });
+  it("rejects signature spoofing and forging", async () => {
+    const head = await generateKeyPair();
+    const hacker = await generateKeyPair();
+    const ns = "signature-spoofing";
+    const g = await genesis(ns, head, "1000");
+
+    // The hacker tries to forge an event acting as the Head!
+    const forge = await signEvent({
+      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 2,
+      payload: { type: "transaction", to: hacker.publicKeyHex, amount: "500" }
+    }, hacker.privateKey); // Signed with hacker's key instead of head's!
+
+    const resForge = reduceOneSync(reduceEvents(ns, [g]), forge);
+    expect(resForge.ok).toBe(false);
+    expect(resForge.reason).toBe("invalid_signature");
+  });
+
+  it("rejects time-travel vector clock poisoning", async () => {
+    const head = await generateKeyPair();
+    const ns = "time-travel";
+    const g = await genesis(ns, head, "1000");
+
+    // 1. Timestamp in the past (before genesis)
+    const attackPast = await signEvent({
+      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 0,
+      payload: { type: "transaction", to: head.publicKeyHex, amount: "0" }
+    }, head.privateKey);
+
+    const resPast = reduceOneSync(reduceEvents(ns, [g]), attackPast);
+    expect(resPast.ok).toBe(false);
+    expect(resPast.reason).toBe("timestamp_before_genesis");
+
+    // 2. Timestamp too far in the future
+    const attackFuture = await signEvent({
+      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 9999999999999,
+      payload: { type: "transaction", to: head.publicKeyHex, amount: "0" }
+    }, head.privateKey);
+
+    const resFuture = reduceOneSync(reduceEvents(ns, [g]), attackFuture);
+    expect(resFuture.ok).toBe(false);
+    expect(resFuture.reason).toBe("timestamp_too_far_future");
   });
 });

@@ -387,6 +387,62 @@ describe("governance fixes", () => {
     expect(s.proposals["join1"]?.executed).toBe(true);
   });
 
+  it("allows non-head member to create join_superstructure proposal", async () => {
+    const alice = await generateKeyPair();
+    const bob = await generateKeyPair();
+    const ns = "join-nonhead";
+    const superId = "parent-ns-nonhead";
+    const g = await genesis(ns, alice, "1000");
+
+    const invite = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: alice.publicKeyHex,
+        timestamp: 2,
+        payload: {
+          type: "invite",
+          invitee: bob.publicKeyHex,
+          vouchBondAmount: "100",
+          parameters: { ...DEFAULT_PARAMETERS },
+        },
+      },
+      alice.privateKey,
+    );
+    const admitVote = await signAdmissionVote(ns, alice, bob.publicKeyHex, invite.id, 3);
+    const accept = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: admitVote.id,
+        lamport: 4,
+        author: bob.publicKeyHex,
+        timestamp: 4,
+        payload: { type: "accept_invite", inviter: alice.publicKeyHex },
+      },
+      bob.privateKey,
+    );
+    const create = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: accept.id,
+        lamport: 5,
+        author: bob.publicKeyHex,
+        timestamp: 5,
+        payload: {
+          type: "proposal_create",
+          proposalId: "join-by-bob",
+          kind: "join_superstructure",
+          data: { target: superId },
+        },
+      },
+      bob.privateKey,
+    );
+    const r = reduceOneSync(reduceEvents(ns, [g, invite, admitVote, accept]), create);
+    expect(r.ok).toBe(true);
+    expect(r.state.proposals["join-by-bob"]?.author).toBe(bob.publicKeyHex);
+  });
+
   it("cancel_invite releases lien without moving points", async () => {
     const alice = await generateKeyPair();
     const bob = await generateKeyPair();
@@ -577,7 +633,7 @@ describe("epoch griefing mitigation", () => {
   it("governance slider events do not count toward epoch boundaries", async () => {
     const alice = await generateKeyPair();
     const ns = "epoch-spam";
-    const params = { ...DEFAULT_PARAMETERS, epoch_interval: 2 };
+    const params = { ...DEFAULT_PARAMETERS, epoch_interval: 15 };
     const g = await signEvent(
       {
         namespaceId: ns,

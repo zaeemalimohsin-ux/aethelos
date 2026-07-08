@@ -124,8 +124,8 @@ export const MS_PER_YEAR = MS_PER_DAY * 365;
 /** Max forward skew allowed beyond the log's highest timestamp (5 minutes). */
 export const TIMESTAMP_FORWARD_SKEW_MS = 5 * 60 * 1000;
 
-/** Minimum redistribution interval (minutes); 0.25 = 15 seconds. */
-export const MIN_EPOCH_INTERVAL_MINUTES = 0.25;
+/** Minimum redistribution interval (minutes); philosophy floor is 15 minutes. */
+export const MIN_EPOCH_INTERVAL_MINUTES = 15;
 
 export function circulationIntervalMinutes(state: PoolState): number {
   const raw = resolveGovernanceParameter(state, "epoch_interval");

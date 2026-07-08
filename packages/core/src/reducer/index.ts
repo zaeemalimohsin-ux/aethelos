@@ -266,6 +266,8 @@ function clampSliderValue(
   param: import("../schema/events.js").GovernanceParameter | "redistribution",
   value: number,
 ): number {
+  if (Number.isNaN(value)) return 0;
+  
   if (param === "decay_rate") {
     const d = Math.round(value * 10) / 10;
     return Math.max(0, Math.min(20, d));
@@ -396,8 +398,8 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
         initialized: true,
         cellName: payload.cellName,
         members: [author],
-        parameters: { ...payload.parameters },
-        governanceSliders: { [author]: { ...payload.parameters } },
+        parameters: { ...DEFAULT_PARAMETERS, ...(payload.parameters || {}) },
+        governanceSliders: { [author]: { ...DEFAULT_PARAMETERS, ...(payload.parameters || {}) } },
         redistributionSliders: { [author]: { [author]: 100 } },
         vouchSliders: { [author]: {} },
       };
@@ -488,7 +490,7 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
             [payload.invitee]: {
               inviter: event.author,
               lienAmount,
-              parameters: payload.parameters,
+              parameters: { ...DEFAULT_PARAMETERS, ...(payload.parameters || {}) },
               admissionApproved: false,
             },
           },
@@ -812,16 +814,12 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
 
       const remoteId = payload.superstructureId;
 
-      // Inbound: mirrored delivery from a linked parent or child namespace.
+      // Inbound delivery to a local member. Linked namespaces still require a local
+      // executed bridge_transfer proposal — unpaired mirror credit must not mint.
       if (isMember(state, payload.to)) {
         const linkedInbound =
           state.parentSuperstructures.includes(remoteId) ||
           (state.childCells ?? []).includes(remoteId);
-        if (linkedInbound) {
-          const newBalances = { ...state.balances };
-          newBalances[payload.to] = getBalance(state, payload.to) + amount;
-          return { ok: true, state: { ...state, balances: newBalances } };
-        }
         if (
           !validateBridgeProposal(
             state,
@@ -832,6 +830,21 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
           )
         ) {
           return { ok: false, reason: "bridge_not_approved", state };
+        }
+        if (linkedInbound) {
+          const newBalances = { ...state.balances };
+          newBalances[payload.to] = getBalance(state, payload.to) + amount;
+          return {
+            ok: true,
+            state: markBridgeProposalCompleted(
+              {
+                ...state,
+                balances: newBalances,
+                totalSupply: state.totalSupply + amount,
+              },
+              payload.localProposalId,
+            ),
+          };
         }
         const { state: newState, fracture } = transferPoints(
           state,
@@ -1056,17 +1069,27 @@ function tryExecuteProposal(state: PoolState, proposalId: string): PoolState {
   if (!proposal || proposal.closed || proposal.executed) return state;
 
   const threshold = resolveGovernanceParameter(state, "approval_threshold");
-  if (proposal.votesFor <= 0n) return state;
 
   let totalStake = 0n;
+  let currentVotesFor = 0n;
+  let currentVotesAgainst = 0n;
+
   for (const member of state.members) {
     if (!state.frozen.includes(member)) {
-      totalStake += votingWeight(state, member);
+      const weight = votingWeight(state, member);
+      totalStake += weight;
+      
+      const vote = proposal.voters?.[member];
+      if (vote) {
+        if (vote.approve) currentVotesFor += weight;
+        else currentVotesAgainst += weight;
+      }
     }
   }
+
   if (totalStake <= 0n) return state;
 
-  const approvalPercent = Number((proposal.votesFor * 100n) / totalStake);
+  const approvalPercent = Number((currentVotesFor * 100n) / totalStake);
   if (approvalPercent < threshold) return state;
 
   let s = state;
