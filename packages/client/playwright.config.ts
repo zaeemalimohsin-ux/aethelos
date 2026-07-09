@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const dockerStack = process.env.AETHELOS_DOCKER === "1";
+const shareUrlProof = Boolean(process.env.AETHELOS_SHARE_URL?.trim());
 const shareUrlSpecs = /(?:founder|joiner)-share-url\.spec\.ts$/;
 const dockerFounderSpec = /founder-mobile\.spec\.ts$/;
 
@@ -35,7 +36,7 @@ export default defineConfig({
       use: { ...devices["Pixel 5"] },
     },
   ],
-  webServer: dockerStack
+  webServer: dockerStack || shareUrlProof
     ? undefined
     : {
         command: 'npx concurrently "vite" "pnpm --filter @aethelos/relay dev"',
