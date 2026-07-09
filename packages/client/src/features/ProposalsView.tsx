@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { PoolState, ProposalKind } from "@aethelos/core";
-import {
-  resolveGovernanceParameter,
-  votingWeight,
-  admissionProposalId,
-} from "@aethelos/core";
+import { resolveGovernanceParameter, admissionProposalId } from "@aethelos/core";
+import { stakeWeightedApprovalPercent } from "../app/proposal-ui.js";
 import { useStore } from "../app/store.js";
 import {
   ADVANCED_PROPOSAL_KINDS,
@@ -20,16 +17,11 @@ import { Disclosure } from "../design/components/Disclosure.js";
 import { HelpTip } from "../design/components/HelpTip.js";
 import { shortKey } from "../app/format.js";
 
-const MEMBER_KINDS = new Set<ProposalKind>([
-  "admit_member",
-  "resolve_fracture",
-  "expel_member",
-]);
+const MEMBER_KINDS = new Set<ProposalKind>(["resolve_fracture", "expel_member"]);
 
 function defaultProposalKind(pool: PoolState): ProposalKind {
   if (pool.fractures.length > 0) return "resolve_fracture";
-  if (Object.keys(pool.pendingInvites).length > 0) return "admit_member";
-  return "admit_member";
+  return "expel_member";
 }
 
 export function ProposalsView({ pool }: { pool: PoolState }) {
@@ -45,11 +37,9 @@ export function ProposalsView({ pool }: { pool: PoolState }) {
   if (!isMember) {
     const proposalId = myKey ? admissionProposalId(myKey) : "";
     const admitProposal = proposalId ? pool.proposals[proposalId] : undefined;
-    const totalStake = pool.members.reduce((sum, m) => sum + votingWeight(pool, m), 0n);
-    const approvalPct =
-      admitProposal && totalStake > 0n
-        ? Number((admitProposal.votesFor * 100n) / totalStake)
-        : 0;
+    const approvalPct = admitProposal
+      ? stakeWeightedApprovalPercent(pool, admitProposal)
+      : 0;
 
     return (
       <Card eyebrow="Decisions">
@@ -194,9 +184,7 @@ function ProposalRow({
   const clearProposalHighlight = useStore((s) => s.clearProposalHighlight);
   const rowRef = useRef<HTMLDivElement>(null);
   const highlighted = highlightId === proposal.id;
-  const totalStake = pool.members.reduce((sum, m) => sum + votingWeight(pool, m), 0n);
-  const approvalPct =
-    totalStake > 0n ? Number((proposal.votesFor * 100n) / totalStake) : 0;
+  const approvalPct = stakeWeightedApprovalPercent(pool, proposal);
   const threshold = resolveGovernanceParameter(pool, "approval_threshold");
   const isHead = pool.head === myKey;
 

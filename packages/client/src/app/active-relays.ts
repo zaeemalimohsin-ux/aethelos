@@ -19,7 +19,7 @@ export function relayUrlsForInvite(relayUrls: string[], namespaceId: string): st
   if (remote.length > 0) return remote;
   const sameOrigin = sameOriginRelayUrl();
   if (sameOrigin && isPublishableRelayUrl(sameOrigin)) return [sameOrigin];
-  return selectRelaysForCommunity(namespaceId);
+  return selectRelaysForCommunity(namespaceId).filter((u) => isPublishableRelayUrl(u));
 }
 
 /** Merge session relays with ledger community mailboxes; bootstrap when both are empty. */
@@ -80,9 +80,9 @@ export function tunnelStatusMessage(status: TunnelStatus): string {
     case "ready":
       return "Public reach is ready — invite links work on phone and desktop.";
     case "local_only":
-      return "Reachable on this network only. See Advanced → Network for a public address.";
+      return "Reachable on this network only. Open the Connection tab for a public address.";
     case "failed":
-      return "Could not open public reach yet. Try again under Advanced → Network.";
+      return "Could not open public reach yet. Try again on the Connection tab.";
     default:
       return "Not hosting from this device.";
   }

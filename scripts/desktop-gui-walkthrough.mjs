@@ -189,7 +189,7 @@ async function ensurePublicMailbox(page) {
 }
 
 function admissionProposalId(pubkey) {
-  return `admit_member:${pubkey.trim()}`;
+  return `admit:${pubkey.trim()}`;
 }
 
 async function approveAdmissionInUi(page, inviteePubkey) {

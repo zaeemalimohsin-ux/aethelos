@@ -29,6 +29,7 @@ import { Slider } from "../design/components/Slider.js";
 import { MemberSelect } from "../design/components/MemberSelect.js";
 import { useCirculationCountdown } from "../app/useCirculationCountdown.js";
 import { connectionStatusMessage } from "../app/active-relays.js";
+import { stakeWeightedApprovalPercent } from "../app/proposal-ui.js";
 
 export function CellView({ pool }: { pool: PoolState }) {
   const controller = useStore((s) => s.controller)!;
@@ -58,6 +59,11 @@ export function CellView({ pool }: { pool: PoolState }) {
           Others won't see them yet.
         </div>
       ) : null}
+      {isHead && pool.members.length === 1 && !waitingToJoin ? (
+        <div className="alert info">
+          You're the first member — invite people below to grow your community.
+        </div>
+      ) : null}
       {waitingToJoin ? (
         <JoinProgressCard pool={pool} myKey={myKey} hasPendingInvite={hasPendingInvite} />
       ) : null}
@@ -72,10 +78,10 @@ export function CellView({ pool }: { pool: PoolState }) {
       <div className="grid">
         <Card eyebrow="Your stake">
           <div className="stat-value">{myPercent.toFixed(1)}%</div>
-          <div className="stat-label">{formatPts(myBalance)} Value</div>
+          <div className="stat-label">{formatPts(myBalance)} Points</div>
           {pledged > 0n && (
             <div className="hint" style={{ marginTop: "var(--sp-2)" }}>
-              {formatPts(pledged)} Value pledged behind others (lien on your Share)
+              {formatPts(pledged)} Points pledged behind others (lien on your stake)
             </div>
           )}
           <div className="row" style={{ marginTop: "var(--sp-2)" }}>
@@ -168,15 +174,21 @@ function JoinProgressCard({
   const pendingInvite = pool.pendingInvites[myKey];
   const proposalId = admissionProposalId(myKey);
   const proposal = pool.proposals[proposalId];
-  const totalStake = pool.members.reduce((sum, m) => sum + votingWeight(pool, m), 0n);
-  const approvalPct =
-    proposal && totalStake > 0n ? Number((proposal.votesFor * 100n) / totalStake) : 0;
+  const approvalPct = proposal ? stakeWeightedApprovalPercent(pool, proposal) : 0;
 
   let step = 1;
-  let label = "Connected — share your join code with your inviter";
+  let label = "Connected — send your join code to your inviter";
   if (hasPendingInvite && pendingInvite && !proposal) {
     step = 2;
     label = "Inviter vouched for you — admission vote syncing";
+  } else if (
+    pendingInvite &&
+    proposal &&
+    proposal.executed &&
+    !pendingInvite.admissionApproved
+  ) {
+    step = 3;
+    label = "Vote passed — syncing admission";
   } else if (
     pendingInvite &&
     proposal &&
@@ -236,7 +248,7 @@ function JoinCodeActions({ joinCode }: { joinCode: string }) {
           await copyCode();
         }}
       >
-        Share code with inviter
+        Send code to inviter
       </Button>
       <Button variant="secondary" block onClick={() => void copyCode()}>
         Copy code
@@ -293,9 +305,9 @@ function TransferCard({
   const [amount, setAmount] = useState("");
   const [memo, setMemo] = useState("");
   return (
-    <Card eyebrow="Send Value">
+    <Card eyebrow="Send Points">
       <p className="hint" style={{ marginBottom: "var(--sp-4)" }}>
-        Move Value to another member. Everyone sees the same result.{" "}
+        Move Points to another member. Everyone sees the same result.{" "}
         <HelpTip text={CONCEPT.points} />
       </p>
       <MemberSelect
@@ -306,7 +318,7 @@ function TransferCard({
         onChange={setTo}
       />
       <Field
-        label="Amount (Value)"
+        label="Amount (Points)"
         type="number"
         inputMode="decimal"
         hint="Up to 9 decimal places"
@@ -349,7 +361,7 @@ function ActiveVouchLiensCard({ pool, myKey }: { pool: PoolState; myKey: string 
                 ? `${displayName || "You"} (You)`
                 : shortKey(invitee, 12)}
             </span>
-            <span>{formatPts(lien.amount)} Value pledged (forfeitable if expelled)</span>
+            <span>{formatPts(lien.amount)} Points pledged (forfeitable if expelled)</span>
           </li>
         ))}
       </ul>
@@ -364,7 +376,6 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
   const pending = Object.entries(pool.pendingInvites).filter(
     ([, inv]) => inv.inviter === myKey,
   );
-  const totalStake = pool.members.reduce((sum, m) => sum + votingWeight(pool, m), 0n);
   const threshold = pool.parameters.approval_threshold;
   if (pending.length === 0) return null;
   return (
@@ -373,10 +384,7 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
         {pending.map(([invitee, inv]) => {
           const proposalId = admissionProposalId(invitee);
           const proposal = pool.proposals[proposalId];
-          const approvalPct =
-            proposal && totalStake > 0n
-              ? Number((proposal.votesFor * 100n) / totalStake)
-              : 0;
+          const approvalPct = proposal ? stakeWeightedApprovalPercent(pool, proposal) : 0;
           const status = inv.admissionApproved
             ? "Approved — waiting for them to accept"
             : proposal?.executed
@@ -389,7 +397,7 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
                   ? `${displayName || "You"} (You)`
                   : shortKey(invitee, 12)}
               </span>
-              <span>{formatPts(inv.lienAmount)} Value pledged (lien)</span>
+              <span>{formatPts(inv.lienAmount)} Points pledged (lien)</span>
               <span className="muted">{status}</span>
               {!inv.admissionApproved && !proposal?.executed ? (
                 <button
@@ -444,9 +452,14 @@ function InviteCard({
     if (!showLink) return;
     setInviteLink("");
     setInviteSignError(false);
+    const relays = controller.getInviteRelayUrls();
+    if (relays.length === 0) {
+      setInviteSignError(true);
+      return;
+    }
     let cancelled = false;
     void controller
-      .buildSignedInvitePayload(pool.cellName, controller.getInviteRelayUrls())
+      .buildSignedInvitePayload(pool.cellName, relays)
       .then((payload) => {
         if (!cancelled) {
           setInviteLink(buildInviteLink(payload, shareUrl ?? undefined));
@@ -505,10 +518,10 @@ function InviteCard({
         className="mono"
       />
       <p className="hint">
-        This vouch pledges <strong>{lienPercent.toFixed(1)}%</strong> of your Share (
-        {formatPts(lienAmount)} Value) as a forfeitable lien. Value stays in your wallet;
-        you just can't spend or transfer it while the invite is pending.{" "}
-        {formatPts(pledgeCapacity)} Value still available to pledge.
+        This vouch pledges <strong>{lienPercent.toFixed(1)}%</strong> of your stake (
+        {formatPts(lienAmount)} Points) as a forfeitable lien. Points stay in your wallet;
+        you just can't spend or transfer them while the invite is pending.{" "}
+        {formatPts(pledgeCapacity)} Points still available to pledge.
       </p>
       <Slider
         label="Invitee default annual circulation (%)"
@@ -548,13 +561,14 @@ function InviteCard({
         <Modal title="Invite people" onClose={() => setShowLink(false)}>
           {inviteSignError ? (
             <p className="error-text" style={{ marginBottom: "var(--sp-3)" }}>
-              Could not prepare invite link. Check your connection and try again.
+              Could not prepare invite link. Open the Connection tab and make sure you
+              have a reachable connection point, then try again.
             </p>
           ) : inviteLink ? (
             <>
               <p className="muted" style={{ marginBottom: "var(--sp-3)" }}>
                 {displayName ? `${displayName} invites you to ` : "Join "}
-                <strong>{pool.cellName}</strong>. Share this link or QR:
+                <strong>{pool.cellName}</strong>. Send this link or QR:
               </p>
               <div className="center" style={{ marginBottom: "var(--sp-3)" }}>
                 <QRCode value={inviteLink} />
@@ -815,7 +829,7 @@ function BridgeEscrowCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
               <span className="mono">
                 {id === myKey ? `${displayName || "You"} (You)` : shortKey(id, 12)}
               </span>
-              <span>{formatPts(pts)} Value held for bridge delivery</span>
+              <span>{formatPts(pts)} Points held for bridge delivery</span>
             </li>
           ))}
         </ul>
@@ -841,7 +855,7 @@ function BridgeEscrowCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
               className="mono"
             />
             <Field
-              label="Bridge amount (Value)"
+              label="Bridge amount (Points)"
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}

@@ -9,7 +9,11 @@ import { isValidRelayUrl, defaultRelay } from "../app/session.js";
 import { isDesktopApp } from "../app/local-node.js";
 import { shortKey } from "../app/format.js";
 import { Disclosure } from "../design/components/Disclosure.js";
-import { parseInviteInput, type InvitePayload } from "../app/invite.js";
+import {
+  parseInviteInput,
+  clearInviteFromUrl,
+  type InvitePayload,
+} from "../app/invite.js";
 import { PwaInstallHint } from "../components/PwaInstallHint.js";
 import { trackEvent } from "../app/analytics.js";
 
@@ -145,6 +149,7 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
           hasIdentity={hasIdentity}
           onNeedIdentity={() => setStep("create")}
           onBack={() => {
+            clearInviteFromUrl();
             setInvite(null);
             setStep(hasIdentity ? "choose" : "welcome");
           }}
@@ -739,12 +744,25 @@ function ImportEventLog({ onBack }: { onBack: () => void }) {
     const result = await recover(text);
     setBusy(false);
     if (!result.ok) {
-      toast("Could not import that file — check the export and try again", "error");
+      const messages: Record<string, string> = {
+        invalid_json: "That file isn't valid JSON.",
+        no_valid_entries: "No community events found in that file.",
+        causal_orphan_log:
+          "That backup is missing required history — try a newer export.",
+        no_identity: "Restore your identity first.",
+      };
+      toast(
+        messages[result.error ?? ""] ?? "Could not import that backup file.",
+        "error",
+      );
       return;
     }
     setImported(true);
+    const skipped = result.skipped ?? 0;
     toast(
-      `Imported ${result.imported} events — enter your passphrase to open`,
+      skipped > 0
+        ? `Imported ${result.imported} events (${skipped} skipped) — enter your passphrase to open`
+        : `Imported ${result.imported} events — enter your passphrase to open`,
       "success",
     );
   };
@@ -794,7 +812,6 @@ function ImportEventLog({ onBack }: { onBack: () => void }) {
 function UnlockScreen() {
   const session = useStore((s) => s.session);
   const unlock = useStore((s) => s.unlock);
-  const lock = useStore((s) => s.lock);
   const [pw, setPw] = useState("");
   const [busy, setBusy] = useState(false);
   if (!session) return null;
@@ -827,8 +844,7 @@ function UnlockScreen() {
           style={{ marginTop: "var(--sp-3)" }}
           onClick={() => {
             clearSession();
-            useStore.setState({ session: null, phase: "onboarding" });
-            lock();
+            useStore.setState({ session: null, phase: "onboarding", myKey: "" });
           }}
         >
           Use a different identity

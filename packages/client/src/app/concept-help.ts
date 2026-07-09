@@ -57,11 +57,7 @@ export const PROPOSAL_LABELS: Record<ProposalKind, string> = {
 };
 
 /** Proposal kinds shown in the simple picker. */
-export const COMMON_PROPOSAL_KINDS: ProposalKind[] = [
-  "admit_member",
-  "expel_member",
-  "resolve_fracture",
-];
+export const COMMON_PROPOSAL_KINDS: ProposalKind[] = ["expel_member", "resolve_fracture"];
 
 export const ADVANCED_PROPOSAL_KINDS: ProposalKind[] = [
   "join_superstructure",

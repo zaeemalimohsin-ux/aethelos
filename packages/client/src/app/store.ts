@@ -145,6 +145,7 @@ interface AppStore {
     ok: boolean;
     namespaceId?: string;
     imported: number;
+    skipped?: number;
     error?: string;
   }>;
 }
@@ -178,8 +179,21 @@ function resolveInviteRelays(invite: InvitePayload): string[] {
   }
   const sameOrigin = sameOriginRelayUrl();
   if (sameOrigin && isPublishableRelayUrl(sameOrigin)) {
-    relays = relays.filter((u) => isPublishableRelayUrl(u));
-    if (!relays.includes(sameOrigin)) relays.unshift(sameOrigin);
+    const pageHost = typeof window !== "undefined" ? window.location.host : "";
+    const inviteUsesThisHost =
+      relays.length === 0 ||
+      relays.some((u) => {
+        try {
+          const normalized = u.replace(/^ws:/, "http:").replace(/^wss:/, "https:");
+          return new URL(normalized).host === pageHost;
+        } catch {
+          return false;
+        }
+      });
+    if (inviteUsesThisHost) {
+      relays = relays.filter((u) => isPublishableRelayUrl(u));
+      if (!relays.includes(sameOrigin)) relays.unshift(sameOrigin);
+    }
   }
   return relays.length > 0 ? relays : selectRelaysForCommunity(invite.ns);
 }
@@ -212,7 +226,7 @@ export const useStore = create<AppStore>((set, get) => ({
       const status = await localNodeStatus();
       get().toast(
         desktopStartupErrorMessage(status) ??
-          "Can't connect from this computer. See Identity → Advanced → Network.",
+          "Can't connect from this computer. Open the Connection tab for details.",
         "error",
       );
       set({ tunnelStatus: "failed" });
@@ -331,12 +345,23 @@ export const useStore = create<AppStore>((set, get) => ({
     }
     keyPair = kp;
     const session = get().session;
-    set({ myKey: kp.publicKeyHex });
+    const pendingInvite = get().pendingInvite;
+    const identityName = get().identities.find(
+      (i) => i.publicKeyHex === publicKeyHex,
+    )?.displayName;
+    const displayName = session?.displayName ?? get().displayName ?? identityName ?? "";
+    set({ myKey: kp.publicKeyHex, displayName });
+
+    if (pendingInvite && (!session || pendingInvite.ns !== session.namespaceId)) {
+      set({ phase: "onboarding" });
+      return true;
+    }
+
     if (session && session.publicKeyHex === publicKeyHex) {
       await startNode(set, get, session.namespaceId, session.relayUrls);
-    } else {
-      set({ phase: "onboarding" });
+      return true;
     }
+    set({ phase: "onboarding" });
     return true;
   },
 
@@ -690,19 +715,19 @@ export const useStore = create<AppStore>((set, get) => ({
   },
 
   async recoverCommunityFromEventLog(json) {
+    const state = get();
+    if (!state.myKey) {
+      return { ok: false, imported: 0, error: "no_identity" };
+    }
     try {
       const parsed = JSON.parse(json) as Array<{ namespaceId?: string }>;
-      if (!parsed.length || !parsed[0]?.namespaceId) {
+      if (!Array.isArray(parsed) || !parsed.length || !parsed[0]?.namespaceId) {
         return { ok: false, imported: 0, error: "no_valid_entries" };
       }
       const ns = parsed[0].namespaceId;
       const { importEventLog } = await import("../storage/event-log.js");
       const result = await importEventLog(json, ns);
       const relayUrls = selectRelaysForCommunity(ns);
-      const state = get();
-      if (!state.myKey) {
-        return { ok: false, imported: result.imported, error: "no_identity" };
-      }
       saveSession({
         publicKeyHex: state.myKey,
         displayName: state.displayName,
@@ -717,8 +742,27 @@ export const useStore = create<AppStore>((set, get) => ({
           relayUrls,
         },
       });
-      return { ok: true, namespaceId: ns, imported: result.imported };
-    } catch {
+      return {
+        ok: true,
+        namespaceId: ns,
+        imported: result.imported,
+        skipped: result.skipped,
+      };
+    } catch (err) {
+      const code = err instanceof Error ? err.message : "invalid_json";
+      if (
+        code === "invalid_json" ||
+        code === "invalid_log_format" ||
+        code === "empty_log" ||
+        code === "no_valid_entries" ||
+        code === "causal_orphan_log"
+      ) {
+        return {
+          ok: false,
+          imported: 0,
+          error: code === "invalid_log_format" ? "invalid_json" : code,
+        };
+      }
       return { ok: false, imported: 0, error: "invalid_json" };
     }
   },

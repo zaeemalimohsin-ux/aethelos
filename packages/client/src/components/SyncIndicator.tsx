@@ -5,7 +5,11 @@ export function SyncIndicator() {
   const setView = useStore((s) => s.setView);
   const status = sync?.overall ?? "offline";
   const label =
-    status === "online" ? "Connected" : status === "connecting" ? "Syncing…" : "Offline";
+    status === "online"
+      ? "Connected"
+      : status === "connecting"
+        ? "Connecting…"
+        : "Offline";
   return (
     <button
       type="button"
