@@ -9,11 +9,7 @@ import { isValidRelayUrl, defaultRelay } from "../app/session.js";
 import { isDesktopApp } from "../app/local-node.js";
 import { shortKey } from "../app/format.js";
 import { Disclosure } from "../design/components/Disclosure.js";
-import {
-  parseInviteInput,
-  clearInviteFromUrl,
-  type InvitePayload,
-} from "../app/invite.js";
+import { parseInviteInput, type InvitePayload } from "../app/invite.js";
 import { PwaInstallHint } from "../components/PwaInstallHint.js";
 import { trackEvent } from "../app/analytics.js";
 
@@ -36,10 +32,16 @@ export function Onboarding() {
   const newMnemonic = useStore((s) => s.newMnemonic);
   const pendingInvite = useStore((s) => s.pendingInvite);
   const myKey = useStore((s) => s.myKey);
+  const identities = useStore((s) => s.identities);
+  const hasStoredIdentity = identities.length > 0;
 
   if (newMnemonic) return <BackupScreen mnemonic={newMnemonic} />;
   if (phase === "locked") return <UnlockScreen />;
-  const initialStep: Step = pendingInvite ? "join" : myKey ? "choose" : "welcome";
+  const initialStep: Step = pendingInvite
+    ? "join"
+    : myKey.length > 0 || hasStoredIdentity
+      ? "choose"
+      : "welcome";
   return <OnboardingWizard initialStep={initialStep} />;
 }
 
@@ -77,8 +79,11 @@ function BackButton({
 function OnboardingWizard({ initialStep }: { initialStep: Step }) {
   const [step, setStep] = useState<Step>(initialStep);
   const myKey = useStore((s) => s.myKey);
+  const identities = useStore((s) => s.identities);
   const pendingInvite = useStore((s) => s.pendingInvite);
-  const hasIdentity = myKey.length > 0;
+  const setPendingInvite = useStore((s) => s.setPendingInvite);
+  const identityReady = myKey.length > 0;
+  const hasStoredIdentity = identities.length > 0;
 
   useEffect(() => {
     trackEvent("onboarding_step", { step });
@@ -97,16 +102,13 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
       return;
     }
     if (pendingInvite) setStep("join");
-    else if (hasIdentity && step === "welcome") setStep("choose");
-  }, [pendingInvite, hasIdentity, step]);
-
-  const setInvite = (invite: InvitePayload | null) => {
-    useStore.setState({ pendingInvite: invite });
-  };
+    else if ((identityReady || hasStoredIdentity) && step === "welcome")
+      setStep("choose");
+  }, [pendingInvite, identityReady, hasStoredIdentity, step]);
 
   const goToJoinAfterPaste = (invite: InvitePayload) => {
-    setInvite(invite);
-    setStep(hasIdentity ? "join" : "create");
+    setPendingInvite(invite);
+    setStep(identityReady || hasStoredIdentity ? "join" : "create");
   };
 
   return (
@@ -140,18 +142,20 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
       {step === "start" && <StartCommunity onBack={() => setStep("choose")} />}
       {step === "joinPaste" && (
         <PasteInviteLink
-          onBack={() => setStep(hasIdentity ? "choose" : "welcome")}
+          onBack={() =>
+            setStep(identityReady || hasStoredIdentity ? "choose" : "welcome")
+          }
           onParsed={goToJoinAfterPaste}
         />
       )}
       {step === "join" && (
         <JoinCommunity
-          hasIdentity={hasIdentity}
+          identityReady={identityReady}
+          hasStoredIdentity={hasStoredIdentity}
           onNeedIdentity={() => setStep("create")}
           onBack={() => {
-            clearInviteFromUrl();
-            setInvite(null);
-            setStep(hasIdentity ? "choose" : "welcome");
+            setPendingInvite(null);
+            setStep(identityReady || hasStoredIdentity ? "choose" : "welcome");
           }}
           onChangeLink={() => setStep("joinPaste")}
         />
@@ -588,26 +592,26 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
 }
 
 function JoinCommunity({
-  hasIdentity,
+  identityReady,
+  hasStoredIdentity,
   onNeedIdentity,
   onBack,
   onChangeLink,
 }: {
-  hasIdentity: boolean;
+  identityReady: boolean;
+  hasStoredIdentity: boolean;
   onNeedIdentity: () => void;
   onBack: () => void;
   onChangeLink: () => void;
 }) {
   const invite = useStore((s) => s.pendingInvite);
   const join = useStore((s) => s.joinCommunity);
+  const setPendingInvite = useStore((s) => s.setPendingInvite);
   const [busy, setBusy] = useState(false);
 
   if (!invite) {
     return (
-      <PasteInviteLink
-        onBack={onBack}
-        onParsed={(parsed) => useStore.setState({ pendingInvite: parsed })}
-      />
+      <PasteInviteLink onBack={onBack} onParsed={(parsed) => setPendingInvite(parsed)} />
     );
   }
 
@@ -615,8 +619,8 @@ function JoinCommunity({
     <Card title="You've been invited">
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
         You'll connect to <strong>{invite.cell || "this community"}</strong>. You are not
-        a member yet — after connecting, share your join code so your inviter can vouch
-        for you.
+        a member yet — after connecting, send your join code so your inviter can vouch for
+        you.
       </p>
       <ul className="list">
         <li>
@@ -628,7 +632,7 @@ function JoinCommunity({
           <span className="mono">{shortKey(invite.inviter)}</span>
         </li>
       </ul>
-      <Disclosure summary="Advanced details">
+      <Disclosure summary="Connection details">
         <ul className="list">
           <li>
             <span className="muted">Connection points</span>
@@ -636,7 +640,7 @@ function JoinCommunity({
           </li>
         </ul>
       </Disclosure>
-      {hasIdentity ? (
+      {identityReady ? (
         <>
           <Button
             block
@@ -660,6 +664,19 @@ function JoinCommunity({
             Use a different invite link
           </Button>
         </>
+      ) : hasStoredIdentity ? (
+        <div style={{ marginTop: "var(--sp-4)" }}>
+          <JoinIdentityUnlock />
+          <BackButton onClick={onBack} />
+          <Button
+            variant="ghost"
+            block
+            style={{ marginTop: "var(--sp-1)" }}
+            onClick={onChangeLink}
+          >
+            Use a different invite link
+          </Button>
+        </div>
       ) : (
         <div style={{ marginTop: "var(--sp-4)" }}>
           <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
@@ -672,6 +689,67 @@ function JoinCommunity({
         </div>
       )}
     </Card>
+  );
+}
+
+function JoinIdentityUnlock() {
+  const identities = useStore((s) => s.identities);
+  const unlock = useStore((s) => s.unlock);
+  const [selected, setSelected] = useState(identities[0]?.publicKeyHex ?? "");
+  const [pw, setPw] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!identities.some((i) => i.publicKeyHex === selected)) {
+      setSelected(identities[0]?.publicKeyHex ?? "");
+    }
+  }, [identities, selected]);
+
+  return (
+    <>
+      <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+        Unlock your identity to join.
+      </p>
+      {identities.length > 1 ? (
+        <div className="field">
+          <label htmlFor="join-unlock-identity">Which identity?</label>
+          <select
+            id="join-unlock-identity"
+            className="select"
+            value={selected}
+            onChange={(e) => setSelected(e.target.value)}
+          >
+            {identities.map((identity) => (
+              <option key={identity.publicKeyHex} value={identity.publicKeyHex}>
+                {identity.displayName || shortKey(identity.publicKeyHex)}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
+      <Field
+        label="Passphrase"
+        type="password"
+        value={pw}
+        autoFocus
+        onChange={(e) => setPw(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && pw && selected) void unlock(selected, pw);
+        }}
+      />
+      <Button
+        block
+        disabled={!pw || !selected || busy}
+        style={{ marginTop: "var(--sp-3)" }}
+        onClick={async () => {
+          setBusy(true);
+          await unlock(selected, pw);
+          setBusy(false);
+        }}
+      >
+        {busy ? "Unlocking…" : "Unlock identity"}
+      </Button>
+    </>
   );
 }
 
@@ -813,13 +891,23 @@ function ImportEventLog({ onBack }: { onBack: () => void }) {
 
 function UnlockScreen() {
   const session = useStore((s) => s.session);
+  const pendingInvite = useStore((s) => s.pendingInvite);
+  const setPendingInvite = useStore((s) => s.setPendingInvite);
   const unlock = useStore((s) => s.unlock);
   const [pw, setPw] = useState("");
   const [busy, setBusy] = useState(false);
   if (!session) return null;
+  const queuedJoin = pendingInvite && pendingInvite.ns !== session.namespaceId;
   return (
     <Shell>
       <Card title={`Welcome back, ${session.displayName || "friend"}`}>
+        {queuedJoin ? (
+          <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+            You have an invite to{" "}
+            <strong>{pendingInvite.cell || "another community"}</strong>. After unlocking,
+            you'll join that community — not your saved one.
+          </p>
+        ) : null}
         <Field
           label="Passphrase"
           type="password"
@@ -846,12 +934,11 @@ function UnlockScreen() {
           style={{ marginTop: "var(--sp-3)" }}
           onClick={() => {
             clearSession();
-            clearInviteFromUrl();
+            setPendingInvite(null);
             useStore.setState({
               session: null,
               phase: "onboarding",
               myKey: "",
-              pendingInvite: null,
             });
           }}
         >

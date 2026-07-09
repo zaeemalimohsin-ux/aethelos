@@ -146,3 +146,54 @@ describe("invite link base URL", () => {
     expect(link.startsWith("https://abc.trycloudflare.com#/join?d=")).toBe(true);
   });
 });
+
+describe("invite URL sync", () => {
+  const replaceState = vi.fn();
+
+  beforeEach(() => {
+    replaceState.mockClear();
+    vi.stubGlobal("history", { replaceState });
+    vi.stubGlobal("window", {
+      location: {
+        pathname: "/app",
+        search: "?x=1",
+        hash: "",
+      },
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("syncInviteToUrl writes encoded hash", async () => {
+    const { syncInviteToUrl, encodeInvite } = await import("../src/app/invite.js");
+    const kp = await generateKeyPair();
+    const payload = {
+      v: 1 as const,
+      ns: "ns-sync",
+      inviter: kp.publicKeyHex,
+      cell: "Sync Cell",
+      relays: ["wss://example.com/ws"],
+    };
+    syncInviteToUrl(payload);
+    expect(replaceState).toHaveBeenCalledWith(
+      null,
+      "",
+      `/app?x=1#/join?d=${encodeInvite(payload)}`,
+    );
+  });
+
+  it("clearInviteFromUrl strips join hash", async () => {
+    const { clearInviteFromUrl } = await import("../src/app/invite.js");
+    vi.stubGlobal("window", {
+      location: {
+        pathname: "/app",
+        search: "",
+        hash: "#/join?d=abc",
+      },
+    });
+    clearInviteFromUrl();
+    expect(replaceState).toHaveBeenCalledWith(null, "", "/app");
+  });
+});

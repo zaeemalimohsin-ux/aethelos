@@ -36,6 +36,7 @@ import {
 import {
   parseInviteFromUrl,
   clearInviteFromUrl,
+  syncInviteToUrl,
   verifyInviteSignature,
   type InvitePayload,
 } from "./invite.js";
@@ -104,6 +105,8 @@ interface AppStore {
   highlightAdmissionVote(inviteePubkey: string): void;
   toast(message: string, kind?: Toast["kind"]): void;
   dismissToast(id: string): void;
+
+  setPendingInvite(invite: InvitePayload | null): void;
 
   createIdentity(displayName: string, password: string): Promise<boolean>;
   confirmBackup(): Promise<void>;
@@ -297,6 +300,12 @@ export const useStore = create<AppStore>((set, get) => ({
 
   dismissToast(id) {
     set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
+  },
+
+  setPendingInvite(invite) {
+    if (invite) syncInviteToUrl(invite);
+    else clearInviteFromUrl();
+    set({ pendingInvite: invite });
   },
 
   async createIdentity(displayName, password) {

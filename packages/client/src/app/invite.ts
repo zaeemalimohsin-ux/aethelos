@@ -172,3 +172,9 @@ export function clearInviteFromUrl(): void {
     history.replaceState(null, "", window.location.pathname + window.location.search);
   }
 }
+
+/** Persist invite in the address bar so refresh and init() stay in sync with store state. */
+export function syncInviteToUrl(invite: InvitePayload): void {
+  const path = `${window.location.pathname}${window.location.search}${HASH_PREFIX}${encodeInvite(invite)}`;
+  history.replaceState(null, "", path);
+}
