@@ -35,6 +35,71 @@ test("join a community after identity, not on welcome screen", async ({ page }) 
   await expect(page.getByRole("button", { name: "Join this community" })).toBeVisible();
 });
 
+test("persists pasted invite in URL across refresh", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Create a new identity" }).click();
+  await page.getByLabel("Display name").fill("Refresh Tester");
+  await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
+  await page.getByLabel("Confirm passphrase").fill("supersecret123");
+  await page.getByRole("button", { name: "Create identity" }).click();
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: /Continue/ }).click();
+
+  await page.getByRole("button", { name: "Join a community" }).click();
+
+  const payload = {
+    v: 1 as const,
+    ns: "test-ns-refresh",
+    inviter: "b".repeat(64),
+    cell: "Refresh Test Cell",
+    relays: ["ws://localhost:8787"],
+  };
+  const link = `http://localhost:5173/#/join?d=${encodeInvite(payload)}`;
+  await page.getByLabel("Invite link").fill(link);
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  await expect(page.getByText("You've been invited")).toBeVisible();
+  await expect(page).toHaveURL(/#\/join\?d=/);
+  await page.reload();
+  await expect(page.getByText("You've been invited")).toBeVisible();
+  await expect(
+    page.getByText("Refresh Test Cell", { exact: true }).first(),
+  ).toBeVisible();
+});
+
+test("unlock stored identity after refresh with invite hash", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Create a new identity" }).click();
+  await page.getByLabel("Display name").fill("Unlock Join Tester");
+  await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
+  await page.getByLabel("Confirm passphrase").fill("supersecret123");
+  await page.getByRole("button", { name: "Create identity" }).click();
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: /Continue/ }).click();
+
+  await page.getByRole("button", { name: "Join a community" }).click();
+
+  const payload = {
+    v: 1 as const,
+    ns: "test-ns-unlock-join",
+    inviter: "c".repeat(64),
+    cell: "Unlock Join Cell",
+    relays: ["ws://localhost:8787"],
+  };
+  const link = `http://localhost:5173/#/join?d=${encodeInvite(payload)}`;
+  await page.getByLabel("Invite link").fill(link);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("Unlock Join Cell", { exact: true }).first()).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByText("Unlock your identity to join")).toBeVisible();
+  await page.getByLabel("Passphrase").fill("supersecret123");
+  await page.getByRole("button", { name: "Unlock identity" }).click();
+  await expect(page.getByRole("button", { name: "Join this community" })).toBeVisible();
+});
+
 test("rejects join when all invite relays are unreachable", async ({ page }) => {
   await page.goto("/");
 

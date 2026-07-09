@@ -25,16 +25,21 @@ test.describe("six-member community (UI instances)", () => {
       SIX,
     );
     const pages = [founder, ...joiners];
-    const summaries = await waitForAllConvergence(pages, (s) => {
-      if (s.length !== 6) return false;
-      const first = s[0]!;
-      return s.every(
-        (p) =>
-          p.memberCount === 6 &&
-          p.totalPoints === first.totalPoints &&
-          p.members.sort().join() === first.members.sort().join(),
-      );
-    });
+    await waitForMemberCount(founder, 6);
+    const summaries = await waitForAllConvergence(
+      pages,
+      (s) => {
+        if (s.length !== 6) return false;
+        const first = s[0]!;
+        return s.every(
+          (p) =>
+            p.memberCount === 6 &&
+            p.totalPoints === first.totalPoints &&
+            p.members.sort().join() === first.members.sort().join(),
+        );
+      },
+      90_000,
+    );
     expect(summaries[0]!.totalPoints).toBe("10000");
     await closeContexts(contexts);
   });
@@ -121,7 +126,6 @@ test.describe("six-member community (UI instances)", () => {
       await bridgeVouch(page, founderKey, 0);
       await bridgeVouch(page, candidate, 100);
     }
-    await founder.waitForTimeout(3000);
 
     const pages = [founder, ...joiners];
     const pool = await waitForAllConvergence(
@@ -149,10 +153,13 @@ test.describe("six-member community (UI instances)", () => {
     await bridgeTransfer(joiners[2]!, keys[3]!, "50");
     await bridgeTransfer(joiners[3]!, keys[4]!, "25");
     await bridgeTransfer(joiners[4]!, keys[0]!, "10");
-    await founder.waitForTimeout(3000);
 
     const pages = [founder, ...joiners];
-    await waitForAllConvergence(pages, (s) => s.every((p) => p.totalPoints === before));
+    await waitForAllConvergence(
+      pages,
+      (s) => s.every((p) => p.totalPoints === before),
+      90_000,
+    );
     await closeContexts(contexts);
   });
 });

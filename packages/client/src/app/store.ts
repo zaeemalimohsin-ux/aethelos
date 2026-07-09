@@ -475,10 +475,9 @@ export const useStore = create<AppStore>((set, get) => ({
     }
     await startNode(set, get, invite.ns, relays);
     persistSession(get);
-    clearInviteFromUrl();
-    set({ pendingInvite: null });
+    get().setPendingInvite(null);
     get().toast(
-      "Connected — share your join code with your inviter so they can vouch for you",
+      "Connected — send your join code to your inviter so they can vouch for you",
       "success",
     );
   },

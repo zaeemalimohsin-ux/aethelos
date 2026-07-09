@@ -157,7 +157,10 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
             setPendingInvite(null);
             setStep(identityReady || hasStoredIdentity ? "choose" : "welcome");
           }}
-          onChangeLink={() => setStep("joinPaste")}
+          onChangeLink={() => {
+            setPendingInvite(null);
+            setStep("joinPaste");
+          }}
         />
       )}
       {step === "lostDevice" && (
