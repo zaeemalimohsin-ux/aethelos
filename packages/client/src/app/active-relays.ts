@@ -3,6 +3,7 @@ import {
   selectRelaysForCommunity,
   dedupeRelays,
   sameOriginRelayUrl,
+  isPublishableRelayUrl,
 } from "./bootstrap-relays.js";
 
 export { dedupeRelays, isLocalOnlyRelayUrl };
@@ -14,10 +15,10 @@ export interface MergeActiveRelaysOptions {
 
 /** Relay list for signed invite links — excludes localhost-only URLs. */
 export function relayUrlsForInvite(relayUrls: string[], namespaceId: string): string[] {
-  const remote = dedupeRelays(relayUrls.filter((u) => !isLocalOnlyRelayUrl(u)));
+  const remote = dedupeRelays(relayUrls.filter((u) => isPublishableRelayUrl(u)));
   if (remote.length > 0) return remote;
   const sameOrigin = sameOriginRelayUrl();
-  if (sameOrigin && !isLocalOnlyRelayUrl(sameOrigin)) return [sameOrigin];
+  if (sameOrigin && isPublishableRelayUrl(sameOrigin)) return [sameOrigin];
   return selectRelaysForCommunity(namespaceId);
 }
 

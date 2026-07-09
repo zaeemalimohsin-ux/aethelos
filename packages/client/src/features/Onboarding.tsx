@@ -599,8 +599,9 @@ function JoinCommunity({
   return (
     <Card title="You've been invited">
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-        You'll connect to <strong>{invite.cell || "this community"}</strong>. After
-        joining, tell whoever invited you that you're waiting — they'll vouch for you.
+        You'll connect to <strong>{invite.cell || "this community"}</strong>. You are not
+        a member yet — after connecting, share your join code so your inviter can vouch
+        for you.
       </p>
       <ul className="list">
         <li>

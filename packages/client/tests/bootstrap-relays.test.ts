@@ -159,11 +159,43 @@ describe("bootstrap relay pool (production)", () => {
         protocol: "http:",
         host: "localhost:8080",
         hostname: "localhost",
+        port: "8080",
         pathname: "/",
         origin: "http://localhost:8080",
       },
     });
     expect(canAttemptCommunityGenesis()).toBe(true);
+  });
+
+  it("vite preview :5173 prod shell → canAttemptCommunityGenesis false", () => {
+    vi.stubEnv("VITE_BOOTSTRAP_RELAYS", "");
+    vi.stubEnv("VITE_DEFAULT_RELAY_URL", "");
+    vi.stubGlobal("window", {
+      location: {
+        protocol: "http:",
+        host: "localhost:5173",
+        hostname: "localhost",
+        port: "5173",
+        pathname: "/",
+        origin: "http://localhost:5173",
+      },
+    });
+    expect(canAttemptCommunityGenesis()).toBe(false);
+  });
+
+  it("isPublishableRelayUrl allows co-hosted docker relay", async () => {
+    const { isPublishableRelayUrl } = await import("../src/app/bootstrap-relays.js");
+    vi.stubGlobal("window", {
+      location: {
+        protocol: "http:",
+        host: "localhost:8080",
+        hostname: "localhost",
+        port: "8080",
+      },
+    });
+    expect(isPublishableRelayUrl("ws://localhost:8080/ws")).toBe(true);
+    expect(isPublishableRelayUrl("ws://127.0.0.1:8787")).toBe(false);
+    vi.unstubAllGlobals();
   });
 
   it("public host same-origin → canAttemptCommunityGenesis true in prod", () => {

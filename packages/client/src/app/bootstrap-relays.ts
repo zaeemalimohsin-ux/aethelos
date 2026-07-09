@@ -51,6 +51,21 @@ export function isLocalAppHost(): boolean {
   return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
 }
 
+/**
+ * Relay URL safe to publish on the ledger / in signed invites.
+ * Remote URLs always qualify; co-hosted publish (same host as the app) qualifies
+ * even on localhost docker (:8080), unlike dev-only ws://127.0.0.1:8787.
+ */
+export function isPublishableRelayUrl(url: string): boolean {
+  if (!isLocalOnlyRelayUrl(url)) return true;
+  if (typeof window === "undefined") return false;
+  try {
+    return new URL(url.trim()).host === window.location.host;
+  } catch {
+    return false;
+  }
+}
+
 export function dedupeRelays(urls: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -324,6 +339,10 @@ export function canAttemptCommunityGenesis(): boolean {
   if (typeof window !== "undefined") {
     try {
       if (new URL(sameOrigin).host === window.location.host) {
+        const port =
+          window.location.port || (window.location.protocol === "https:" ? "443" : "80");
+        // Vite preview on :5173 is not a co-hosted publish stack.
+        if (port === "5173" && !import.meta.env.DEV) return false;
         return true;
       }
     } catch {

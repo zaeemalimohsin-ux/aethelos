@@ -38,6 +38,9 @@ jobs:
       - name: Format check
         run: pnpm format:check
 
+      - name: Script encoding check
+        run: node scripts/check-script-encoding.mjs
+
       - name: Unit tests
         run: pnpm test
 
@@ -245,6 +248,9 @@ jobs:
           done
           curl -sf http://localhost:10000/ | head -c 200 | grep -qi html
           docker exec aethelos-combined wget -qO- "http://127.0.0.1:8787/healthz"
+
+      - name: WebSocket smoke on combined stack
+        run: node scripts/publish-ws-smoke.mjs ws://localhost:10000/ws
 
   security-scan:
     runs-on: ubuntu-latest

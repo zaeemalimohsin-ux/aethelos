@@ -1,6 +1,10 @@
 import { useState } from "react";
 import type { PoolState, ProposalKind } from "@aethelos/core";
-import { resolveGovernanceParameter, votingWeight } from "@aethelos/core";
+import {
+  resolveGovernanceParameter,
+  votingWeight,
+  admissionProposalId,
+} from "@aethelos/core";
 import { useStore } from "../app/store.js";
 import {
   ADVANCED_PROPOSAL_KINDS,
@@ -30,6 +34,7 @@ function defaultProposalKind(pool: PoolState): ProposalKind {
 
 export function ProposalsView({ pool }: { pool: PoolState }) {
   const myKey = useStore((s) => s.myKey);
+  const setView = useStore((s) => s.setView);
   const isMember = pool.members.includes(myKey);
   const proposals = Object.values(pool.proposals).sort((a, b) => {
     const aAdmit = a.kind === "admit_member" && !a.executed ? 0 : 1;
@@ -38,9 +43,32 @@ export function ProposalsView({ pool }: { pool: PoolState }) {
   });
 
   if (!isMember) {
+    const proposalId = myKey ? admissionProposalId(myKey) : "";
+    const admitProposal = proposalId ? pool.proposals[proposalId] : undefined;
+    const totalStake = pool.members.reduce((sum, m) => sum + votingWeight(pool, m), 0n);
+    const approvalPct =
+      admitProposal && totalStake > 0n
+        ? Number((admitProposal.votesFor * 100n) / totalStake)
+        : 0;
+
     return (
       <Card eyebrow="Decisions">
-        <p className="muted">Join the community to propose and vote.</p>
+        <p className="muted" style={{ marginBottom: "var(--sp-3)" }}>
+          You're not a member yet — you can't vote here. Your admission progress lives on
+          the Community tab.
+        </p>
+        {pool.pendingInvites[myKey] ? (
+          <p className="hint">
+            {admitProposal && !admitProposal.executed
+              ? `Admission vote in progress (${approvalPct.toFixed(0)}% of stake).`
+              : pool.pendingInvites[myKey]?.admissionApproved
+                ? "You're approved — accept on Community."
+                : "Waiting for your inviter to vouch and the community to vote."}
+          </p>
+        ) : null}
+        <Button block onClick={() => setView("cell")}>
+          Open Community
+        </Button>
       </Card>
     );
   }

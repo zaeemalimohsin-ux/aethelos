@@ -68,6 +68,20 @@ describe("relayUrlsForInvite", () => {
     expect(invite.some((r) => /localhost|127\.0\.0\.1/.test(r))).toBe(false);
     vi.unstubAllGlobals();
   });
+
+  it("includes co-hosted docker same-origin relay in invites", () => {
+    vi.stubGlobal("window", {
+      location: {
+        protocol: "http:",
+        host: "localhost:8080",
+        hostname: "localhost",
+        port: "8080",
+      },
+    });
+    const invite = relayUrlsForInvite(["ws://127.0.0.1:8787"], "ns-docker");
+    expect(invite).toEqual(["ws://localhost:8080/ws"]);
+    vi.unstubAllGlobals();
+  });
 });
 
 describe("httpsToWssRelayUrl", () => {

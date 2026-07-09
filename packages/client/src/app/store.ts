@@ -58,10 +58,9 @@ import {
 import {
   httpsToWssRelayUrl,
   tunnelStatusFromLocalNode,
-  isLocalOnlyRelayUrl,
   type TunnelStatus,
 } from "./active-relays.js";
-import { sameOriginRelayUrl } from "./bootstrap-relays.js";
+import { sameOriginRelayUrl, isPublishableRelayUrl } from "./bootstrap-relays.js";
 import { ensureOnline } from "./connectivity.js";
 
 export type Phase = "loading" | "onboarding" | "locked" | "ready";
@@ -170,8 +169,8 @@ function resolveInviteRelays(invite: InvitePayload): string[] {
   let relays =
     invite.relays.length > 0 ? [...invite.relays] : selectRelaysForCommunity(invite.ns);
   const sameOrigin = sameOriginRelayUrl();
-  if (sameOrigin && !isLocalOnlyRelayUrl(sameOrigin)) {
-    relays = relays.filter((u) => !isLocalOnlyRelayUrl(u));
+  if (sameOrigin && isPublishableRelayUrl(sameOrigin)) {
+    relays = relays.filter((u) => isPublishableRelayUrl(u));
     if (!relays.includes(sameOrigin)) relays.unshift(sameOrigin);
   }
   return relays.length > 0 ? relays : selectRelaysForCommunity(invite.ns);
@@ -372,7 +371,7 @@ export const useStore = create<AppStore>((set, get) => ({
       await get().controller?.contributeRelay(httpsToWssRelayUrl(publicRelayUrl));
     } else if (!isDesktopApp()) {
       const sameOrigin = sameOriginRelayUrl();
-      if (sameOrigin && !isLocalOnlyRelayUrl(sameOrigin)) {
+      if (sameOrigin && isPublishableRelayUrl(sameOrigin)) {
         await get().controller?.contributeRelay(sameOrigin);
       }
     }
@@ -417,7 +416,10 @@ export const useStore = create<AppStore>((set, get) => ({
     persistSession(get);
     clearInviteFromUrl();
     set({ pendingInvite: null });
-    get().toast("You're in — tell your inviter you're waiting to be welcomed", "success");
+    get().toast(
+      "Connected — share your join code with your inviter so they can vouch for you",
+      "success",
+    );
   },
 
   async acceptPendingInvite() {
@@ -453,8 +455,10 @@ export const useStore = create<AppStore>((set, get) => ({
       return;
     }
     await controller.invite(trimmed, parameters);
-    get().toast("Vouch sent — vote to admit them in Proposals", "success");
-    set({ view: "proposals" });
+    get().toast(
+      "Vouch sent — open Proposals to vote Approve on their admission",
+      "success",
+    );
   },
   async cancelInvite(pubkey) {
     await get().controller?.cancelInvite(pubkey);

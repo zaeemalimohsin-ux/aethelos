@@ -91,8 +91,7 @@ function MainApp() {
   const pool = useStore((s) => s.pool);
   const session = useStore((s) => s.session);
   const myKey = useStore((s) => s.myKey);
-  const isWaitingMember =
-    pool && myKey && !pool.members.includes(myKey) && pool.pendingInvites[myKey];
+  const isWaitingMember = pool && myKey && !pool.members.includes(myKey);
 
   return (
     <div className="app-shell">

@@ -36,7 +36,6 @@ export function CellView({ pool }: { pool: PoolState }) {
   const displayName = useStore((s) => s.displayName);
   const transfer = useStore((s) => s.transfer);
   const invite = useStore((s) => s.invite);
-  const acceptPendingInvite = useStore((s) => s.acceptPendingInvite);
 
   const myBalance = pool.balances[myKey] ?? 0n;
   const myPercent = controller.getSharePercent(myKey);
@@ -47,7 +46,7 @@ export function CellView({ pool }: { pool: PoolState }) {
   const pendingInvite = pool.pendingInvites[myKey];
   const hasPendingInvite = !!pendingInvite && !pool.members.includes(myKey);
   const isGuest = !pool.members.includes(myKey);
-  const waitingToJoin = isGuest && (hasPendingInvite || pool.pendingInvites[myKey]);
+  const waitingToJoin = isGuest;
   const countdown = useCirculationCountdown(pool);
   const sync = useStore((s) => s.sync);
 
@@ -63,7 +62,6 @@ export function CellView({ pool }: { pool: PoolState }) {
       {waitingToJoin ? (
         <JoinProgressCard pool={pool} myKey={myKey} hasPendingInvite={hasPendingInvite} />
       ) : null}
-      {isGuest && !waitingToJoin && <GuestJoinCodeBanner myKey={myKey} />}
       {isFrozen && (
         <div className="alert danger">
           Your account is frozen after suspicious activity. Open{" "}
@@ -72,21 +70,6 @@ export function CellView({ pool }: { pool: PoolState }) {
       )}
       <SubCellCapBanner pool={pool} isHead={isHead} />
       <SubCellLinkageBanner pool={pool} />
-      {hasPendingInvite && (
-        <div className="alert info">
-          {pendingInvite!.admissionApproved ? (
-            <>
-              You're approved — welcome in!{" "}
-              <button className="btn sm" onClick={() => void acceptPendingInvite()}>
-                Accept invitation
-              </button>
-            </>
-          ) : (
-            <>Your community is voting on welcoming you in.</>
-          )}
-        </div>
-      )}
-
       <div className="grid">
         <Card eyebrow="Your stake">
           <div className="stat-value">{myPercent.toFixed(1)}%</div>
@@ -191,10 +174,10 @@ function JoinProgressCard({
     proposal && totalStake > 0n ? Number((proposal.votesFor * 100n) / totalStake) : 0;
 
   let step = 1;
-  let label = "Connected — tell your inviter you're waiting";
+  let label = "Connected — share your join code with your inviter";
   if (hasPendingInvite && pendingInvite && !proposal) {
     step = 2;
-    label = "Waiting for inviter to vouch for you";
+    label = "Inviter vouched for you — admission vote syncing";
   } else if (
     pendingInvite &&
     proposal &&
@@ -205,8 +188,10 @@ function JoinProgressCard({
     label = `Community voting (${approvalPct.toFixed(0)}% of stake)`;
   } else if (pendingInvite?.admissionApproved) {
     step = 4;
-    label = "Approved — accept your invitation below";
+    label = "Approved — accept your invitation";
   }
+
+  const acceptPendingInvite = useStore((s) => s.acceptPendingInvite);
 
   return (
     <div className="alert info">
@@ -214,32 +199,35 @@ function JoinProgressCard({
       {step === 1 ? (
         <div className="join-code-box" style={{ marginTop: "var(--sp-2)" }}>
           <code className="mono">{myKey}</code>
+          <CopyJoinCodeButton joinCode={myKey} />
         </div>
+      ) : null}
+      {step === 4 ? (
+        <Button
+          size="sm"
+          style={{ marginTop: "var(--sp-2)" }}
+          onClick={() => void acceptPendingInvite()}
+        >
+          Accept invitation
+        </Button>
       ) : null}
     </div>
   );
 }
 
-function GuestJoinCodeBanner({ myKey }: { myKey: string }) {
+function CopyJoinCodeButton({ joinCode }: { joinCode: string }) {
   const toast = useStore((s) => s.toast);
   return (
-    <div className="alert info">
-      <strong>Waiting to be welcomed in?</strong> Tell whoever invited you that you're
-      ready — they vouch for you and the community votes. <HelpTip text={CONCEPT.vouch} />
-      <div className="join-code-box">
-        <code className="mono">{myKey}</code>
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={async () => {
-            await navigator.clipboard.writeText(myKey);
-            toast("Copied — send this to your inviter", "success");
-          }}
-        >
-          Copy code for inviter
-        </Button>
-      </div>
-    </div>
+    <Button
+      size="sm"
+      variant="secondary"
+      onClick={async () => {
+        await navigator.clipboard.writeText(joinCode);
+        toast("Copied — send this to your inviter", "success");
+      }}
+    >
+      Copy code for inviter
+    </Button>
   );
 }
 
