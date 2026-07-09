@@ -311,6 +311,7 @@ export async function approveAdmissionInUi(
     (p) => p.proposals?.some((pr) => pr.id === proposalId && !pr.executed) ?? false,
     30_000,
   );
+  await founderPage.getByRole("button", { name: "Proposals" }).click();
   const row = founderPage.getByTestId(`proposal-${proposalId}`);
   await expect(row).toBeVisible({ timeout: 15_000 });
   await row.getByRole("button", { name: "Approve" }).click();

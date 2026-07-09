@@ -25,7 +25,9 @@ export function NetworkAdvancedPanel() {
   const [shareBusy, setShareBusy] = useState(false);
   const desktop = isDesktopApp();
   if (!controller) {
-    return <p className="muted">Join or start a community to manage network settings.</p>;
+    return (
+      <p className="muted">Join or start a community to manage connection settings.</p>
+    );
   }
   const relays =
     sync?.relays ??

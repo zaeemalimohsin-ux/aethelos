@@ -74,7 +74,7 @@ export function ProposalsView({ pool }: { pool: PoolState }) {
         </div>
       )}
       <CreateProposal pool={pool} />
-      <Disclosure summary="Advanced: link chapters">
+      <Disclosure summary="Link chapters">
         <SuperstructureCard pool={pool} />
       </Disclosure>
       <Card eyebrow="Open decisions">
@@ -219,7 +219,7 @@ function ProposalRow({
           <>
             {shortKey(proposal.data["target"] ?? "", 12)} →{" "}
             {shortKey(proposal.data["to"] ?? "", 12)} · {proposal.data["amount"] ?? "0"}{" "}
-            pts
+            Points
           </>
         ) : proposal.data["target"] ? (
           shortKey(proposal.data["target"], 12)

@@ -56,8 +56,8 @@ export function CellView({ pool }: { pool: PoolState }) {
       <PhilosophyCard />
       {sync?.overall === "offline" ? (
         <div className="alert warning">
-          Offline — actions queue on this device until a connection point is reachable.
-          Others won't see them yet.
+          {connectionStatusMessage(sync?.overall, sync?.pendingOutbox ?? 0)} Others won't
+          see them yet.
         </div>
       ) : null}
       {isHead && pool.members.length === 1 && !waitingToJoin ? (
@@ -93,12 +93,12 @@ export function CellView({ pool }: { pool: PoolState }) {
         <Card eyebrow="Community">
           <div className="stat">{pool.members.length}</div>
           <div className="stat-label">
-            Members · Cycle {pool.epochNumber} · Pool {formatPts(poolTotal)} pts
+            Members · Cycle {pool.epochNumber} · Pool {formatPts(poolTotal)} Points
             {controller.getFederatedPoolTotal() > poolTotal ? (
-              <> · Federated {formatPts(controller.getFederatedPoolTotal())} pts</>
+              <> · Federated {formatPts(controller.getFederatedPoolTotal())} Points</>
             ) : null}
             {" · Commons "}
-            {formatPts(pool.commons)} pts
+            {formatPts(pool.commons)} Points
           </div>
           {countdown.label ? (
             <div className="hint" style={{ marginTop: "var(--sp-2)" }}>
@@ -283,7 +283,7 @@ function Members({ pool }: { pool: PoolState }) {
               </span>
               <span>
                 {controller.getSharePercent(m).toFixed(1)}% ·{" "}
-                {formatPts(pool.balances[m] ?? 0n)} pts
+                {formatPts(pool.balances[m] ?? 0n)} Points
               </span>
             </li>
           );
@@ -790,7 +790,7 @@ function FederationCard({ pool }: { pool: PoolState }) {
                   {formatPts(
                     linked.members.reduce((s, m) => s + (linked.balances[m] ?? 0n), 0n),
                   )}{" "}
-                  pts in wallets
+                  Points in wallets
                 </span>
               ) : (
                 <span className="muted">Syncing…</span>

@@ -7,7 +7,7 @@ export const CONCEPT = {
   points:
     "Points are the community's unit of value. Everyone can verify the same ledger on their own device.",
   vouch:
-    "When you invite someone, you pledge a Vouch Lien — a forfeitable slice of your own Share that stays in your wallet. If they harm the community, that slice can be forfeit. The community must approve before they join.",
+    "When you invite someone, you pledge a vouch lien — a forfeitable slice of your stake. Points stay in your balance; if they harm the community, that slice can be forfeit. The community must approve before they join.",
   head: "The Head is whoever the community currently trusts to propose certain actions. A challenger must reach the vouch threshold to take the role.",
   epoch:
     "Stake circulates continuously on activity — a time-proportional slice accrues to the commons. On a schedule the community sets, those commons are redistributed.",
@@ -21,8 +21,8 @@ export const CONCEPT = {
     "When a community grows large, start a linked chapter that connects upward — scale by depth, not by cramming everyone into one room.",
 } as const;
 
-/** Advanced network panel — operator-facing relay explanation. */
-export const CONCEPT_NETWORK = CONCEPT.relay;
+/** Connection tab — plain-language sync explanation. */
+export const CONCEPT_NETWORK = CONCEPT.connection;
 
 export const GOVERNANCE_HELP: Record<GovernanceParameter, string> = {
   decay_rate:

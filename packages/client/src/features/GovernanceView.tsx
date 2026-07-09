@@ -138,7 +138,8 @@ export function GovernanceView({ pool }: { pool: PoolState }) {
           Right now: {annualCirculation.toFixed(1)}% per year accrues continuously on
           activity · redistribution every {intervalLabel} ·{" "}
           {pool.parameters.approval_threshold.toFixed(0)}% to pass proposals. Commons
-          pool: {formatPointsAmount(pool.commons)} pts. <HelpTip text={CONCEPT.epoch} />
+          pool: {formatPointsAmount(pool.commons)} Points.{" "}
+          <HelpTip text={CONCEPT.epoch} />
         </p>
         {countdown.label ? (
           <p className={`hint${countdown.due ? " warning" : ""}`}>{countdown.label}</p>
