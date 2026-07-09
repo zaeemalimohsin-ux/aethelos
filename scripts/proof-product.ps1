@@ -23,6 +23,15 @@ if (-not (Test-Path $proofAvdHome)) {
     New-Item -ItemType Directory -Path $proofAvdHome -Force | Out-Null
 }
 $env:ANDROID_AVD_HOME = $proofAvdHome
+$env:ADB_VENDOR_KEYS = Join-Path $env:USERPROFILE ".android"
+$adbKeyFile = Join-Path $env:ADB_VENDOR_KEYS "adbkey"
+if (Test-Path $adbKeyFile) {
+    $env:ADBKEY = (Get-Content $adbKeyFile -Raw).Trim()
+}
+$adbPubFile = Join-Path $env:ADB_VENDOR_KEYS "adbkey.pub"
+if (Test-Path $adbPubFile) {
+    $env:ADBKEY_PUB = (Get-Content $adbPubFile -Raw).Trim()
+}
 Remove-Item Env:CI -ErrorAction SilentlyContinue
 Remove-Item Env:VITE_E2E -ErrorAction SilentlyContinue
 $env:CARGO_TARGET_DIR = Join-Path $Root "packages\client-tauri\src-tauri\target"
@@ -112,32 +121,20 @@ function Find-AethelosExe {
 }
 
 function Stop-ProofProcesses {
-    $proofPaths = @(
-        (Join-Path $Root "packages\client-tauri\src-tauri\target"),
-        (Join-Path $Root "dist\releases")
-    )
+    $repoRoot = $Root.TrimEnd('\')
     Get-Process "node", "cloudflared", "aethelos-desktop" -ErrorAction SilentlyContinue | Where-Object {
         $procPath = $_.Path
         if (-not $procPath) { return $false }
-        foreach ($prefix in $proofPaths) {
-            if ($procPath.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { return $true }
-        }
-        return $false
+        return $procPath.StartsWith($repoRoot, [StringComparison]::OrdinalIgnoreCase)
     } | Stop-Process -Force -ErrorAction SilentlyContinue
-    Get-Process "emulator", "qemu-system-x86_64" -ErrorAction SilentlyContinue |
+    Get-Process "emulator", "qemu-system-x86_64", "qemu-system-x86_64-headless" -ErrorAction SilentlyContinue |
         Stop-Process -Force -ErrorAction SilentlyContinue
     if (Test-Path $ShareFile) { Remove-Item $ShareFile -Force -ErrorAction SilentlyContinue }
     foreach ($port in @(5173, 5174, 5175, 8080, 8787, 9222)) {
         try {
             $conn = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction Stop
             foreach ($c in $conn) {
-                $proc = Get-Process -Id $c.OwningProcess -ErrorAction SilentlyContinue
-                if (-not $proc -or -not $proc.Path) { continue }
-                foreach ($prefix in $proofPaths) {
-                    if ($proc.Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
-                        Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue
-                    }
-                }
+                Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue
             }
         } catch {
             # Port free or NetTCPIP unavailable.
@@ -249,6 +246,10 @@ function Ensure-AndroidEmulator {
     $emu = Join-Path $sdk "emulator\emulator.exe"
     if (-not (Test-Path $emu)) {
         throw "Android SDK/emulator not installed (install Android Studio and an AVD)"
+    }
+    $adbCmd = Get-AdbCommand
+    if ($adbCmd) {
+        & $adbCmd start-server 2>$null | Out-Null
     }
     $starter = Join-Path $Root "scripts\start-android-emulator.ps1"
     if (-not (Test-Path $starter)) {
@@ -362,13 +363,25 @@ if (-not $SkipStaticGates) {
 }
 
 # --- Desktop dev path ---
+Stop-ProofProcesses
+Start-Sleep -Seconds 3
 if (-not (Test-CommandExists "rustc")) {
     Write-StepResult "Desktop dev path" "SKIP" "rustc not installed"
 } else {
-    try {
-        Invoke-ProofPath -Label "Desktop dev" -StartApp { Start-DesktopDevForProof } -ProofMode "dev"
-    } catch {
-        Write-StepResult "Desktop dev path" "FAIL" $_.Exception.Message
+    for ($attempt = 1; $attempt -le 2; $attempt++) {
+        if ($attempt -gt 1) {
+            Write-Host "Retrying desktop dev path (attempt $attempt)..." -ForegroundColor Yellow
+            Stop-ProofProcesses
+            Start-Sleep -Seconds 5
+        }
+        try {
+            Invoke-ProofPath -Label "Desktop dev" -StartApp { Start-DesktopDevForProof } -ProofMode "dev"
+            break
+        } catch {
+            if ($attempt -eq 2) {
+                Write-StepResult "Desktop dev path" "FAIL" $_.Exception.Message
+            }
+        }
     }
 }
 

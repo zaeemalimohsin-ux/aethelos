@@ -1,4 +1,4 @@
-# Start the first configured Android Virtual Device (optional helper for proof runs).
+# Start the AethelosProof AVD for product proof (headless, host adb keys).
 param(
     [string]$AvdName = "AethelosProof"
 )
@@ -6,113 +6,128 @@ param(
 $ErrorActionPreference = "Continue"
 $PSNativeCommandUseErrorActionPreference = $false
 
-$Root = Split-Path $PSScriptRoot -Parent
-$proofAvdHome = Join-Path $Root ".android-avd"
-if (-not (Test-Path $proofAvdHome)) {
-    New-Item -ItemType Directory -Path $proofAvdHome -Force | Out-Null
+$bootLock = Join-Path $env:TEMP "aethelos-emulator-boot.lock"
+if (Test-Path $bootLock) {
+    $lockAge = (Get-Date) - (Get-Item $bootLock).LastWriteTime
+    if ($lockAge.TotalMinutes -lt 15) {
+        throw "Another emulator boot is already in progress"
+    }
+    Remove-Item $bootLock -Force -ErrorAction SilentlyContinue
 }
-# Removed: $env:ANDROID_AVD_HOME = $proofAvdHome
+New-Item -ItemType File -Path $bootLock -Force | Out-Null
 
-function Get-EmulatorExe {
+try {
+    $Root = Split-Path $PSScriptRoot -Parent
+    $proofAvdHome = Join-Path $Root ".android-avd"
+    if (-not (Test-Path $proofAvdHome)) {
+        New-Item -ItemType Directory -Path $proofAvdHome -Force | Out-Null
+    }
+    $env:ANDROID_AVD_HOME = $proofAvdHome
+    $androidKeysDir = Join-Path $env:USERPROFILE ".android"
+    $env:ADB_VENDOR_KEYS = $androidKeysDir
+
     $sdk = $env:ANDROID_HOME
     if (-not $sdk) { $sdk = Join-Path $env:LOCALAPPDATA "Android\Sdk" }
+    $adb = Join-Path $sdk "platform-tools\adb.exe"
     $emu = Join-Path $sdk "emulator\emulator.exe"
     if (-not (Test-Path $emu)) {
         throw "emulator.exe not found. Install Android Studio and an AVD."
     }
-    return $emu
-}
 
-function Get-Adb {
-    $sdk = $env:ANDROID_HOME
-    if (-not $sdk) { $sdk = Join-Path $env:LOCALAPPDATA "Android\Sdk" }
-    return Join-Path $sdk "platform-tools\adb.exe"
-}
-
-function Test-DeviceReady {
-    param([string]$Adb)
-    & $Adb start-server 2>$null | Out-Null
-    $devices = & $Adb devices 2>$null | Select-String "emulator-\d+\s+device"
-    if (-not $devices) { return $false }
-    try {
-        $booted = (& $Adb shell getprop sys.boot_completed 2>$null | Out-String).Trim()
-        $devBoot = (& $Adb shell getprop dev.bootcomplete 2>$null | Out-String).Trim()
-        return ($booted -eq "1" -and $devBoot -eq "1")
-    } catch {
-        return $false
+    $keyFile = Join-Path $androidKeysDir "adbkey"
+    if (-not (Test-Path $keyFile) -and (Test-Path $adb)) {
+        & $adb keygen $keyFile 2>$null | Out-Null
     }
-}
-
-$adb = Get-Adb
-Get-Process emulator, qemu-system-x86_64 -ErrorAction SilentlyContinue |
-    Stop-Process -Force -ErrorAction SilentlyContinue
-if (Test-Path $adb) {
-    if (Test-DeviceReady -Adb $adb) {
-        Write-Host "Emulator already running."
-        exit 0
+    if (Test-Path $keyFile) {
+        $env:ADBKEY = (Get-Content $keyFile -Raw).Trim()
     }
-}
-
-$emu = Get-EmulatorExe
-if (-not $AvdName) {
-    $list = & $emu -list-avds 2>$null
-    if (-not $list -or $list.Count -eq 0) {
-        throw "No AVDs configured. Create one in Android Studio Device Manager."
+    $pubFile = Join-Path $androidKeysDir "adbkey.pub"
+    if (Test-Path $pubFile) {
+        $env:ADBKEY_PUB = (Get-Content $pubFile -Raw).Trim()
     }
-    $AvdName = $list[0]
-}
 
-$avdDir = Join-Path $env:USERPROFILE ".android\avd\$AvdName.avd"
-$snapshotsDir = Join-Path $avdDir "snapshots"
-$emuLog = Join-Path $env:TEMP "aethelos-emulator.log"
-if (Test-Path $emuLog) { Remove-Item $emuLog -Force -ErrorAction SilentlyContinue }
-
-$emuArgs = @(
-    "-avd", $AvdName,
-    "-no-boot-anim",
-    "-no-window",
-    "-partition-size", "512"
-)
-if (Test-Path $snapshotsDir) {
-    Write-Host "Starting AVD: $AvdName (snapshot boot, headless)"
-} else {
-    $emuArgs += "-no-snapshot-save"
-    Write-Host "Starting AVD: $AvdName (cold boot, headless, no snapshot yet)"
-}
-
-$emuProc = Start-Process -FilePath $emu -ArgumentList $emuArgs `
-    -WindowStyle Minimized -PassThru `
-    -RedirectStandardError $emuLog
-
-$deadline = (Get-Date).AddMinutes(10)
-while ((Get-Date) -lt $deadline) {
-    if ($emuProc.HasExited) {
-        $tail = if (Test-Path $emuLog) { Get-Content $emuLog -Tail 20 -ErrorAction SilentlyContinue } else { @() }
-        throw ("Emulator exited early (code {0}). Log tail:`n{1}" -f $emuProc.ExitCode, ($tail -join "`n"))
+    if (Test-Path $adb) {
+        & $adb start-server 2>$null | Out-Null
+        $ready = & $adb devices 2>$null | Select-String "emulator-\d+\s+device"
+        if ($ready) {
+            $booted = (& $adb shell getprop sys.boot_completed 2>$null | Out-String).Trim()
+            if ($booted -eq "1") {
+                Write-Host "Emulator already running."
+                return
+            }
+        }
     }
-    if ((Test-Path $adb) -and (Test-DeviceReady -Adb $adb)) {
-        Write-Host "Emulator ready. Configuring environment..."
-        
-        # Disable Chrome First-Run Experience
-        & $adb shell "echo 'chrome --disable-fre --no-default-browser-check --no-first-run' > /data/local/tmp/chrome-command-line"
-        & $adb shell am set-debug-app --persistent com.android.chrome
-        
-        # Grant notification permissions to avoid prompts
-        & $adb shell pm grant com.android.chrome android.permission.POST_NOTIFICATIONS 2>$null
-        
-        # Ensure screen doesn't sleep quickly
-        & $adb shell settings put system screen_off_timeout 600000 2>$null
-        
-        Write-Host "Environment configured."
-        break
-    }
-    Start-Sleep -Seconds 5
-}
 
-if ($emuProc.HasExited) {
+    Get-Process emulator, qemu-system-x86_64, qemu-system-x86_64-headless -ErrorAction SilentlyContinue |
+        Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 2
+
+    $avdDir = Join-Path $proofAvdHome "$AvdName.avd"
+    if (-not (Test-Path $avdDir)) {
+        $avdDir = Join-Path $env:USERPROFILE ".android\avd\$AvdName.avd"
+    }
+    if (Test-Path $avdDir) {
+        Get-ChildItem $avdDir -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like "*.lock" } |
+            Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    $initializedMarker = Join-Path $proofAvdHome ".adb-initialized"
+    $emuArgs = @(
+        "-avd", $AvdName,
+        "-no-boot-anim",
+        "-no-window",
+        "-skip-adb-auth",
+        "-partition-size", "512"
+    )
+    if (-not (Test-Path $initializedMarker)) {
+        $emuArgs += "-wipe-data"
+        Write-Host "First boot: wiping AVD data to seed host adb keys"
+    }
+    if (-not (Test-Path (Join-Path $avdDir "snapshots"))) {
+        $emuArgs += "-no-snapshot-save"
+        Write-Host "Starting AVD: $AvdName (cold boot, headless)"
+    } else {
+        Write-Host "Starting AVD: $AvdName (snapshot boot, headless)"
+    }
+
+    $emuLog = Join-Path $env:TEMP "aethelos-emulator.log"
+    if (Test-Path $emuLog) { Remove-Item $emuLog -Force -ErrorAction SilentlyContinue }
+
+    $emuProc = Start-Process -FilePath $emu -ArgumentList $emuArgs `
+        -WindowStyle Minimized -PassThru `
+        -RedirectStandardError $emuLog
+
+    $deadline = (Get-Date).AddMinutes(10)
+    while ((Get-Date) -lt $deadline) {
+        if ($emuProc.HasExited) {
+            $tail = if (Test-Path $emuLog) { Get-Content $emuLog -Tail 20 -ErrorAction SilentlyContinue } else { @() }
+            throw ("Emulator exited early (code {0}). Log tail:`n{1}" -f $emuProc.ExitCode, ($tail -join "`n"))
+        }
+        if (Test-Path $adb) {
+            $devices = & $adb devices 2>$null | Select-String "emulator-\d+\s+device"
+            if ($devices) {
+                $booted = (& $adb shell getprop sys.boot_completed 2>$null | Out-String).Trim()
+                $devBoot = (& $adb shell getprop dev.bootcomplete 2>$null | Out-String).Trim()
+                if ($booted -eq "1" -and $devBoot -eq "1") {
+                    Write-Host "Emulator ready. Configuring environment..."
+                    & $adb shell "echo 'chrome --disable-fre --no-default-browser-check --no-first-run' > /data/local/tmp/chrome-command-line" 2>$null
+                    & $adb shell am set-debug-app --persistent com.android.chrome 2>$null
+                    & $adb shell pm grant com.android.chrome android.permission.POST_NOTIFICATIONS 2>$null
+                    & $adb shell settings put system screen_off_timeout 600000 2>$null
+                    if (-not (Test-Path $initializedMarker)) {
+                        New-Item -ItemType File -Path $initializedMarker -Force | Out-Null
+                    }
+                    Write-Host "Emulator boot complete."
+                    return
+                }
+            }
+        }
+        Start-Sleep -Seconds 5
+    }
+
     $tail = if (Test-Path $emuLog) { Get-Content $emuLog -Tail 30 -ErrorAction SilentlyContinue } else { @() }
     throw ("Emulator did not boot within 10 minutes. Log tail:`n{0}" -f ($tail -join "`n"))
+} finally {
+    Remove-Item $bootLock -Force -ErrorAction SilentlyContinue
 }
-
-Write-Host "Keeping emulator task alive..."
-Wait-Process -Id $emuProc.Id
