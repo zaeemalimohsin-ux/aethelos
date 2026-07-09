@@ -350,7 +350,8 @@ function RestoreIdentity({ onDone, onBack }: { onDone: () => void; onBack: () =>
     <Card title="Restore identity">
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
         Your recovery phrase restores your cryptographic identity. Community history syncs
-        from a connection point after you rejoin with an invite link or import an event log backup.
+        from a connection point after you rejoin with an invite link or import an event
+        log backup.
       </p>
       <div className="field">
         <label htmlFor="phrase">Recovery phrase</label>
@@ -508,7 +509,9 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
     setRelayProbed(ok);
     saveBootstrapRelay(url);
     toast(
-      ok ? "Connection point reachable" : "Can't reach that connection point — check the URL",
+      ok
+        ? "Connection point reachable"
+        : "Can't reach that connection point — check the URL",
       ok ? "success" : "error",
     );
   };
@@ -677,8 +680,8 @@ function LostDeviceIntro({
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
         Your <strong>recovery phrase</strong> brings back your identity on a new device.
         Your <strong>community</strong> comes back when you either paste your invite link
-        again (the connection point syncs history) or import an event log file you exported
-        earlier.
+        again (the connection point syncs history) or import an event log file you
+        exported earlier.
       </p>
       <Button block onClick={onContinue}>
         Continue with recovery phrase

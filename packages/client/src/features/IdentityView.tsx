@@ -201,8 +201,8 @@ export function IdentityView() {
           <li>
             <span className="muted">App version</span>
             <span className="mono">
-              {typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "unknown"} / wire{" "}
-              {WIRE_VERSION}
+              {typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "unknown"} /
+              wire {WIRE_VERSION}
             </span>
           </li>
         </ul>

@@ -24,7 +24,9 @@ test.describe("Accessibility smoke", () => {
     });
 
     await expect(
-      page.getByRole("alert").filter({ hasText: /Can't reach the community connection point/i }),
+      page
+        .getByRole("alert")
+        .filter({ hasText: /Can't reach the community connection point/i }),
     ).toBeVisible({ timeout: 5_000 });
   });
 

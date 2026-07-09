@@ -15,9 +15,7 @@ test.describe("philosophy UX", () => {
     await expect(page.getByRole("button", { name: "Invite people" })).toBeVisible();
     await expect(page.getByText("Reach others")).toHaveCount(0);
     await expect(page.getByText("Share invite link")).toHaveCount(0);
-    await expect(
-      page.getByRole("button", { name: /Connected|Syncing/ }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /Connected|Syncing/ })).toBeVisible();
   });
 
   test("governance shows redistribution as a primary card", async ({ page }) => {
@@ -29,7 +27,10 @@ test.describe("philosophy UX", () => {
 
   test("relay settings live on the Connection tab", async ({ page }) => {
     await onboardGenesis(page, "Founder", "Advanced Network Cell");
-    await page.getByRole("navigation", { name: "Sections" }).getByRole("button", { name: "Connection" }).click();
+    await page
+      .getByRole("navigation", { name: "Sections" })
+      .getByRole("button", { name: "Connection" })
+      .click();
     await expect(page.getByTestId("network-advanced-panel")).toBeVisible();
     await expect(page.getByText(/Community endpoints:/)).toBeVisible();
 
