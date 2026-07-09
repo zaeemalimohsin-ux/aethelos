@@ -33,7 +33,7 @@ Every system built on trust has the same failure mode: over time, trust migrates
 
 1. **You hold your keys**: Your data and identity belong entirely to you, secured by cryptography, not terms of service.
 2. **Mathematical governance**: Decisions are made transparently through community-voted proposals that execute automatically.
-3. **Equal voices**: AethelOS is designed to resist wealth concentration. Value circulates naturally, and every human soul carries equal weight in the system.
+3. **Equal voices in redistribution**: Every live, vouched soul carries equal weight when commons are shared out. Day-to-day proposals use stake-weighted voting so influence is earned through participation, not hoarded forever.
 4. **Unstoppable operation**: Even if the creators of AethelOS disappear tomorrow, your community keeps running exactly as it did yesterday.
 
 Read the full [Higher-Level Philosophy](./Higher-Level-Philosophy.md).
@@ -42,7 +42,7 @@ Read the full [Higher-Level Philosophy](./Higher-Level-Philosophy.md).
 
 AethelOS is completely free and open source. 
 
-1. **Download the Windows App:** Go to the [Releases page](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) and download the installer (`.exe` or `.msi`).
+1. **Download the Windows App:** Go to the [Releases page](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) and download the installer (`.exe` or `.msi`) for **v0.2.0**.
 2. **Create Identity:** Open the app and create your identity. 
 3. **Start a Community:** Create a new community and send invite links to your friends. They can join directly from their browser or phone without downloading the app.
 
@@ -83,6 +83,8 @@ pnpm test:e2e     # E2E test suite
 *Note on Windows E2E: Run setup and test separately to avoid hanging.*
 
 ### Documentation
+- [Beta pilot notes](docs/BETA_README.md) — responsibilities and limitations for trusted pilots
+- [Get Started](docs/GET_STARTED.md) · [User Guide](docs/USER_GUIDE.md)
 - [Publisher Guide](docs/PUBLISHER.md) — Deploying AethelOS online
 - [Relay Operators](docs/RELAY_OPERATORS.md) — Running your own relay
 - [Threat Model](docs/THREAT_MODEL.md) & [Security Policy](SECURITY.md)

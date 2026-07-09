@@ -268,7 +268,7 @@ function CreateIdentity({
             setBusy(false);
           }}
         >
-          Create identity
+          {busy ? "Creating identity…" : "Create identity"}
         </Button>
         <Button variant="ghost" onClick={onBack}>
           Back
@@ -545,7 +545,7 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
             style={{ marginTop: "var(--sp-2)" }}
             onClick={() => void probeRelay()}
           >
-            Test connection
+            {probeBusy ? "Checking connection…" : "Test connection"}
           </Button>
         </>
       ) : null}
@@ -565,7 +565,7 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
           setBusy(false);
         }}
       >
-        Create community
+        {busy ? "Creating community…" : "Create community"}
       </Button>
       <BackButton onClick={onBack} />
     </Card>
@@ -633,7 +633,7 @@ function JoinCommunity({
               setBusy(false);
             }}
           >
-            Join this community
+            {busy ? "Connecting…" : "Join this community"}
           </Button>
           <BackButton onClick={onBack} label="Back to choices" />
           <Button
@@ -812,7 +812,7 @@ function UnlockScreen() {
             setBusy(false);
           }}
         >
-          Unlock
+          {busy ? "Unlocking…" : "Unlock"}
         </Button>
         <button
           className="btn ghost block"

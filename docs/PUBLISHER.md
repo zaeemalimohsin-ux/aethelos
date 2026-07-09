@@ -88,6 +88,35 @@ Optional public demo — **not** the canonical publisher path. Use `docker compo
 
 For a permanent URL you control, prefer **Option A** (VPS + compose) or **Option B** (named Cloudflare Tunnel) below.
 
+## Publisher preflight (before sharing your URL)
+
+Run these checks **after** your stack is live and **before** sending the link to users:
+
+```bash
+./scripts/publisher-preflight.sh https://your-domain
+```
+
+For local compose smoke:
+
+```bash
+./scripts/publisher-preflight.sh http://localhost:8080
+```
+
+**What it checks:**
+
+| Check | Endpoint | Pass criteria |
+|-------|----------|---------------|
+| Relay direct | `http://localhost:8787/healthz` | HTTP 200 |
+| App health via proxy | `https://your-domain/healthz` | HTTP 200 |
+| PWA shell | `https://your-domain/` | HTML served |
+| WebSocket | `wss://your-domain/ws` | `publish-ws-smoke.mjs` connects |
+
+CI runs this against `http://localhost:8080` in the `docker-founder` job.
+
+**Do not share** quick-tunnel or ephemeral URLs for long-term communities — use a permanent hostname (see Option A/B above).
+
+`Build-Release.bat` / `pnpm release:desktop` is the **maintainer** build path, not the friend install story (use GitHub Releases).
+
 ## Release verification
 
 ```bash
@@ -95,6 +124,8 @@ pnpm verify:release
 ```
 
 Runs typecheck, unit tests, user-doc grep, and local E2E. CI also runs `docker-founder` (same-origin publish stack). On Windows, `pnpm proof:product` exercises desktop share URL + mobile tunnel E2E + release installer.
+
+Tag **v0.2.0** (or the current root `package.json` version) before pilot distribution. Run [publisher preflight](#publisher-preflight-before-sharing-your-url) on the public URL.
 
 Full sign-off on Windows: `pnpm proof:product`.
 ## Two-person genesis (test)

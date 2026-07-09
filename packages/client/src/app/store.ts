@@ -11,6 +11,7 @@ import {
   availableToPledge,
   parsePointsAmount,
   formatPointsAmount,
+  admissionProposalId,
 } from "@aethelos/core";
 import { NodeController, generateNamespaceId } from "../node/controller.js";
 import type { LinkedPools } from "../node/federation-reader.js";
@@ -93,10 +94,14 @@ interface AppStore {
   relaySharing: boolean;
   /** Desktop: public tunnel readiness for remote friends. */
   tunnelStatus: TunnelStatus;
+  /** Proposals tab: scroll/highlight admit row after vouch. */
+  highlightProposalId: string | null;
 
   init(): Promise<void>;
   setTheme(t: Theme): void;
   setView(v: View): void;
+  clearProposalHighlight(): void;
+  highlightAdmissionVote(inviteePubkey: string): void;
   toast(message: string, kind?: Toast["kind"]): void;
   dismissToast(id: string): void;
 
@@ -168,6 +173,9 @@ function syncShareUrlFile(shareUrl: string | null): void {
 function resolveInviteRelays(invite: InvitePayload): string[] {
   let relays =
     invite.relays.length > 0 ? [...invite.relays] : selectRelaysForCommunity(invite.ns);
+  if (forceJoinProbeForTests) {
+    return relays.length > 0 ? relays : selectRelaysForCommunity(invite.ns);
+  }
   const sameOrigin = sameOriginRelayUrl();
   if (sameOrigin && isPublishableRelayUrl(sameOrigin)) {
     relays = relays.filter((u) => isPublishableRelayUrl(u));
@@ -194,6 +202,7 @@ export const useStore = create<AppStore>((set, get) => ({
   relaySharing: false,
   tunnelStatus: "idle",
   shareUrl: null,
+  highlightProposalId: null,
 
   async ensureDesktopShare() {
     if (!isDesktopApp()) return;
@@ -249,7 +258,21 @@ export const useStore = create<AppStore>((set, get) => ({
   },
 
   setView(v) {
+    const prev = get().view;
+    if (v !== "proposals" && prev === "proposals") {
+      set({ view: v, highlightProposalId: null });
+      return;
+    }
     set({ view: v });
+  },
+
+  clearProposalHighlight() {
+    set({ highlightProposalId: null });
+  },
+
+  highlightAdmissionVote(inviteePubkey) {
+    const id = admissionProposalId(inviteePubkey.trim());
+    set({ view: "proposals", highlightProposalId: id });
   },
 
   toast(message, kind = "info") {
@@ -459,6 +482,10 @@ export const useStore = create<AppStore>((set, get) => ({
       "Vouch sent — open Proposals to vote Approve on their admission",
       "success",
     );
+    set({
+      view: "proposals",
+      highlightProposalId: admissionProposalId(trimmed),
+    });
   },
   async cancelInvite(pubkey) {
     await get().controller?.cancelInvite(pubkey);
@@ -498,6 +525,9 @@ export const useStore = create<AppStore>((set, get) => ({
   },
   async voteProposal(id, approve) {
     await get().controller?.voteProposal(id, approve);
+    if (get().highlightProposalId === id) {
+      get().clearProposalHighlight();
+    }
   },
   async joinSuperstructure(id) {
     const controller = get().controller;

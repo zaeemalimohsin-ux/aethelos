@@ -315,7 +315,9 @@ export async function admitJoiner(
   await waitForPool(founderPage, (p) => p.pendingInviteCount >= 1, 30_000);
   await bridgeApproveAdmission(founderPage, joinerPubkey);
   await joinerPage.getByRole("button", { name: "Community" }).click();
-  await expect(joinerPage.getByText("You're approved")).toBeVisible({
+  await expect(
+    joinerPage.getByText(/Approved — accept your invitation|Accept invitation/),
+  ).toBeVisible({
     timeout: 60_000,
   });
   await joinerPage.getByRole("button", { name: "Accept invitation" }).click();

@@ -71,7 +71,9 @@ export function App() {
       ) : null}
       {phase === "loading" ? (
         <div className="app-main center" style={{ paddingTop: "var(--sp-8)" }}>
-          <p className="muted">Loading…</p>
+          <p className="muted" role="status">
+            Loading…
+          </p>
         </div>
       ) : phase === "ready" ? (
         <AppErrorBoundary>
@@ -121,7 +123,7 @@ function MainApp() {
           ))}
         </nav>
         {!pool ? (
-          <p className="muted">
+          <p className="muted" role="status">
             {session
               ? `Loading ${session.displayName}'s community…`
               : "Loading your community…"}

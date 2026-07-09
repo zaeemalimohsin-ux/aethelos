@@ -199,13 +199,13 @@ function JoinProgressCard({
       {step === 1 ? (
         <div className="join-code-box" style={{ marginTop: "var(--sp-2)" }}>
           <code className="mono">{myKey}</code>
-          <CopyJoinCodeButton joinCode={myKey} />
+          <JoinCodeActions joinCode={myKey} />
         </div>
       ) : null}
       {step === 4 ? (
         <Button
-          size="sm"
           style={{ marginTop: "var(--sp-2)" }}
+          block
           onClick={() => void acceptPendingInvite()}
         >
           Accept invitation
@@ -215,19 +215,34 @@ function JoinProgressCard({
   );
 }
 
-function CopyJoinCodeButton({ joinCode }: { joinCode: string }) {
+function JoinCodeActions({ joinCode }: { joinCode: string }) {
   const toast = useStore((s) => s.toast);
+  const copyCode = async () => {
+    await navigator.clipboard.writeText(joinCode);
+    toast("Copied — send this to your inviter", "success");
+  };
   return (
-    <Button
-      size="sm"
-      variant="secondary"
-      onClick={async () => {
-        await navigator.clipboard.writeText(joinCode);
-        toast("Copied — send this to your inviter", "success");
-      }}
-    >
-      Copy code for inviter
-    </Button>
+    <div className="join-code-actions">
+      <Button
+        block
+        onClick={async () => {
+          if (typeof navigator.share === "function") {
+            try {
+              await navigator.share({ title: "My join code", text: joinCode });
+              return;
+            } catch (err) {
+              if (err instanceof DOMException && err.name === "AbortError") return;
+            }
+          }
+          await copyCode();
+        }}
+      >
+        Share code with inviter
+      </Button>
+      <Button variant="secondary" block onClick={() => void copyCode()}>
+        Copy code
+      </Button>
+    </div>
   );
 }
 
@@ -345,7 +360,7 @@ function ActiveVouchLiensCard({ pool, myKey }: { pool: PoolState; myKey: string 
 
 function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
   const cancelInvite = useStore((s) => s.cancelInvite);
-  const setView = useStore((s) => s.setView);
+  const highlightAdmissionVote = useStore((s) => s.highlightAdmissionVote);
   const displayName = useStore((s) => s.displayName);
   const pending = Object.entries(pool.pendingInvites).filter(
     ([, inv]) => inv.inviter === myKey,
@@ -381,7 +396,7 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
                 <button
                   className="btn sm"
                   type="button"
-                  onClick={() => setView("proposals")}
+                  onClick={() => highlightAdmissionVote(invitee)}
                 >
                   Vote to admit
                 </button>
@@ -420,6 +435,7 @@ function InviteCard({
   const pledgeCapacity = availableToPledge(pool, myKey);
   const [showLink, setShowLink] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
+  const [inviteSignError, setInviteSignError] = useState(false);
   const [inviteDecay, setInviteDecay] = useState(pool.parameters.decay_rate);
   const [inviteInterval, setInviteInterval] = useState(pool.parameters.epoch_interval);
   const atCap = pool.members.length >= SOFT_CELL_CAP;
@@ -427,6 +443,8 @@ function InviteCard({
 
   useEffect(() => {
     if (!showLink) return;
+    setInviteLink("");
+    setInviteSignError(false);
     let cancelled = false;
     void controller
       .buildSignedInvitePayload(pool.cellName, controller.getInviteRelayUrls())
@@ -436,7 +454,10 @@ function InviteCard({
         }
       })
       .catch(() => {
-        if (!cancelled) toast("Could not sign invite link", "error");
+        if (!cancelled) {
+          setInviteSignError(true);
+          toast("Could not sign invite link", "error");
+        }
       });
     return () => {
       cancelled = true;
@@ -461,7 +482,13 @@ function InviteCard({
         Send a link or QR. When they open it, tell you they're waiting — then vouch for
         them here. <HelpTip text={CONCEPT.vouch} />
       </p>
-      <Button variant="secondary" block onClick={() => setShowLink(true)}>
+      <Button
+        variant="secondary"
+        block
+        onClick={() => {
+          setShowLink(true);
+        }}
+      >
         Invite people
       </Button>
       <p
@@ -518,29 +545,41 @@ function InviteCard({
         {statusLine}
       </p>
 
-      {showLink && inviteLink && (
+      {showLink ? (
         <Modal title="Invite people" onClose={() => setShowLink(false)}>
-          <p className="muted" style={{ marginBottom: "var(--sp-3)" }}>
-            {displayName ? `${displayName} invites you to ` : "Join "}
-            <strong>{pool.cellName}</strong>. Share this link or QR:
-          </p>
-          <div className="center" style={{ marginBottom: "var(--sp-3)" }}>
-            <QRCode value={inviteLink} />
-          </div>
-          <div className="field">
-            <textarea className="textarea mono" rows={3} readOnly value={inviteLink} />
-          </div>
-          <Button
-            block
-            onClick={async () => {
-              await navigator.clipboard.writeText(inviteLink);
-              toast("Invite link copied", "success");
-            }}
-          >
-            Copy link
-          </Button>
+          {inviteSignError ? (
+            <p className="error-text" style={{ marginBottom: "var(--sp-3)" }}>
+              Could not prepare invite link. Check your connection and try again.
+            </p>
+          ) : inviteLink ? (
+            <>
+              <p className="muted" style={{ marginBottom: "var(--sp-3)" }}>
+                {displayName ? `${displayName} invites you to ` : "Join "}
+                <strong>{pool.cellName}</strong>. Share this link or QR:
+              </p>
+              <div className="center" style={{ marginBottom: "var(--sp-3)" }}>
+                <QRCode value={inviteLink} />
+              </div>
+              <div className="field">
+                <textarea className="textarea mono" rows={3} readOnly value={inviteLink} />
+              </div>
+              <Button
+                block
+                onClick={async () => {
+                  await navigator.clipboard.writeText(inviteLink);
+                  toast("Invite link copied", "success");
+                }}
+              >
+                Copy link
+              </Button>
+            </>
+          ) : (
+            <p className="muted" role="status">
+              Preparing invite link…
+            </p>
+          )}
         </Modal>
-      )}
+      ) : null}
     </Card>
   );
 }

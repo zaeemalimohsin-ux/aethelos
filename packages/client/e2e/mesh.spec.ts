@@ -72,7 +72,7 @@ test.describe("AethelOS Multi-Peer Mesh E2E", () => {
     // Bob is now in "Waiting" state
     await expect(bobPage.locator(".app-header")).toContainText("Alice Test Mesh");
     await bobPage.click('text="Community"');
-    await expect(bobPage.locator(".app-main")).toContainText("Waiting to be welcomed in");
+    await expect(bobPage.locator(".app-main")).toContainText("Waiting to join");
 
     // Extract Bob's pubkey
     const bobPubkeyCode = bobPage.locator(".join-code-box code.mono");
@@ -95,7 +95,7 @@ test.describe("AethelOS Multi-Peer Mesh E2E", () => {
     // === 4. BOB IS ADMITTED ===
     // Bob's UI should dynamically update via pubsub!
     await expect(bobPage.locator(".app-main")).toContainText(
-      "You're approved — welcome in!",
+      "Approved — accept your invitation",
       { timeout: 30000 },
     );
     await bobPage.click('button:has-text("Accept invitation")');

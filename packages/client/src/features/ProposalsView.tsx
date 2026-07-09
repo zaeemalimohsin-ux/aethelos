@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { PoolState, ProposalKind } from "@aethelos/core";
 import {
   resolveGovernanceParameter,
@@ -86,6 +86,7 @@ export function ProposalsView({ pool }: { pool: PoolState }) {
         <SuperstructureCard pool={pool} />
       </Disclosure>
       <Card eyebrow="Open decisions">
+        <AdmissionSyncHint pool={pool} />
         {proposals.length === 0 ? (
           <p className="muted">Nothing open yet — create a proposal above.</p>
         ) : (
@@ -167,6 +168,18 @@ function CreateProposal({ pool }: { pool: PoolState }) {
   );
 }
 
+function AdmissionSyncHint({ pool }: { pool: PoolState }) {
+  const highlightId = useStore((s) => s.highlightProposalId);
+  if (!highlightId) return null;
+  const proposal = pool.proposals[highlightId];
+  if (proposal) return null;
+  return (
+    <p className="hint" role="status" style={{ marginBottom: "var(--sp-3)" }}>
+      Admission vote syncing…
+    </p>
+  );
+}
+
 function ProposalRow({
   proposal,
   pool,
@@ -177,14 +190,30 @@ function ProposalRow({
   const myKey = useStore((s) => s.myKey);
   const vote = useStore((s) => s.voteProposal);
   const controller = useStore((s) => s.controller);
+  const highlightId = useStore((s) => s.highlightProposalId);
+  const clearProposalHighlight = useStore((s) => s.clearProposalHighlight);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const highlighted = highlightId === proposal.id;
   const totalStake = pool.members.reduce((sum, m) => sum + votingWeight(pool, m), 0n);
   const approvalPct =
     totalStake > 0n ? Number((proposal.votesFor * 100n) / totalStake) : 0;
   const threshold = resolveGovernanceParameter(pool, "approval_threshold");
   const isHead = pool.head === myKey;
 
+  useEffect(() => {
+    if (!highlighted) return;
+    rowRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    const timer = window.setTimeout(() => clearProposalHighlight(), 10_000);
+    return () => window.clearTimeout(timer);
+  }, [highlighted, clearProposalHighlight]);
+
   return (
-    <div className="card" style={{ background: "var(--bg)" }}>
+    <div
+      ref={rowRef}
+      className={`card proposal-row${highlighted ? " proposal-highlight" : ""}`}
+      data-testid={`proposal-${proposal.id}`}
+      style={{ background: "var(--bg)" }}
+    >
       <div className="row between">
         <strong>{PROPOSAL_LABELS[proposal.kind]}</strong>
         <span className="row" style={{ gap: "var(--sp-2)" }}>

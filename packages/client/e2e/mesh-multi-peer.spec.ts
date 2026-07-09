@@ -84,7 +84,7 @@ test.describe("AethelOS Multi-Peer Mesh (3 Peers)", () => {
 
     // Bob is approved
     await expect(bobPage.locator(".app-main")).toContainText(
-      "You're approved — welcome in!",
+      "Approved — accept your invitation",
       { timeout: 30000 },
     );
     await bobPage.click('button:has-text("Accept invitation")');
@@ -170,7 +170,7 @@ test.describe("AethelOS Multi-Peer Mesh (3 Peers)", () => {
 
     // Charlie is approved!
     await expect(charliePage.locator(".app-main")).toContainText(
-      "You're approved — welcome in!",
+      "Approved — accept your invitation",
       { timeout: 30000 },
     );
     await charliePage.click('button:has-text("Accept invitation")');

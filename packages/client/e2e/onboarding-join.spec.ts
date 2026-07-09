@@ -69,7 +69,7 @@ test("rejects join when all invite relays are unreachable", async ({ page }) => 
   await page.getByRole("button", { name: "Join this community" }).click();
 
   await expect(
-    page.getByRole("status").filter({
+    page.getByRole("alert").filter({
       hasText: "Can't reach the community mailbox",
     }),
   ).toBeVisible({ timeout: 15_000 });

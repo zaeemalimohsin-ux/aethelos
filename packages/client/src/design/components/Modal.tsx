@@ -53,10 +53,20 @@ export function Modal({ title, onClose, children }: Props) {
         className="modal"
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby="modal-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 id="modal-title">{title}</h3>
+        <div className="modal-header">
+          <h3 id="modal-title">{title}</h3>
+          <button
+            type="button"
+            className="btn ghost sm modal-close"
+            aria-label="Close"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </div>
         {children}
       </div>
     </div>
