@@ -1,5 +1,6 @@
 import type { Page, BrowserContext } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { admissionProposalId } from "@aethelos/core";
 
 export const RELAY_URL = "ws://localhost:8787";
 export const PASSWORD = "e2e-test-pass-123";
@@ -304,6 +305,22 @@ export async function bridgeApproveAdmission(page: Page, invitee: string): Promi
   );
 }
 
+/** Vote Approve on the admit_member proposal in the Proposals UI (no test bridge). */
+export async function approveAdmissionInUi(
+  founderPage: Page,
+  inviteePubkey: string,
+): Promise<void> {
+  const proposalId = admissionProposalId(inviteePubkey.trim());
+  await waitForPool(
+    founderPage,
+    (p) => p.proposals?.some((pr) => pr.id === proposalId && !pr.executed) ?? false,
+    30_000,
+  );
+  const row = founderPage.getByTestId(`proposal-${proposalId}`);
+  await expect(row).toBeVisible({ timeout: 15_000 });
+  await row.getByRole("button", { name: "Approve" }).click();
+}
+
 /** Vouch, approve admission on founder page, then accept on joiner page. */
 export async function admitJoiner(
   founderPage: Page,
@@ -313,7 +330,7 @@ export async function admitJoiner(
 ): Promise<void> {
   await sendOnChainInvite(founderPage, joinerPubkey);
   await waitForPool(founderPage, (p) => p.pendingInviteCount >= 1, 30_000);
-  await bridgeApproveAdmission(founderPage, joinerPubkey);
+  await approveAdmissionInUi(founderPage, joinerPubkey);
   await joinerPage.getByRole("button", { name: "Community" }).click();
   await expect(
     joinerPage.getByText(/Approved — accept your invitation|Accept invitation/),
@@ -408,7 +425,7 @@ export async function bridgeVouch(
   );
 }
 
-/** Star topology: one founder vouches for N joiners via the real invite UX + bridge accept. */
+/** Star topology: one founder vouches for N joiners via the real invite UX + UI admission vote. */
 export async function bootstrapStarCommunity(
   browser: any,
   cellName: string,
