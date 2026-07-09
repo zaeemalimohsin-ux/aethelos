@@ -38,10 +38,10 @@ export function ShareLinkPanel({ compact = false }: { compact?: boolean }) {
             style={{ marginTop: "var(--sp-2)" }}
             onClick={async () => {
               await navigator.clipboard.writeText(shareUrl);
-              toast("Share link copied", "success");
+              toast("Public address copied", "success");
             }}
           >
-            Copy share link
+            Copy public address
           </Button>
         </>
       ) : (
@@ -54,7 +54,7 @@ export function ShareLinkPanel({ compact = false }: { compact?: boolean }) {
             setShareBusy(false);
           }}
         >
-          {shareBusy ? "Getting share link…" : "Get share link"}
+          {shareBusy ? "Getting public address…" : "Get public address"}
         </Button>
       )}
     </div>
