@@ -691,7 +691,7 @@ export const useStore = create<AppStore>((set, get) => ({
         get().toast("You're online — invite people from Community", "success");
       } else if (tunnelStatus === "failed") {
         get().toast(
-          "Online on this network only. See Advanced → Network for a public address.",
+          "Online on this network only. Open the Connection tab for a public address.",
           "info",
         );
       } else {

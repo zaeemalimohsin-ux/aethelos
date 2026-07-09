@@ -549,7 +549,9 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
               setRelayProbed(false);
             }}
             className="mono"
-            {...(customRelay.trim() && !relayValid ? { error: "Invalid relay URL" } : {})}
+            {...(customRelay.trim() && !relayValid
+              ? { error: "Invalid connection point URL" }
+              : {})}
           />
           <Button
             variant="secondary"
@@ -844,7 +846,13 @@ function UnlockScreen() {
           style={{ marginTop: "var(--sp-3)" }}
           onClick={() => {
             clearSession();
-            useStore.setState({ session: null, phase: "onboarding", myKey: "" });
+            clearInviteFromUrl();
+            useStore.setState({
+              session: null,
+              phase: "onboarding",
+              myKey: "",
+              pendingInvite: null,
+            });
           }}
         >
           Use a different identity

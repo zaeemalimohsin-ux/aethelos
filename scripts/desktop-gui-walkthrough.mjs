@@ -346,12 +346,8 @@ async function main() {
 
     const joinerKey = await getPublicKey(joinPage);
     await page.getByRole("button", { name: "Community" }).click();
-    const panel = page.locator("details").filter({
-      has: page.getByText("They opened your link — vouch for them"),
-    });
-    await panel.locator("summary").click();
-    await panel.getByLabel("Join code").fill(joinerKey);
-    await panel.getByRole("button", { name: "Vouch and send invite" }).click();
+    await page.getByLabel("Join code").fill(joinerKey);
+    await page.getByRole("button", { name: "Vouch and send invite" }).click();
     await waitForPool(page, (p) => p.pendingInviteCount >= 1, 60_000, "founder invite");
     await approveAdmissionInUi(page, joinerKey);
     await joinPage.getByRole("button", { name: "Community" }).click();
@@ -362,9 +358,9 @@ async function main() {
       "joiner invite sync",
     );
     await joinPage
-      .getByText("The community approved your admission")
+      .getByText("Approved — accept your invitation")
       .waitFor({ timeout: 120_000 });
-    await joinPage.getByRole("button", { name: "Accept invite" }).click();
+    await joinPage.getByRole("button", { name: "Accept invitation" }).click();
 
     await waitForPool(page, (p) => p.memberCount === 2, 120_000, "founder member count");
     await waitForPool(

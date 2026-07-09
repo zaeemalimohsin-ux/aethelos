@@ -9,6 +9,7 @@ import {
   totalPoolPoints,
   votingWeight,
   MIN_EPOCH_INTERVAL_MINUTES,
+  resolveGovernanceParameter,
 } from "@aethelos/core";
 import { useStore } from "../app/store.js";
 import { Card } from "../design/components/Card.js";
@@ -376,7 +377,7 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
   const pending = Object.entries(pool.pendingInvites).filter(
     ([, inv]) => inv.inviter === myKey,
   );
-  const threshold = pool.parameters.approval_threshold;
+  const threshold = resolveGovernanceParameter(pool, "approval_threshold");
   if (pending.length === 0) return null;
   return (
     <Card eyebrow="People waiting to join">

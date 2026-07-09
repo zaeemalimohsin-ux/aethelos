@@ -51,9 +51,11 @@ export function ProposalsView({ pool }: { pool: PoolState }) {
           <p className="hint">
             {admitProposal && !admitProposal.executed
               ? `Admission vote in progress (${approvalPct.toFixed(0)}% of stake).`
-              : pool.pendingInvites[myKey]?.admissionApproved
-                ? "You're approved — accept on Community."
-                : "Waiting for your inviter to vouch and the community to vote."}
+              : admitProposal?.executed && !pool.pendingInvites[myKey]?.admissionApproved
+                ? "Vote passed — syncing admission."
+                : pool.pendingInvites[myKey]?.admissionApproved
+                  ? "You're approved — accept on Community."
+                  : "Waiting for your inviter to vouch and the community to vote."}
           </p>
         ) : null}
         <Button block onClick={() => setView("cell")}>
