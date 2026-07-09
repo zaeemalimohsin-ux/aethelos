@@ -394,8 +394,7 @@ test.describe("fracture recovery", () => {
 
     const aliceKey = await getPublicKey(pageA);
     await pageB.evaluate(
-      (recipient) =>
-        window.__aethelosTest?.dispatchSiblingDoubleSpend?.(recipient, "6"),
+      (recipient) => window.__aethelosTest?.dispatchSiblingDoubleSpend?.(recipient, "6"),
       aliceKey,
     );
 
