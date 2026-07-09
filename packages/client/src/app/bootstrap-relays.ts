@@ -320,7 +320,17 @@ export function canAttemptCommunityGenesis(): boolean {
   if (import.meta.env.DEV) return true;
   if (hasExplicitBootstrapRelays()) return true;
   const sameOrigin = sameOriginRelayUrl();
-  return sameOrigin !== null && !isLocalOnlyRelayUrl(sameOrigin);
+  if (sameOrigin === null) return false;
+  if (typeof window !== "undefined") {
+    try {
+      if (new URL(sameOrigin).host === window.location.host) {
+        return true;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  return !isLocalOnlyRelayUrl(sameOrigin);
 }
 
 export function isValidRelayUrl(url: string): boolean {

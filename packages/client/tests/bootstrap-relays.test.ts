@@ -151,7 +151,7 @@ describe("bootstrap relay pool (production)", () => {
     vi.unstubAllEnvs();
   });
 
-  it("localhost same-origin → canAttemptCommunityGenesis false in prod", () => {
+  it("localhost co-hosted publish (docker) → canAttemptCommunityGenesis true in prod", () => {
     vi.stubEnv("VITE_BOOTSTRAP_RELAYS", "");
     vi.stubEnv("VITE_DEFAULT_RELAY_URL", "");
     vi.stubGlobal("window", {
@@ -163,7 +163,7 @@ describe("bootstrap relay pool (production)", () => {
         origin: "http://localhost:8080",
       },
     });
-    expect(canAttemptCommunityGenesis()).toBe(false);
+    expect(canAttemptCommunityGenesis()).toBe(true);
   });
 
   it("public host same-origin → canAttemptCommunityGenesis true in prod", () => {
