@@ -36,14 +36,15 @@ export default defineConfig({
       use: { ...devices["Pixel 5"] },
     },
   ],
-  webServer: dockerStack || shareUrlProof
-    ? undefined
-    : {
-        command: 'npx concurrently "vite" "pnpm --filter @aethelos/relay dev"',
-        port: 5173,
-        reuseExistingServer: !process.env.CI,
-        env: {
-          VITE_E2E: "1",
+  webServer:
+    dockerStack || shareUrlProof
+      ? undefined
+      : {
+          command: 'npx concurrently "vite" "pnpm --filter @aethelos/relay dev"',
+          port: 5173,
+          reuseExistingServer: !process.env.CI,
+          env: {
+            VITE_E2E: "1",
+          },
         },
-      },
 });
