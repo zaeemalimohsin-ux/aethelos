@@ -1,9 +1,11 @@
 import { test, expect } from "@playwright/test";
+import { encodeInvite } from "../src/app/invite.js";
 import {
   bootstrapStarCommunity,
   closeContexts,
   bridgeCreateProposal,
   waitForPool,
+  PASSWORD,
 } from "./helpers.js";
 
 test.describe.configure({ timeout: 120_000 });
@@ -94,6 +96,48 @@ test.describe("Persistence & Recovery", () => {
     // And NOT show "Create a new identity" (which would mean session was wiped)
     await expect(
       founder.getByRole("button", { name: "Create a new identity" }),
+    ).not.toBeVisible();
+
+    await closeContexts(contexts);
+  });
+
+  test("unlock with queued invite opens join flow instead of saved community", async ({
+    browser,
+  }) => {
+    const { founder, contexts } = await bootstrapStarCommunity(
+      browser,
+      "Saved Community",
+      [],
+    );
+
+    const base = process.env.BASE_URL || "http://localhost:5173";
+    const payload = {
+      v: 1 as const,
+      ns: "different-ns-queued-join",
+      inviter: "d".repeat(64),
+      cell: "Queued Join Cell",
+      relays: ["ws://localhost:8787"],
+    };
+    await founder.goto(`${base}/#/join?d=${encodeInvite(payload)}`);
+    await founder.reload();
+
+    await expect(founder.getByRole("button", { name: "Unlock" })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(founder.getByText("Queued Join Cell", { exact: true })).toBeVisible();
+    await expect(founder.getByText(/not your saved one/i)).toBeVisible();
+
+    await founder.getByLabel("Passphrase").fill(PASSWORD);
+    await founder.getByRole("button", { name: "Unlock" }).click();
+
+    await expect(founder.getByText("You've been invited")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(
+      founder.getByRole("button", { name: "Join this community" }),
+    ).toBeVisible();
+    await expect(
+      founder.getByRole("button", { name: "Community", exact: true }),
     ).not.toBeVisible();
 
     await closeContexts(contexts);
