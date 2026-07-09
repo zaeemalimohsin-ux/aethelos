@@ -146,7 +146,7 @@ test.describe("federation seam", () => {
     expect(childPool.head).not.toBe(bobKey);
 
     await bobPage.getByRole("button", { name: "Proposals" }).click();
-    await bobPage.getByText("Advanced: link chapters").click();
+    await bobPage.getByText("Link chapters").click();
     await bobPage.getByLabel("Parent community ID").fill(parentNs);
     await bobPage.getByRole("button", { name: "Propose join to parent" }).click();
     await expect(bobPage.getByText("Join superstructure proposal created")).toBeVisible({

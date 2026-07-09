@@ -95,17 +95,17 @@ test.describe("AethelOS Multi-Peer Mesh (3 Peers)", () => {
     // === 2.5. ALICE TRANSFERS POINTS TO BOB ===
     // Bob needs points to afford the vouch lien for Charlie
     await alicePage.click('text="Community"');
-    // The "Send Value" card has a select for "Send to"
+    // The "Send Points" card has a select for "Send to"
     await alicePage
-      .locator(".card", { hasText: "Send Value" })
+      .locator(".card", { hasText: "Send Points" })
       .locator("select")
       .selectOption(bobPubkey);
     await alicePage
-      .locator(".card", { hasText: "Send Value" })
-      .getByLabel("Amount (Value)")
+      .locator(".card", { hasText: "Send Points" })
+      .getByLabel("Amount (Points)")
       .fill("1000");
     await alicePage
-      .locator(".card", { hasText: "Send Value" })
+      .locator(".card", { hasText: "Send Points" })
       .locator('button:has-text("Send")')
       .click();
 

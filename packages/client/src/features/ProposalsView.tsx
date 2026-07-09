@@ -125,7 +125,7 @@ function CreateProposal({ pool }: { pool: PoolState }) {
           ))}
           {ADVANCED_PROPOSAL_KINDS.map((k) => (
             <option key={k} value={k}>
-              {PROPOSAL_LABELS[k]} (advanced)
+              {PROPOSAL_LABELS[k]} (linked chapters)
             </option>
           ))}
         </select>

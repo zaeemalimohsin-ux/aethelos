@@ -46,10 +46,10 @@ test.describe("UI Chaos Engineering", () => {
 
     // Make sure we are on Community View
     await founder.getByRole("button", { name: "Community", exact: true }).click();
-    await founder.waitForSelector("text=Send Value");
+    await founder.waitForSelector("text=Send Points");
 
     // Try to send -500 points (invalid amount)
-    await founder.getByLabel("Amount (Value)").fill("-500");
+    await founder.getByLabel("Amount (Points)").fill("-500");
     const sendButton = founder.locator('button:has-text("Send transaction")');
     await expect(sendButton).toBeDisabled();
 

@@ -75,7 +75,7 @@ test.describe("economy & transfers", () => {
     const joiner = before!.members.find((m) => m !== before!.members[0])!;
 
     await pageA.getByLabel("Send to").selectOption(joiner);
-    await pageA.getByLabel("Amount (Value)").fill("1000");
+    await pageA.getByLabel("Amount (Points)").fill("1000");
     await pageA.getByRole("button", { name: "Send transaction" }).click();
 
     await waitForConvergence(
@@ -292,7 +292,7 @@ test.describe("fracture recovery", () => {
     await waitForMemberCount(pageB, 2);
 
     await pageA.getByLabel("Send to").selectOption(joinerKey);
-    await pageA.getByLabel("Amount (Value)").fill("10");
+    await pageA.getByLabel("Amount (Points)").fill("10");
     await pageA.getByRole("button", { name: "Send transaction" }).click();
     await waitForPool(pageB, (p) => p.balances[joinerKey] > 0);
 
@@ -339,7 +339,7 @@ test.describe("fracture recovery", () => {
     await waitForMemberCount(pageB, 2);
 
     await pageA.getByLabel("Send to").selectOption(joinerKey);
-    await pageA.getByLabel("Amount (Value)").fill("10");
+    await pageA.getByLabel("Amount (Points)").fill("10");
     await pageA.getByRole("button", { name: "Send transaction" }).click();
     await waitForPool(pageB, (p) => p.balances[joinerKey] > 0);
 
@@ -388,7 +388,7 @@ test.describe("fracture recovery", () => {
     await waitForMemberCount(pageB, 2);
 
     await pageA.getByLabel("Send to").selectOption(joinerKey);
-    await pageA.getByLabel("Amount (Value)").fill("10");
+    await pageA.getByLabel("Amount (Points)").fill("10");
     await pageA.getByRole("button", { name: "Send transaction" }).click();
     await waitForPool(pageB, (p) => p.balances[joinerKey] > 0);
 
