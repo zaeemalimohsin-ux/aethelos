@@ -561,7 +561,12 @@ function InviteCard({
                 <QRCode value={inviteLink} />
               </div>
               <div className="field">
-                <textarea className="textarea mono" rows={3} readOnly value={inviteLink} />
+                <textarea
+                  className="textarea mono"
+                  rows={3}
+                  readOnly
+                  value={inviteLink}
+                />
               </div>
               <Button
                 block
