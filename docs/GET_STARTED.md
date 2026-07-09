@@ -18,7 +18,7 @@
 2. **Create a new identity** → save your recovery phrase → **Start a community**.
 3. On the **Community** tab, tap **Invite people** and send the link or QR to anyone.
 
-The app connects in the background. Operators can tune hosting under **Identity → Advanced → network**.
+The app connects in the background. Operators can tune hosting under the **Connection** tab.
 
 ---
 

@@ -370,4 +370,61 @@ test.describe("fracture recovery", () => {
     await ctxA.close();
     await ctxB.close();
   });
+
+  test("joiner double-spend freezes offender UI and founder resolves via proposal", async ({
+    browser,
+  }) => {
+    const ctxA = await freshContext(browser);
+    const ctxB = await freshContext(browser);
+    const pageA = await ctxA.newPage();
+    const pageB = await ctxB.newPage();
+
+    await onboardGenesis(pageA, "Alice", "Charter A Cell");
+    const inviteLink = await buildInviteLink(pageA);
+    await joinViaInviteLink(pageB, inviteLink);
+    const joinerKey = await getPublicKey(pageB);
+    await admitJoiner(pageA, pageB, joinerKey);
+    await waitForMemberCount(pageA, 2);
+    await waitForMemberCount(pageB, 2);
+
+    await pageA.getByLabel("Send to").selectOption(joinerKey);
+    await pageA.getByLabel("Amount (Value)").fill("10");
+    await pageA.getByRole("button", { name: "Send transaction" }).click();
+    await waitForPool(pageB, (p) => p.balances[joinerKey] > 0);
+
+    const aliceKey = await getPublicKey(pageA);
+    await pageB.evaluate(
+      (recipient) =>
+        window.__aethelosTest?.dispatchSiblingDoubleSpend?.(recipient, "6"),
+      aliceKey,
+    );
+
+    await waitForPool(pageB, (p) => (p.fractures ?? []).includes(joinerKey));
+    await waitForPool(pageA, (p) => (p.fractures ?? []).includes(joinerKey), 30_000);
+
+    await pageB.getByRole("button", { name: "Community" }).click();
+    await expect(
+      pageB.getByText("Your account is frozen after suspicious activity"),
+    ).toBeVisible();
+    await expect(pageB.locator(".badge.danger", { hasText: "Frozen" })).toBeVisible();
+    await expect(pageB.getByRole("button", { name: "Send transaction" })).toHaveCount(0);
+
+    await pageA.getByRole("button", { name: "Proposals" }).click();
+    await expect(pageA.locator(".alert.danger")).toContainText(
+      "paused after suspicious activity",
+    );
+    await pageA.locator("#kind").selectOption("resolve_fracture");
+    await pageA.getByLabel("About who?").selectOption(joinerKey);
+    await pageA.getByRole("button", { name: "Start proposal" }).click();
+    await pageA.getByRole("button", { name: "Approve" }).first().click();
+
+    await waitForPool(pageA, (p) => p.fractures.length === 0, 30_000);
+    await waitForPool(pageB, (p) => p.fractures.length === 0, 30_000);
+    await expect(
+      pageB.getByText("Your account is frozen after suspicious activity"),
+    ).not.toBeVisible();
+
+    await ctxA.close();
+    await ctxB.close();
+  });
 });

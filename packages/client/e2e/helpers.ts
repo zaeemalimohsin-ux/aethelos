@@ -25,6 +25,8 @@ export interface PoolSummary {
   parentSuperstructures: string[];
   pendingInviteCount: number;
   proposalCount: number;
+  fractures?: string[];
+  frozen?: string[];
   proposals?: Array<{
     id: string;
     kind: string;

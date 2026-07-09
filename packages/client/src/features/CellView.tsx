@@ -33,7 +33,6 @@ import { connectionStatusMessage } from "../app/active-relays.js";
 export function CellView({ pool }: { pool: PoolState }) {
   const controller = useStore((s) => s.controller)!;
   const myKey = useStore((s) => s.myKey);
-  const displayName = useStore((s) => s.displayName);
   const transfer = useStore((s) => s.transfer);
   const invite = useStore((s) => s.invite);
 

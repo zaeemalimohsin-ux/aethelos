@@ -64,7 +64,7 @@ After vouching, the app opens Proposals and highlights the admission vote. Use *
 - The header shows **Connected**, **Syncing…**, or **Offline**. Actions queue offline and send when you're back.
 - **App update?** When a new version is ready, use **Reload now** on the banner at the top.
 - **Lost device or new phone:** Install AethelOS elsewhere and choose **Restore from recovery phrase** (identity only). Reconnect your community by pasting your **invite link** again or importing an **event log** export from another device.
-- **Operators:** **Identity → Advanced → network** for connection endpoints and hosting.
+- **Operators:** **Connection tab** for connection endpoints and hosting.
 
 ## A note on privacy
 

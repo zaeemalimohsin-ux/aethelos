@@ -13,9 +13,9 @@ import {
   sharePercent,
   TIMESTAMP_FORWARD_SKEW_MS,
   totalPoolPoints,
-  votingWeight,
   requiredVouchLien,
   formatPointsAmount,
+  type EventPayload,
   type GovernanceParameter,
   type ProposalKind,
 } from "@aethelos/core";
@@ -520,7 +520,7 @@ export class NodeController {
 
   async createProposal(
     proposalId: string,
-    kind: import("@aethelos/core").ProposalKind,
+    kind: ProposalKind,
     data: Record<string, string>,
   ): Promise<void> {
     await this.sync.publish({
@@ -623,7 +623,7 @@ export class NodeController {
       lamport: 0,
       author: this.keyPair.publicKeyHex,
       timestamp: Date.now(),
-      payload: payload as any,
+      payload: payload as EventPayload,
     });
     this.recompute();
   }

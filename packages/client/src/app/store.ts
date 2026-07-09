@@ -30,7 +30,6 @@ import {
   saveSession,
   clearSession,
   selectRelaysForCommunity,
-  resolveRelaysForCommunity,
   isValidRelayUrl,
   type Session,
 } from "./session.js";
