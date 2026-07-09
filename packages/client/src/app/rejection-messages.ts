@@ -20,7 +20,6 @@ const USER_MESSAGES: Record<string, string> = {
 
 export function rejectionMessage(reason: string): string {
   return (
-    USER_MESSAGES[reason] ??
-    `That action was blocked (${reason.replace(/_/g, " ")}).`
+    USER_MESSAGES[reason] ?? `That action was blocked (${reason.replace(/_/g, " ")}).`
   );
 }

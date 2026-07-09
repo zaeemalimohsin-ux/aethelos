@@ -508,7 +508,11 @@ describe("governance fixes", () => {
       kind: "join_superstructure",
       data: { target: superId },
     });
-    await push(alice, { type: "proposal_vote", proposalId: "join-by-bob", approve: true });
+    await push(alice, {
+      type: "proposal_vote",
+      proposalId: "join-by-bob",
+      approve: true,
+    });
     await push(bob, { type: "proposal_vote", proposalId: "join-by-bob", approve: true });
 
     const s = reduceEvents(ns, events);
@@ -599,7 +603,11 @@ describe("governance fixes", () => {
       kind: "join_superstructure",
       data: { target: superId },
     });
-    await push(bob, { type: "proposal_vote", proposalId: "join-headless", approve: true });
+    await push(bob, {
+      type: "proposal_vote",
+      proposalId: "join-headless",
+      approve: true,
+    });
 
     const s = reduceEvents(ns, events);
     expect(s.parentSuperstructures).toContain(superId);

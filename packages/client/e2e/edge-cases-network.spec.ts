@@ -12,8 +12,9 @@ import {
 } from "./helpers.js";
 
 test.describe("Network & Sync Edge Cases", () => {
-
-  test("event log DB wipe - app shows locked (not onboarding) because keystore survives", async ({ browser }) => {
+  test("event log DB wipe - app shows locked (not onboarding) because keystore survives", async ({
+    browser,
+  }) => {
     test.setTimeout(90_000);
     const peer = await OmniHarness.launchPeer(browser as any);
     const page = peer.page;
@@ -47,21 +48,26 @@ test.describe("Network & Sync Edge Cases", () => {
       // the LOCKED screen, NOT the onboarding "Create a new identity" screen.
       // This is correct UX: the user's identity key is safe, only their cached
       // events were lost. They will re-sync from the relay on next unlock.
-      await expect(page.getByRole("button", { name: "Unlock" })).toBeVisible({ timeout: 10_000 });
-      await expect(page.getByRole("button", { name: "Create a new identity" })).not.toBeVisible();
-
+      await expect(page.getByRole("button", { name: "Unlock" })).toBeVisible({
+        timeout: 10_000,
+      });
+      await expect(
+        page.getByRole("button", { name: "Create a new identity" }),
+      ).not.toBeVisible();
     } finally {
       await peer.close();
     }
   });
 
-  test("app recovers empty event log by syncing from relay after unlock", async ({ browser }) => {
+  test("app recovers empty event log by syncing from relay after unlock", async ({
+    browser,
+  }) => {
     test.setTimeout(120_000);
     // This test verifies that after event log wipe, syncing from relay restores pool state.
     const { founder, contexts } = await bootstrapStarCommunity(
       browser,
       "Relay Recovery",
-      []
+      [],
     );
 
     // Create some state to validate recovery
@@ -88,7 +94,9 @@ test.describe("Network & Sync Edge Cases", () => {
     // Reload and unlock
     await founder.reload();
     await founder.waitForTimeout(1000);
-    await expect(founder.getByRole("button", { name: "Unlock" })).toBeVisible({ timeout: 10_000 });
+    await expect(founder.getByRole("button", { name: "Unlock" })).toBeVisible({
+      timeout: 10_000,
+    });
     await founder.getByLabel("Passphrase").fill("e2e-test-pass-123");
     await founder.getByRole("button", { name: "Unlock" }).click();
 
@@ -99,12 +107,14 @@ test.describe("Network & Sync Edge Cases", () => {
     await closeContexts(contexts);
   });
 
-  test("client reconnects after going offline and outbox flushes on reconnect", async ({ browser }) => {
+  test("client reconnects after going offline and outbox flushes on reconnect", async ({
+    browser,
+  }) => {
     test.setTimeout(120_000);
     const { founder, contexts } = await bootstrapStarCommunity(
       browser,
       "Offline Resilience",
-      []
+      [],
     );
 
     // Go offline
@@ -117,7 +127,9 @@ test.describe("Network & Sync Edge Cases", () => {
     await founder.waitForTimeout(1000);
 
     // Check outbox has something pending
-    const syncStatus = await founder.evaluate(() => window.__aethelosTest?.getSyncStatus?.());
+    const syncStatus = await founder.evaluate(() =>
+      window.__aethelosTest?.getSyncStatus?.(),
+    );
     // When offline, the event is still applied locally even if not sent to relay
     const poolAfterOffline = await getPoolSummary(founder);
     expect(poolAfterOffline?.proposalCount ?? 0).toBeGreaterThanOrEqual(1);
@@ -158,19 +170,20 @@ test.describe("Network & Sync Edge Cases", () => {
 
       // App should reconnect and show online again
       await expect(page.locator(".dot.online")).toBeVisible({ timeout: 30_000 });
-
     } finally {
       await peer.close();
     }
   });
 
-  test("CRDT merge: two peers diverge offline then converge on reconnect", async ({ browser }) => {
+  test("CRDT merge: two peers diverge offline then converge on reconnect", async ({
+    browser,
+  }) => {
     test.setTimeout(180_000);
     // Bootstrap with two peers
     const { founder, joiners, contexts } = await bootstrapStarCommunity(
       browser,
       "Diverge Converge",
-      ["Joiner"]
+      ["Joiner"],
     );
     const joiner = joiners[0]!;
 
@@ -205,7 +218,7 @@ test.describe("Network & Sync Edge Cases", () => {
       founder,
       joiner,
       (a, b) => a.proposalCount >= 2 && b.proposalCount >= 2,
-      120_000
+      120_000,
     );
 
     await closeContexts(contexts);

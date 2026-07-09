@@ -269,7 +269,9 @@ export function installTestBridge(): void {
 
     async dispatchSiblingDoubleSpend(to: string, amount: string) {
       // True fork: two signed spends sharing the same prevHash.
-      await useStore.getState().controller?.dispatchSiblingDoubleSpendForTesting(to, amount);
+      await useStore
+        .getState()
+        .controller?.dispatchSiblingDoubleSpendForTesting(to, amount);
     },
   };
 

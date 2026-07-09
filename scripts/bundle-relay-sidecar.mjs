@@ -12,7 +12,10 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const relayEntry = join(root, "packages/relay/dist/index.js");
 const outDir = join(root, "packages/client-tauri/src-tauri/resources/relay");
 const outfile = join(outDir, "server.cjs");
-const androidOutDir = join(root, "packages/client/android/app/src/main/assets/nodejs-project");
+const androidOutDir = join(
+  root,
+  "packages/client/android/app/src/main/assets/nodejs-project",
+);
 const androidOutfile = join(androidOutDir, "main.js");
 
 console.log("Building @aethelos/core and @aethelos/relay...");

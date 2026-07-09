@@ -113,7 +113,10 @@ describe("bootstrap relay pool", () => {
   it("probeAnyRelay returns true when one relay is live", async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", fetchMock);
-    const result = await probeAnyRelay(["wss://live.example.com/ws", "wss://dead.example.com/ws"]);
+    const result = await probeAnyRelay([
+      "wss://live.example.com/ws",
+      "wss://dead.example.com/ws",
+    ]);
     expect(result).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     vi.unstubAllGlobals();
@@ -121,9 +124,9 @@ describe("bootstrap relay pool", () => {
 
   it("probeAnyRelay returns false when all relays fail", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
-    expect(await probeAnyRelay(["wss://dead1.example.com/ws", "wss://dead2.example.com/ws"])).toBe(
-      false,
-    );
+    expect(
+      await probeAnyRelay(["wss://dead1.example.com/ws", "wss://dead2.example.com/ws"]),
+    ).toBe(false);
     vi.unstubAllGlobals();
   });
 });

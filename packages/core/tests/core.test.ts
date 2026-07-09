@@ -550,7 +550,11 @@ describe("slider pruning on expulsion", () => {
       target: founder.publicKeyHex,
       value: 60,
     });
-    await push(joiner, { type: "vouch_update", target: founder.publicKeyHex, weight: 40 });
+    await push(joiner, {
+      type: "vouch_update",
+      target: founder.publicKeyHex,
+      weight: 40,
+    });
     // Expel the joiner (founder holds the stake to cross threshold).
     await push(founder, {
       type: "proposal_create",

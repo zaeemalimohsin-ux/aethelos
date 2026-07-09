@@ -565,35 +565,86 @@ describe("Charter A (P1.3): Fracture and Recovery", () => {
     const alice = await generateKeyPair(); // Head
     const bob = await generateKeyPair(); // Double spender
     const ns = "charter-a";
-    
+
     // Setup
     const g = await genesis(ns, alice, "1000");
-    const invite = await signEvent({
-      namespaceId: ns, prevHash: g.id, lamport: 2, author: alice.publicKeyHex, timestamp: 2,
-      payload: { type: "invite", invitee: bob.publicKeyHex, vouchBondAmount: "100", parameters: DEFAULT_PARAMETERS }
-    }, alice.privateKey);
-    const admitVote = await signEvent({
-      namespaceId: ns, prevHash: invite.id, lamport: 3, author: alice.publicKeyHex, timestamp: 3,
-      payload: { type: "proposal_vote", proposalId: admissionProposalId(bob.publicKeyHex), approve: true }
-    }, alice.privateKey);
-    const accept = await signEvent({
-      namespaceId: ns, prevHash: admitVote.id, lamport: 4, author: bob.publicKeyHex, timestamp: 4,
-      payload: { type: "accept_invite", inviter: alice.publicKeyHex }
-    }, bob.privateKey);
-    const fund = await signEvent({
-      namespaceId: ns, prevHash: accept.id, lamport: 5, author: alice.publicKeyHex, timestamp: 5,
-      payload: { type: "transaction", to: bob.publicKeyHex, amount: "500" }
-    }, alice.privateKey);
+    const invite = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: alice.publicKeyHex,
+        timestamp: 2,
+        payload: {
+          type: "invite",
+          invitee: bob.publicKeyHex,
+          vouchBondAmount: "100",
+          parameters: DEFAULT_PARAMETERS,
+        },
+      },
+      alice.privateKey,
+    );
+    const admitVote = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: invite.id,
+        lamport: 3,
+        author: alice.publicKeyHex,
+        timestamp: 3,
+        payload: {
+          type: "proposal_vote",
+          proposalId: admissionProposalId(bob.publicKeyHex),
+          approve: true,
+        },
+      },
+      alice.privateKey,
+    );
+    const accept = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: admitVote.id,
+        lamport: 4,
+        author: bob.publicKeyHex,
+        timestamp: 4,
+        payload: { type: "accept_invite", inviter: alice.publicKeyHex },
+      },
+      bob.privateKey,
+    );
+    const fund = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: accept.id,
+        lamport: 5,
+        author: alice.publicKeyHex,
+        timestamp: 5,
+        payload: { type: "transaction", to: bob.publicKeyHex, amount: "500" },
+      },
+      alice.privateKey,
+    );
 
     // Double spend
-    const tx1 = await signEvent({
-      namespaceId: ns, prevHash: fund.id, lamport: 6, author: bob.publicKeyHex, timestamp: 6,
-      payload: { type: "transaction", to: alice.publicKeyHex, amount: "500" }
-    }, bob.privateKey);
-    const tx2 = await signEvent({
-      namespaceId: ns, prevHash: fund.id, lamport: 7, author: bob.publicKeyHex, timestamp: 7,
-      payload: { type: "transaction", to: alice.publicKeyHex, amount: "500" }
-    }, bob.privateKey);
+    const tx1 = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: fund.id,
+        lamport: 6,
+        author: bob.publicKeyHex,
+        timestamp: 6,
+        payload: { type: "transaction", to: alice.publicKeyHex, amount: "500" },
+      },
+      bob.privateKey,
+    );
+    const tx2 = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: fund.id,
+        lamport: 7,
+        author: bob.publicKeyHex,
+        timestamp: 7,
+        payload: { type: "transaction", to: alice.publicKeyHex, amount: "500" },
+      },
+      bob.privateKey,
+    );
 
     let state = reduceEvents(ns, [g, invite, admitVote, accept, fund, tx1, tx2]);
     expect(state.fractures).toContain(bob.publicKeyHex);
@@ -601,16 +652,45 @@ describe("Charter A (P1.3): Fracture and Recovery", () => {
 
     // Unfreeze recovery
     const propId = "unfreeze-bob-1";
-    const createProp = await signEvent({
-      namespaceId: ns, prevHash: tx2.id, lamport: 8, author: alice.publicKeyHex, timestamp: 8,
-      payload: { type: "proposal_create", proposalId: propId, kind: "resolve_fracture", data: { target: bob.publicKeyHex, action: "unfreeze" } }
-    }, alice.privateKey);
-    const voteProp = await signEvent({
-      namespaceId: ns, prevHash: createProp.id, lamport: 9, author: alice.publicKeyHex, timestamp: 9,
-      payload: { type: "proposal_vote", proposalId: propId, approve: true }
-    }, alice.privateKey);
+    const createProp = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: tx2.id,
+        lamport: 8,
+        author: alice.publicKeyHex,
+        timestamp: 8,
+        payload: {
+          type: "proposal_create",
+          proposalId: propId,
+          kind: "resolve_fracture",
+          data: { target: bob.publicKeyHex, action: "unfreeze" },
+        },
+      },
+      alice.privateKey,
+    );
+    const voteProp = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: createProp.id,
+        lamport: 9,
+        author: alice.publicKeyHex,
+        timestamp: 9,
+        payload: { type: "proposal_vote", proposalId: propId, approve: true },
+      },
+      alice.privateKey,
+    );
 
-    state = reduceEvents(ns, [g, invite, admitVote, accept, fund, tx1, tx2, createProp, voteProp]);
+    state = reduceEvents(ns, [
+      g,
+      invite,
+      admitVote,
+      accept,
+      fund,
+      tx1,
+      tx2,
+      createProp,
+      voteProp,
+    ]);
     expect(state.frozen).not.toContain(bob.publicKeyHex); // Successfully recovered
   });
 });
@@ -623,41 +703,103 @@ describe("Charter B (P4.5): Head-only Proposal Closures", () => {
     const ns = "charter-b";
 
     const g = await genesis(ns, head, "1000");
-    const invite = await signEvent({
-      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 2,
-      payload: { type: "invite", invitee: pleb.publicKeyHex, vouchBondAmount: "100", parameters: DEFAULT_PARAMETERS }
-    }, head.privateKey);
-    const admitVote = await signEvent({
-      namespaceId: ns, prevHash: invite.id, lamport: 3, author: head.publicKeyHex, timestamp: 3,
-      payload: { type: "proposal_vote", proposalId: admissionProposalId(pleb.publicKeyHex), approve: true }
-    }, head.privateKey);
-    const accept = await signEvent({
-      namespaceId: ns, prevHash: admitVote.id, lamport: 4, author: pleb.publicKeyHex, timestamp: 4,
-      payload: { type: "accept_invite", inviter: head.publicKeyHex }
-    }, pleb.privateKey);
+    const invite = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: head.publicKeyHex,
+        timestamp: 2,
+        payload: {
+          type: "invite",
+          invitee: pleb.publicKeyHex,
+          vouchBondAmount: "100",
+          parameters: DEFAULT_PARAMETERS,
+        },
+      },
+      head.privateKey,
+    );
+    const admitVote = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: invite.id,
+        lamport: 3,
+        author: head.publicKeyHex,
+        timestamp: 3,
+        payload: {
+          type: "proposal_vote",
+          proposalId: admissionProposalId(pleb.publicKeyHex),
+          approve: true,
+        },
+      },
+      head.privateKey,
+    );
+    const accept = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: admitVote.id,
+        lamport: 4,
+        author: pleb.publicKeyHex,
+        timestamp: 4,
+        payload: { type: "accept_invite", inviter: head.publicKeyHex },
+      },
+      pleb.privateKey,
+    );
     const propId = "test-prop";
-    const createProp = await signEvent({
-      namespaceId: ns, prevHash: accept.id, lamport: 5, author: head.publicKeyHex, timestamp: 5,
-      payload: { type: "proposal_create", proposalId: propId, kind: "join_superstructure", data: { target: "remote" } }
-    }, head.privateKey);
+    const createProp = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: accept.id,
+        lamport: 5,
+        author: head.publicKeyHex,
+        timestamp: 5,
+        payload: {
+          type: "proposal_create",
+          proposalId: propId,
+          kind: "join_superstructure",
+          data: { target: "remote" },
+        },
+      },
+      head.privateKey,
+    );
 
     // Pleb tries to close
-    const plebClose = await signEvent({
-      namespaceId: ns, prevHash: createProp.id, lamport: 6, author: pleb.publicKeyHex, timestamp: 6,
-      payload: { type: "proposal_close", proposalId: propId }
-    }, pleb.privateKey);
+    const plebClose = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: createProp.id,
+        lamport: 6,
+        author: pleb.publicKeyHex,
+        timestamp: 6,
+        payload: { type: "proposal_close", proposalId: propId },
+      },
+      pleb.privateKey,
+    );
 
-    const statePleb = reduceOneSync(reduceEvents(ns, [g, invite, admitVote, accept, createProp]), plebClose);
+    const statePleb = reduceOneSync(
+      reduceEvents(ns, [g, invite, admitVote, accept, createProp]),
+      plebClose,
+    );
     expect(statePleb.ok).toBe(false);
     expect(statePleb.reason).toBe("head_only");
 
     // Head tries to close
-    const headClose = await signEvent({
-      namespaceId: ns, prevHash: createProp.id, lamport: 7, author: head.publicKeyHex, timestamp: 7,
-      payload: { type: "proposal_close", proposalId: propId }
-    }, head.privateKey);
+    const headClose = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: createProp.id,
+        lamport: 7,
+        author: head.publicKeyHex,
+        timestamp: 7,
+        payload: { type: "proposal_close", proposalId: propId },
+      },
+      head.privateKey,
+    );
 
-    const stateHead = reduceOneSync(reduceEvents(ns, [g, invite, admitVote, accept, createProp]), headClose);
+    const stateHead = reduceOneSync(
+      reduceEvents(ns, [g, invite, admitVote, accept, createProp]),
+      headClose,
+    );
     expect(stateHead.ok).toBe(true);
     expect(stateHead.state.proposals[propId]?.closed).toBe(true);
   });
@@ -671,39 +813,94 @@ describe("Charter C (P5.2): Dictator Rejection", () => {
     const ns = "charter-c";
 
     const g = await genesis(ns, head, "1000");
-    const invite = await signEvent({
-      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 2,
-      payload: { type: "invite", invitee: pleb.publicKeyHex, vouchBondAmount: "100", parameters: DEFAULT_PARAMETERS }
-    }, head.privateKey);
-    const admitVote = await signEvent({
-      namespaceId: ns, prevHash: invite.id, lamport: 3, author: head.publicKeyHex, timestamp: 3,
-      payload: { type: "proposal_vote", proposalId: admissionProposalId(pleb.publicKeyHex), approve: true }
-    }, head.privateKey);
-    const accept = await signEvent({
-      namespaceId: ns, prevHash: admitVote.id, lamport: 4, author: pleb.publicKeyHex, timestamp: 4,
-      payload: { type: "accept_invite", inviter: head.publicKeyHex }
-    }, pleb.privateKey);
-    const fund = await signEvent({
-      namespaceId: ns, prevHash: accept.id, lamport: 5, author: head.publicKeyHex, timestamp: 5,
-      payload: { type: "transaction", to: pleb.publicKeyHex, amount: "500" }
-    }, head.privateKey);
+    const invite = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: head.publicKeyHex,
+        timestamp: 2,
+        payload: {
+          type: "invite",
+          invitee: pleb.publicKeyHex,
+          vouchBondAmount: "100",
+          parameters: DEFAULT_PARAMETERS,
+        },
+      },
+      head.privateKey,
+    );
+    const admitVote = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: invite.id,
+        lamport: 3,
+        author: head.publicKeyHex,
+        timestamp: 3,
+        payload: {
+          type: "proposal_vote",
+          proposalId: admissionProposalId(pleb.publicKeyHex),
+          approve: true,
+        },
+      },
+      head.privateKey,
+    );
+    const accept = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: admitVote.id,
+        lamport: 4,
+        author: pleb.publicKeyHex,
+        timestamp: 4,
+        payload: { type: "accept_invite", inviter: head.publicKeyHex },
+      },
+      pleb.privateKey,
+    );
+    const fund = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: accept.id,
+        lamport: 5,
+        author: head.publicKeyHex,
+        timestamp: 5,
+        payload: { type: "transaction", to: pleb.publicKeyHex, amount: "500" },
+      },
+      head.privateKey,
+    );
 
     const baseState = reduceEvents(ns, [g, invite, admitVote, accept, fund]);
 
     // Dictator attempts to expel pleb directly without a proposal
-    const fiatExpel = await signEvent({
-      namespaceId: ns, prevHash: fund.id, lamport: 6, author: head.publicKeyHex, timestamp: 6,
-      payload: { type: "expel", target: pleb.publicKeyHex }
-    }, head.privateKey);
+    const fiatExpel = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: fund.id,
+        lamport: 6,
+        author: head.publicKeyHex,
+        timestamp: 6,
+        payload: { type: "expel", target: pleb.publicKeyHex },
+      },
+      head.privateKey,
+    );
     const expelResult = reduceOneSync(baseState, fiatExpel);
     expect(expelResult.ok).toBe(false);
     expect(expelResult.reason).toBe("use_proposal");
 
     // Dictator attempts to unfreeze someone directly
-    const fiatUnfreeze = await signEvent({
-      namespaceId: ns, prevHash: fund.id, lamport: 7, author: head.publicKeyHex, timestamp: 7,
-      payload: { type: "freeze_resolve", target: pleb.publicKeyHex, action: "unfreeze" }
-    }, head.privateKey);
+    const fiatUnfreeze = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: fund.id,
+        lamport: 7,
+        author: head.publicKeyHex,
+        timestamp: 7,
+        payload: {
+          type: "freeze_resolve",
+          target: pleb.publicKeyHex,
+          action: "unfreeze",
+        },
+      },
+      head.privateKey,
+    );
     const unfreezeResult = reduceOneSync(baseState, fiatUnfreeze);
     expect(unfreezeResult.ok).toBe(false);
     expect(unfreezeResult.reason).toBe("use_proposal");
@@ -717,27 +914,49 @@ describe("Malicious Payload Exploits", () => {
     const g = await genesis(ns, head, "1000");
 
     // Attack 1: NaN Slider
-    const attackNan = await signEvent({
-      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 2,
-      payload: { type: "slider_update", parameter: "approval_threshold", value: NaN }
-    }, head.privateKey);
+    const attackNan = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: head.publicKeyHex,
+        timestamp: 2,
+        payload: { type: "slider_update", parameter: "approval_threshold", value: NaN },
+      },
+      head.privateKey,
+    );
 
     const resNan = reduceOneSync(reduceEvents(ns, [g]), attackNan);
-    // It should either reject it or sanitize it to a valid number. 
+    // It should either reject it or sanitize it to a valid number.
     // Right now, NaN gets clamped to NaN because Math.max(0, Math.min(100, NaN)) -> NaN
-    // We expect the state after NaN to not have NaN. 
+    // We expect the state after NaN to not have NaN.
     // Let's verify our clamp function gets patched to fix this!
-    expect(resNan.state.governanceSliders[head.publicKeyHex]!["approval_threshold"]).not.toBeNaN();
+    expect(
+      resNan.state.governanceSliders[head.publicKeyHex]!["approval_threshold"],
+    ).not.toBeNaN();
 
     // Attack 2: Infinity Slider
-    const attackInf = await signEvent({
-      namespaceId: ns, prevHash: g.id, lamport: 3, author: head.publicKeyHex, timestamp: 3,
-      payload: { type: "slider_update", parameter: "approval_threshold", value: Infinity }
-    }, head.privateKey);
+    const attackInf = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 3,
+        author: head.publicKeyHex,
+        timestamp: 3,
+        payload: {
+          type: "slider_update",
+          parameter: "approval_threshold",
+          value: Infinity,
+        },
+      },
+      head.privateKey,
+    );
 
     const resInf = reduceOneSync(reduceEvents(ns, [g]), attackInf);
     // Should be clamped to 100
-    expect(resInf.state.governanceSliders[head.publicKeyHex]!["approval_threshold"]).toBe(100);
+    expect(resInf.state.governanceSliders[head.publicKeyHex]!["approval_threshold"]).toBe(
+      100,
+    );
   });
 
   it("handles negative transaction amounts gracefully", async () => {
@@ -745,26 +964,66 @@ describe("Malicious Payload Exploits", () => {
     const pleb = await generateKeyPair();
     const ns = "negative-amount";
     const g = await genesis(ns, head, "1000");
-    const invite = await signEvent({
-      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 2,
-      payload: { type: "invite", invitee: pleb.publicKeyHex, vouchBondAmount: "100", parameters: DEFAULT_PARAMETERS }
-    }, head.privateKey);
-    const admitVote = await signEvent({
-      namespaceId: ns, prevHash: invite.id, lamport: 3, author: head.publicKeyHex, timestamp: 3,
-      payload: { type: "proposal_vote", proposalId: admissionProposalId(pleb.publicKeyHex), approve: true }
-    }, head.privateKey);
-    const accept = await signEvent({
-      namespaceId: ns, prevHash: admitVote.id, lamport: 4, author: pleb.publicKeyHex, timestamp: 4,
-      payload: { type: "accept_invite", inviter: head.publicKeyHex }
-    }, pleb.privateKey);
+    const invite = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: head.publicKeyHex,
+        timestamp: 2,
+        payload: {
+          type: "invite",
+          invitee: pleb.publicKeyHex,
+          vouchBondAmount: "100",
+          parameters: DEFAULT_PARAMETERS,
+        },
+      },
+      head.privateKey,
+    );
+    const admitVote = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: invite.id,
+        lamport: 3,
+        author: head.publicKeyHex,
+        timestamp: 3,
+        payload: {
+          type: "proposal_vote",
+          proposalId: admissionProposalId(pleb.publicKeyHex),
+          approve: true,
+        },
+      },
+      head.privateKey,
+    );
+    const accept = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: admitVote.id,
+        lamport: 4,
+        author: pleb.publicKeyHex,
+        timestamp: 4,
+        payload: { type: "accept_invite", inviter: head.publicKeyHex },
+      },
+      pleb.privateKey,
+    );
 
     // Attack 3: Send negative amount (to steal points)
-    const attackNeg = await signEvent({
-      namespaceId: ns, prevHash: accept.id, lamport: 5, author: pleb.publicKeyHex, timestamp: 5,
-      payload: { type: "transaction", to: head.publicKeyHex, amount: "-500" }
-    }, pleb.privateKey);
+    const attackNeg = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: accept.id,
+        lamport: 5,
+        author: pleb.publicKeyHex,
+        timestamp: 5,
+        payload: { type: "transaction", to: head.publicKeyHex, amount: "-500" },
+      },
+      pleb.privateKey,
+    );
 
-    const resNeg = reduceOneSync(reduceEvents(ns, [g, invite, admitVote, accept]), attackNeg);
+    const resNeg = reduceOneSync(
+      reduceEvents(ns, [g, invite, admitVote, accept]),
+      attackNeg,
+    );
     expect(resNeg.ok).toBe(false);
     expect(resNeg.reason).toBe("invalid_amount");
   });
@@ -775,10 +1034,17 @@ describe("Malicious Payload Exploits", () => {
     const g = await genesis(ns, head, "1000");
 
     // The hacker tries to forge an event acting as the Head!
-    const forge = await signEvent({
-      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 2,
-      payload: { type: "transaction", to: hacker.publicKeyHex, amount: "500" }
-    }, hacker.privateKey); // Signed with hacker's key instead of head's!
+    const forge = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: head.publicKeyHex,
+        timestamp: 2,
+        payload: { type: "transaction", to: hacker.publicKeyHex, amount: "500" },
+      },
+      hacker.privateKey,
+    ); // Signed with hacker's key instead of head's!
 
     const resForge = reduceOneSync(reduceEvents(ns, [g]), forge);
     expect(resForge.ok).toBe(false);
@@ -791,20 +1057,34 @@ describe("Malicious Payload Exploits", () => {
     const g = await genesis(ns, head, "1000");
 
     // 1. Timestamp in the past (before genesis)
-    const attackPast = await signEvent({
-      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 0,
-      payload: { type: "transaction", to: head.publicKeyHex, amount: "0" }
-    }, head.privateKey);
+    const attackPast = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: head.publicKeyHex,
+        timestamp: 0,
+        payload: { type: "transaction", to: head.publicKeyHex, amount: "0" },
+      },
+      head.privateKey,
+    );
 
     const resPast = reduceOneSync(reduceEvents(ns, [g]), attackPast);
     expect(resPast.ok).toBe(false);
     expect(resPast.reason).toBe("timestamp_before_genesis");
 
     // 2. Timestamp too far in the future
-    const attackFuture = await signEvent({
-      namespaceId: ns, prevHash: g.id, lamport: 2, author: head.publicKeyHex, timestamp: 9999999999999,
-      payload: { type: "transaction", to: head.publicKeyHex, amount: "0" }
-    }, head.privateKey);
+    const attackFuture = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g.id,
+        lamport: 2,
+        author: head.publicKeyHex,
+        timestamp: 9999999999999,
+        payload: { type: "transaction", to: head.publicKeyHex, amount: "0" },
+      },
+      head.privateKey,
+    );
 
     const resFuture = reduceOneSync(reduceEvents(ns, [g]), attackFuture);
     expect(resFuture.ok).toBe(false);

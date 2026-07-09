@@ -1,12 +1,19 @@
-import { Browser, BrowserContext, Page, chromium, _android as android, devices } from '@playwright/test';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import * as path from 'path';
-import * as fs from 'fs';
+import {
+  Browser,
+  BrowserContext,
+  Page,
+  chromium,
+  _android as android,
+  devices,
+} from "@playwright/test";
+import { exec } from "child_process";
+import { promisify } from "util";
+import * as path from "path";
+import * as fs from "fs";
 
 const execAsync = promisify(exec);
 
-export type Platform = 'web' | 'windows' | 'android';
+export type Platform = "web" | "windows" | "android";
 
 export interface PeerDevice {
   context: BrowserContext;
@@ -15,19 +22,20 @@ export interface PeerDevice {
 }
 
 export class OmniHarness {
-  private static platform: Platform = (process.env.PLATFORM as Platform) || 'web';
-  private static nextDebugPort = 9222 + (parseInt(process.env.TEST_WORKER_INDEX || '0', 10) * 10);
+  private static platform: Platform = (process.env.PLATFORM as Platform) || "web";
+  private static nextDebugPort =
+    9222 + parseInt(process.env.TEST_WORKER_INDEX || "0", 10) * 10;
 
   /**
    * Launch a new peer on the selected platform.
    */
   static async launchPeer(browser: Browser): Promise<PeerDevice> {
     switch (this.platform) {
-      case 'web':
+      case "web":
         return this.launchWeb(browser);
-      case 'windows':
+      case "windows":
         return this.launchWindows();
-      case 'android':
+      case "android":
         return this.launchAndroid();
       default:
         throw new Error(`Unsupported platform: ${this.platform}`);
@@ -37,17 +45,17 @@ export class OmniHarness {
   private static async launchWeb(browser: Browser): Promise<PeerDevice> {
     const context = await browser.newContext();
     const page = await context.newPage();
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
-    
-    page.on('pageerror', err => console.log(`[Web Error]`, err));
-    page.on('console', msg => {
+    const baseUrl = process.env.BASE_URL || "http://localhost:5173";
+
+    page.on("pageerror", (err) => console.log(`[Web Error]`, err));
+    page.on("console", (msg) => {
       console.log(`[Web Console]`, msg.type(), msg.text());
     });
 
     let lastError: unknown;
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
         lastError = undefined;
         break;
       } catch (err) {
@@ -56,47 +64,56 @@ export class OmniHarness {
       }
     }
     if (lastError) throw lastError;
-    
+
     return {
       context,
       page,
       close: async () => {
         await context.close();
-      }
+      },
     };
   }
 
   private static async launchWindows(): Promise<PeerDevice> {
     const port = this.nextDebugPort++;
-    
+
     // NOTE: This requires the Tauri executable to be built in debug mode
-    const exePath = path.resolve(process.cwd(), '../client-tauri/src-tauri/target/debug/aethelos-desktop.exe');
-    
+    const exePath = path.resolve(
+      process.cwd(),
+      "../client-tauri/src-tauri/target/debug/aethelos-desktop.exe",
+    );
+
     const userDataDir = path.resolve(process.cwd(), `../.temp/tauri-profile-${port}`);
-    
+
     // Clear previous state for this profile so it boots cleanly
     if (fs.existsSync(userDataDir)) {
-      try { fs.rmSync(userDataDir, { recursive: true, force: true }); } catch (e) { console.error('Failed to clean profile dir', e); }
+      try {
+        fs.rmSync(userDataDir, { recursive: true, force: true });
+      } catch (e) {
+        console.error("Failed to clean profile dir", e);
+      }
     }
-    
+
     // Launch Tauri app with remote debugging port
     const child = exec(`"${exePath}"`, {
       env: {
         ...process.env,
         WEBVIEW2_USER_DATA_FOLDER: userDataDir,
-        WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port}`
-      }
+        WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port}`,
+      },
     });
 
     // Connect Playwright to the WebView2 instance with retries
     let browserContext;
     for (let i = 0; i < 30; i++) {
       try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         browserContext = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
         break;
       } catch (err) {
-        console.log(`[OmniHarness] Waiting for Tauri CDP on port ${port}... (${i+1}/30)`);
+        console.log(
+          `[OmniHarness] Waiting for Tauri CDP on port ${port}... (${i + 1}/30)`,
+        );
         if (i === 29) throw err;
       }
     }
@@ -106,9 +123,13 @@ export class OmniHarness {
     const page = context.pages()[0];
 
     try {
-      await page.waitForFunction(() => (window as any).__aethelosTest !== undefined, { timeout: 15000 });
+      await page.waitForFunction(() => (window as any).__aethelosTest !== undefined, {
+        timeout: 15000,
+      });
     } catch (e) {
-      console.error(`[OmniHarness] Failed to find __aethelosTest on page. URL: ${page.url()}`);
+      console.error(
+        `[OmniHarness] Failed to find __aethelosTest on page. URL: ${page.url()}`,
+      );
       throw e;
     }
 
@@ -118,26 +139,28 @@ export class OmniHarness {
       close: async () => {
         child.kill();
         await browser.close();
-      }
+      },
     };
   }
 
   private static async launchAndroid(): Promise<PeerDevice> {
-    console.log('[OmniHarness] Falling back to Playwright Mobile Emulation for Android due to host emulator limitations.');
+    console.log(
+      "[OmniHarness] Falling back to Playwright Mobile Emulation for Android due to host emulator limitations.",
+    );
     const browser = await chromium.launch();
     const context = await browser.newContext({
-      ...devices['Pixel 5'],
+      ...devices["Pixel 5"],
       isMobile: true,
       hasTouch: true,
     });
     const page = await context.newPage();
-    await page.goto('http://localhost:5173');
-    return { 
-      page, 
+    await page.goto("http://localhost:5173");
+    return {
+      page,
       context,
       close: async () => {
         await browser.close();
-      }
+      },
     };
   }
 }

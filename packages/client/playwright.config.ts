@@ -1,38 +1,38 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
-const dockerStack = process.env.AETHELOS_DOCKER === '1';
+const dockerStack = process.env.AETHELOS_DOCKER === "1";
 const shareUrlSpecs = /(?:founder|joiner)-share-url\.spec\.ts$/;
 const dockerFounderSpec = /founder-mobile\.spec\.ts$/;
 
 export default defineConfig({
   timeout: 120000,
-  testDir: './e2e',
+  testDir: "./e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: "html",
   use: {
-    trace: 'on-first-retry',
+    trace: "on-first-retry",
   },
   projects: [
     {
-      name: 'chromium',
+      name: "chromium",
       testIgnore: [dockerFounderSpec, shareUrlSpecs],
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: 'founder-docker',
+      name: "founder-docker",
       testMatch: dockerFounderSpec,
       use: {
-        ...devices['Pixel 5'],
-        baseURL: 'http://localhost:8080',
+        ...devices["Pixel 5"],
+        baseURL: "http://localhost:8080",
       },
     },
     {
-      name: 'share-url-mobile',
+      name: "share-url-mobile",
       testMatch: shareUrlSpecs,
-      use: { ...devices['Pixel 5'] },
+      use: { ...devices["Pixel 5"] },
     },
   ],
   webServer: dockerStack
@@ -42,7 +42,7 @@ export default defineConfig({
         port: 5173,
         reuseExistingServer: !process.env.CI,
         env: {
-          VITE_E2E: '1',
+          VITE_E2E: "1",
         },
       },
 });

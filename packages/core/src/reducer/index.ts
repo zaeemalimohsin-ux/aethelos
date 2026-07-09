@@ -267,7 +267,7 @@ function clampSliderValue(
   value: number,
 ): number {
   if (Number.isNaN(value)) return 0;
-  
+
   if (param === "decay_rate") {
     const d = Math.round(value * 10) / 10;
     return Math.max(0, Math.min(20, d));
@@ -399,7 +399,9 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
         cellName: payload.cellName,
         members: [author],
         parameters: { ...DEFAULT_PARAMETERS, ...(payload.parameters || {}) },
-        governanceSliders: { [author]: { ...DEFAULT_PARAMETERS, ...(payload.parameters || {}) } },
+        governanceSliders: {
+          [author]: { ...DEFAULT_PARAMETERS, ...(payload.parameters || {}) },
+        },
         redistributionSliders: { [author]: { [author]: 100 } },
         vouchSliders: { [author]: {} },
       };
@@ -1031,11 +1033,11 @@ function expelMemberReducer(state: PoolState, target: string): PoolState {
   // Sliders "disappear when they leave" (philosophy §2): drop the departing soul's
   // own rows and every column pointing at them, so no stale per-member relationship
   // survives and state does not grow unbounded across churn.
-  const pruneRow = <T,>(rec: Record<string, T>): Record<string, T> => {
+  const pruneRow = <T>(rec: Record<string, T>): Record<string, T> => {
     const { [target]: _drop, ...rest } = rec;
     return rest;
   };
-  const pruneColumns = <T,>(
+  const pruneColumns = <T>(
     rec: Record<string, Record<string, T>>,
   ): Record<string, Record<string, T>> => {
     const out: Record<string, Record<string, T>> = {};
@@ -1111,7 +1113,7 @@ function tryExecuteProposal(state: PoolState, proposalId: string): PoolState {
     if (!state.frozen.includes(member)) {
       const weight = votingWeight(state, member);
       totalStake += weight;
-      
+
       const vote = proposal.voters?.[member];
       if (vote) {
         if (vote.approve) currentVotesFor += weight;
@@ -1163,7 +1165,12 @@ function tryExecuteProposal(state: PoolState, proposalId: string): PoolState {
       const superstructureId = proposal.data["target"];
       const parentParameters = parseParentParameters(proposal.data["parameters"]);
       if (superstructureId && proposal.author) {
-        s = applyJoinSuperstructure(s, proposal.author, superstructureId, parentParameters);
+        s = applyJoinSuperstructure(
+          s,
+          proposal.author,
+          superstructureId,
+          parentParameters,
+        );
       }
       break;
     }

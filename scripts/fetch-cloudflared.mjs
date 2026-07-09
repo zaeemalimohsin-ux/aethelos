@@ -16,13 +16,16 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const targets = [];
 if (tauri) {
   targets.push({
-    path: join(root, "packages/client-tauri/src-tauri/resources/cloudflared/win-x64/cloudflared.exe"),
-    url: `https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-windows-amd64.exe`
+    path: join(
+      root,
+      "packages/client-tauri/src-tauri/resources/cloudflared/win-x64/cloudflared.exe",
+    ),
+    url: `https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-windows-amd64.exe`,
   });
 } else {
   targets.push({
     path: join(root, "scripts/.bin/cloudflared.exe"),
-    url: `https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-windows-amd64.exe`
+    url: `https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-windows-amd64.exe`,
   });
 }
 
@@ -31,20 +34,20 @@ for (const target of targets) {
     console.log("cloudflared already present:", target.path);
     continue;
   }
-  
+
   mkdirSync(dirname(target.path), { recursive: true });
   console.log("Downloading", target.url);
-  
+
   const res = await fetch(target.url);
   if (!res.ok) {
     throw new Error(`Failed to download cloudflared: ${res.status} ${res.statusText}`);
   }
-  
+
   await pipeline(Readable.fromWeb(res.body), createWriteStream(target.path));
-  
+
   if (!existsSync(target.path)) {
     throw new Error("cloudflared binary not found after download");
   }
-  
+
   console.log("cloudflared OK:", target.path);
 }

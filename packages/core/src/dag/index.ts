@@ -69,7 +69,7 @@ export function topologicalSort(events: SignedEvent[]): SignedEvent[] {
   // O(N log N) Kahn's algorithm-style topological sort.
   // Sort all events by Lamport first to guarantee deterministic tie-breaking.
   const sorted = [...events].sort(compareEvents);
-  
+
   const byId = new Map<string, SignedEvent>();
   const children = new Map<string, SignedEvent[]>();
   const inDegree = new Map<string, number>();
@@ -96,7 +96,9 @@ export function topologicalSort(events: SignedEvent[]): SignedEvent[] {
   }
 
   // We maintain the ready pool. Sort descending so we can pop() from the end in O(1).
-  const ready = sorted.filter((e) => inDegree.get(e.id) === 0).sort((a, b) => compareEvents(b, a));
+  const ready = sorted
+    .filter((e) => inDegree.get(e.id) === 0)
+    .sort((a, b) => compareEvents(b, a));
   const result: SignedEvent[] = [];
 
   while (ready.length > 0) {

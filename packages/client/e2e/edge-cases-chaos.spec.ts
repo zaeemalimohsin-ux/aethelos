@@ -1,12 +1,23 @@
 import { test, expect } from "@playwright/test";
 import { OmniHarness } from "./harness.js";
-import { bootstrapStarCommunity, closeContexts, bridgeCreateProposal, bridgeTransfer, waitForPool } from "./helpers.js";
+import {
+  bootstrapStarCommunity,
+  closeContexts,
+  bridgeCreateProposal,
+  bridgeTransfer,
+  waitForPool,
+} from "./helpers.js";
 
 test.describe("Chaos Engineering & Extreme Limits", () => {
-
-  test("rapid proposal creation - no duplicates, state stays consistent", async ({ browser }) => {
+  test("rapid proposal creation - no duplicates, state stays consistent", async ({
+    browser,
+  }) => {
     test.setTimeout(120_000);
-    const { founder, contexts } = await bootstrapStarCommunity(browser, "Chaos Proposals", []);
+    const { founder, contexts } = await bootstrapStarCommunity(
+      browser,
+      "Chaos Proposals",
+      [],
+    );
 
     // Fire 10 proposals in rapid succession
     const promises = [];
@@ -32,7 +43,11 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
 
   test("survives concurrent outbox events while offline", async ({ browser }) => {
     test.setTimeout(120_000);
-    const { founder, contexts } = await bootstrapStarCommunity(browser, "Chaos Offline", []);
+    const { founder, contexts } = await bootstrapStarCommunity(
+      browser,
+      "Chaos Offline",
+      [],
+    );
 
     // Go offline
     await founder.context().setOffline(true);
@@ -41,7 +56,9 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
     // Fire 5 proposals concurrently while offline (all go to outbox)
     const promises = [];
     for (let i = 0; i < 5; i++) {
-      promises.push(bridgeCreateProposal(founder, "resolve_fracture", `offline-target-${i}`));
+      promises.push(
+        bridgeCreateProposal(founder, "resolve_fracture", `offline-target-${i}`),
+      );
     }
     await Promise.all(promises);
     await founder.waitForTimeout(500);
@@ -62,10 +79,16 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
 
   test("app does not crash or freeze on 50 rapid slider changes", async ({ browser }) => {
     test.setTimeout(120_000);
-    const { founder, contexts } = await bootstrapStarCommunity(browser, "Slider Chaos", []);
+    const { founder, contexts } = await bootstrapStarCommunity(
+      browser,
+      "Slider Chaos",
+      [],
+    );
 
     await founder.getByRole("button", { name: "Governance", exact: true }).click();
-    await expect(founder.getByText("Votes needed to pass a proposal").first()).toBeVisible();
+    await expect(
+      founder.getByText("Votes needed to pass a proposal").first(),
+    ).toBeVisible();
 
     const slider = founder.locator('input[type="range"]').first();
     for (let i = 0; i < 50; i++) {
@@ -81,7 +104,9 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
     await closeContexts(contexts);
   });
 
-  test("massive input injection in display name is handled gracefully", async ({ browser }) => {
+  test("massive input injection in display name is handled gracefully", async ({
+    browser,
+  }) => {
     test.setTimeout(60_000);
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -113,14 +138,18 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
     const { founder, joiners, keys, contexts } = await bootstrapStarCommunity(
       browser,
       "Double Spend",
-      ["Target"]
+      ["Target"],
     );
     const targetKey = keys[0]!;
 
     // Get initial balances
-    const initialPool = await founder.evaluate(() => window.__aethelosTest?.getPoolSummary());
+    const initialPool = await founder.evaluate(() =>
+      window.__aethelosTest?.getPoolSummary(),
+    );
     const initialFounderBalance = BigInt(
-      ((initialPool as any)?.balances[(initialPool as any)?.head] ?? "0").replace(".", "").padEnd(10, "0")
+      ((initialPool as any)?.balances[(initialPool as any)?.head] ?? "0")
+        .replace(".", "")
+        .padEnd(10, "0"),
     );
 
     // Attempt 5 transfers in rapid fire (race condition stress test)
@@ -133,14 +162,16 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
           } catch {
             // Expected some to fail due to insufficient balance validation
           }
-        }, targetKey)
+        }, targetKey),
       );
     }
     await Promise.all(transferPromises);
     await founder.waitForTimeout(2000);
 
     // Pool state should be consistent - no double spend
-    const poolAfter = await founder.evaluate(() => window.__aethelosTest?.getPoolSummary());
+    const poolAfter = await founder.evaluate(() =>
+      window.__aethelosTest?.getPoolSummary(),
+    );
 
     // Total pool points must be conserved (sum of all balances + commons = constant)
     const founderBal = (poolAfter as any)?.balances[(poolAfter as any)?.head] ?? "0";
@@ -165,7 +196,9 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
     await page.getByLabel("Passphrase", { exact: true }).fill("password123");
     await page.getByLabel("Confirm passphrase").fill("password123");
     await page.getByRole("button", { name: "Create identity" }).click();
-    await expect(page.getByText("Save your recovery phrase")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Save your recovery phrase")).toBeVisible({
+      timeout: 10_000,
+    });
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: /Continue/ }).click();
 
@@ -176,7 +209,9 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
     await page.getByLabel("Community name").fill(xssPayload);
     await page.getByRole("button", { name: "Create community" }).click();
 
-    await expect(page.getByRole("button", { name: "Community" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "Community" })).toBeVisible({
+      timeout: 30_000,
+    });
 
     // Check XSS was NOT executed
     const xssRan = await page.evaluate(() => (window as any).__XSS_EXECUTED === true);

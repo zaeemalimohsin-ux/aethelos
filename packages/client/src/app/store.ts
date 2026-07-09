@@ -50,7 +50,11 @@ import {
   type LocalNodeStatus,
 } from "./local-node.js";
 import { rejectionMessage } from "./rejection-messages.js";
-import { loadBootstrapRelay, saveBootstrapRelay, STORAGE_KEYS } from "./session-storage.js";
+import {
+  loadBootstrapRelay,
+  saveBootstrapRelay,
+  STORAGE_KEYS,
+} from "./session-storage.js";
 import {
   httpsToWssRelayUrl,
   tunnelStatusFromLocalNode,
@@ -332,14 +336,9 @@ export const useStore = create<AppStore>((set, get) => ({
   async startCommunity(cellName, options) {
     if (!keyPair) return;
 
-    const customRelay =
-      options?.customRelay?.trim() || loadBootstrapRelay() || undefined;
+    const customRelay = options?.customRelay?.trim() || loadBootstrapRelay() || undefined;
     const { canAttemptCommunityGenesis } = await import("./bootstrap-relays.js");
-    if (
-      !isDesktopApp() &&
-      !customRelay &&
-      !canAttemptCommunityGenesis()
-    ) {
+    if (!isDesktopApp() && !customRelay && !canAttemptCommunityGenesis()) {
       get().toast(
         "This copy has no automatic mailbox. Use the desktop app, a hosted install, or enter a connection point on this screen.",
         "error",

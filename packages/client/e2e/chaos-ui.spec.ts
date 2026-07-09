@@ -14,23 +14,25 @@ test.describe("UI Chaos Engineering", () => {
     const { founder, joiners, contexts } = await bootstrapStarCommunity(
       browser,
       "Chaos Web",
-      ["Target"]
+      ["Target"],
     );
-    
+
     // Attempt rapid fire clicks on governance sliders
-    await founder.getByRole('button', { name: 'Governance', exact: true }).click();
+    await founder.getByRole("button", { name: "Governance", exact: true }).click();
     // Wait for the Governance View to render
-    await expect(founder.getByText('Votes needed to pass a proposal').first()).toBeVisible();
+    await expect(
+      founder.getByText("Votes needed to pass a proposal").first(),
+    ).toBeVisible();
 
     // Rapidly change slider
     const slider = founder.locator('input[type="range"]').first();
-    for(let i=0; i<50; i++) {
-        await slider.fill(Math.floor(Math.random() * 20).toString());
-        await slider.dispatchEvent('change');
+    for (let i = 0; i < 50; i++) {
+      await slider.fill(Math.floor(Math.random() * 20).toString());
+      await slider.dispatchEvent("change");
     }
 
     // Ensure the page didn't crash
-    expect(await founder.locator('text=Governance').isVisible()).toBe(true);
+    expect(await founder.locator("text=Governance").isVisible()).toBe(true);
 
     await closeContexts(contexts);
   });
@@ -39,21 +41,21 @@ test.describe("UI Chaos Engineering", () => {
     const { founder, joiners, contexts, keys } = await bootstrapStarCommunity(
       browser,
       "Chaos Transact",
-      ["Target"]
+      ["Target"],
     );
-    
+
     // Make sure we are on Community View
-    await founder.getByRole('button', { name: 'Community', exact: true }).click();
-    await founder.waitForSelector('text=Send Value');
+    await founder.getByRole("button", { name: "Community", exact: true }).click();
+    await founder.waitForSelector("text=Send Value");
 
     // Try to send -500 points (invalid amount)
-    await founder.getByLabel('Amount (Value)').fill("-500");
+    await founder.getByLabel("Amount (Value)").fill("-500");
     const sendButton = founder.locator('button:has-text("Send transaction")');
     await expect(sendButton).toBeDisabled();
 
     await closeContexts(contexts);
   });
-  
+
   test("survives massive string injections in display name", async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -61,13 +63,13 @@ test.describe("UI Chaos Engineering", () => {
 
     await page.screenshot({ path: "scratch/debug-app.png", fullPage: true });
 
-    await page.locator('text=Create a new identity').click();
-    
+    await page.locator("text=Create a new identity").click();
+
     // Inject 50KB string to prevent Vite HMR DevTools crash
     const massiveString = "A".repeat(50 * 1024);
-    await page.getByLabel('Display name').fill(massiveString);
-    await page.getByLabel('Passphrase', { exact: true }).fill("password");
-    await page.getByLabel('Confirm passphrase').fill("password");
+    await page.getByLabel("Display name").fill(massiveString);
+    await page.getByLabel("Passphrase", { exact: true }).fill("password");
+    await page.getByLabel("Confirm passphrase").fill("password");
     await page.getByRole("button", { name: "Create identity" }).click();
 
     // It should either truncate, reject, or handle it without crashing the browser tab.

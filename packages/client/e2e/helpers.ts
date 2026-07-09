@@ -41,7 +41,7 @@ export interface BootstrappedCommunity {
   contexts: BrowserContext[];
 }
 
-import { OmniHarness, PeerDevice } from './harness.js';
+import { OmniHarness, PeerDevice } from "./harness.js";
 
 export async function freshPeer(browser: any): Promise<PeerDevice> {
   const peer = await OmniHarness.launchPeer(browser as any);
@@ -60,17 +60,19 @@ export async function freshPeer(browser: any): Promise<PeerDevice> {
  * URL hash only on initial page load.
  */
 export async function freshContext(browser: any): Promise<any> {
-  const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
+  const baseUrl = process.env.BASE_URL || "http://localhost:5173";
   const ctx = await browser.newContext();
   const origNewPage = ctx.newPage.bind(ctx);
   ctx.newPage = async () => {
     const page = await origNewPage();
-    page.on('pageerror', (err: Error) => console.log(`[Web Error]`, err));
-    page.on('console', (msg: any) => console.log(`[Web Console]`, msg.type(), msg.text()));
+    page.on("pageerror", (err: Error) => console.log(`[Web Error]`, err));
+    page.on("console", (msg: any) =>
+      console.log(`[Web Console]`, msg.type(), msg.text()),
+    );
     let lastError: unknown;
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
         lastError = undefined;
         break;
       } catch (err) {
@@ -85,14 +87,14 @@ export async function freshContext(browser: any): Promise<any> {
 }
 
 export async function closeContexts(contexts: any[]): Promise<void> {
-  await Promise.all(contexts.map(async (c) => {
-    if (c.close && typeof c.close === 'function') {
-      await c.close();
-    }
-  }));
+  await Promise.all(
+    contexts.map(async (c) => {
+      if (c.close && typeof c.close === "function") {
+        await c.close();
+      }
+    }),
+  );
 }
-
-
 
 export async function createIdentity(
   page: Page,
@@ -129,8 +131,8 @@ export async function onboardGenesis(
   displayName: string,
   cellName: string,
 ): Promise<void> {
-  if (page.url() === 'about:blank') {
-    await page.goto(process.env.BASE_URL || 'http://localhost:5173');
+  if (page.url() === "about:blank") {
+    await page.goto(process.env.BASE_URL || "http://localhost:5173");
   }
   await createIdentity(page, displayName);
   await startCommunity(page, cellName);
@@ -168,10 +170,10 @@ export async function waitForSyncConnected(
 export async function getPoolSummary(page: Page): Promise<PoolSummary | null> {
   const res = await page.evaluate(() => {
     if (!window.__aethelosTest) {
-      return { 
-        error: "no test bridge", 
-        href: window.location.href, 
-        hasRoot: !!document.getElementById("root")?.innerHTML 
+      return {
+        error: "no test bridge",
+        href: window.location.href,
+        hasRoot: !!document.getElementById("root")?.innerHTML,
       };
     }
     return window.__aethelosTest.getPoolSummary();
@@ -196,7 +198,7 @@ export async function waitForPool(
     if (pool && predicate(pool)) return pool;
     await page.waitForTimeout(500);
   }
-  console.log('waitForPool timed out. lastPool:', lastPool);
+  console.log("waitForPool timed out. lastPool:", lastPool);
   throw new Error(`waitForPool timeout; last=${JSON.stringify(lastPool)}`);
 }
 
@@ -439,5 +441,3 @@ export async function bootstrapStarCommunity(
 
   return { founder, joiners, keys, contexts };
 }
-
-

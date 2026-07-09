@@ -24,7 +24,7 @@ describe("relay load and chaos testing", () => {
     // Set a very tight connection limit so we don't exhaust Windows socket ports
     const MAX_CONN = 200;
     server = await startRelayServer({ port: 0, maxConnections: MAX_CONN });
-    
+
     const sockets: WebSocket[] = [];
 
     // Attempt to spawn MAX_CONN + 50 sockets
@@ -54,7 +54,7 @@ describe("relay load and chaos testing", () => {
 
   it("handles DDOS rate limit spam gracefully", async () => {
     server = await startRelayServer({ port: 0, rateLimit: 50, rateWindowMs: 60_000 });
-    
+
     const ws = new WebSocket(wsUrl(server.port));
     await new Promise<void>((resolve) => {
       ws.on("open", resolve);
@@ -73,7 +73,7 @@ describe("relay load and chaos testing", () => {
     // 50 should be processed (messagesOut), rest rejected
     expect(metrics.messagesIn).toBeGreaterThanOrEqual(1000);
     expect(metrics.rejected).toBeGreaterThan(900);
-    
+
     ws.close();
   }, 10_000);
 
@@ -94,19 +94,24 @@ describe("relay load and chaos testing", () => {
     // Have 1 socket announce 500 unique events to the namespace
     const sender = sockets[0];
     for (let i = 0; i < 500; i++) {
-      const event = await signEvent({
-        namespaceId: "ns-flood",
-        prevHash: null,
-        lamport: i + 1,
-        author: kp.publicKeyHex,
-        timestamp: i + 1,
-        payload: { type: "transaction", to: kp.publicKeyHex, amount: "1" }
-      }, kp.privateKey);
+      const event = await signEvent(
+        {
+          namespaceId: "ns-flood",
+          prevHash: null,
+          lamport: i + 1,
+          author: kp.publicKeyHex,
+          timestamp: i + 1,
+          payload: { type: "transaction", to: kp.publicKeyHex, amount: "1" },
+        },
+        kp.privateKey,
+      );
 
-      sender.send(JSON.stringify({
-        type: "announce",
-        envelope: { version: WIRE_VERSION, namespaceId: "ns-flood", event }
-      }));
+      sender.send(
+        JSON.stringify({
+          type: "announce",
+          envelope: { version: WIRE_VERSION, namespaceId: "ns-flood", event },
+        }),
+      );
     }
 
     // Wait for the relay to process and broadcast all of them to the other 9 sockets

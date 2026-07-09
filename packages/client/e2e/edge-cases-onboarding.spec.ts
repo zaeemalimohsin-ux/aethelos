@@ -26,7 +26,7 @@ test.describe("Onboarding & Authentication Edge Cases", () => {
       // await page.getByLabel("Confirm passphrase").fill("123");
       // await page.getByRole("button", { name: "Create identity" }).click();
       // await expect(page.getByText("Passphrase must be at least")).toBeVisible();
-      
+
       // Success case to move on
       await page.getByLabel("Passphrase", { exact: true }).first().fill("supersecret123");
       await page.getByLabel("Confirm passphrase").first().fill("supersecret123");
@@ -54,12 +54,12 @@ test.describe("Onboarding & Authentication Edge Cases", () => {
       // Back up screen
       await page.getByRole("checkbox").check();
       await page.getByRole("button", { name: /Continue/ }).click();
-      
+
       // Start a community so we enter the MainApp shell
       await page.getByRole("button", { name: "Start a new community" }).click();
       await page.getByLabel("Community name").fill("Import Test Mesh");
       await page.getByRole("button", { name: "Create community" }).click();
-      
+
       // Wait for community view
       await expect(page.getByRole("button", { name: "Community" })).toBeVisible();
 
@@ -67,24 +67,25 @@ test.describe("Onboarding & Authentication Edge Cases", () => {
       await page.getByRole("button", { name: "Identity" }).click();
 
       await expect(page.getByText("Import identity")).toBeVisible();
-      
+
       // Create a fake corrupt .aes file in memory
       const corruptFile = Buffer.from("this is not a valid aes file content");
-      
-      const fileChooserPromise = page.waitForEvent('filechooser');
+
+      const fileChooserPromise = page.waitForEvent("filechooser");
       // Click the label for Import identity which contains the file input
       await page.getByText("Import identity").click();
       const fileChooser = await fileChooserPromise;
-      
+
       await fileChooser.setFiles({
-        name: 'corrupt-identity.aes',
-        mimeType: 'application/octet-stream',
-        buffer: corruptFile
+        name: "corrupt-identity.aes",
+        mimeType: "application/octet-stream",
+        buffer: corruptFile,
       });
 
       // Expect an error message toast
-      await expect(page.getByText(/Invalid identity file/i)).toBeVisible({ timeout: 5000 });
-
+      await expect(page.getByText(/Invalid identity file/i)).toBeVisible({
+        timeout: 5000,
+      });
     } finally {
       await peer.close();
     }
@@ -97,18 +98,26 @@ test.describe("Onboarding & Authentication Edge Cases", () => {
       await page.getByRole("button", { name: "Restore from recovery phrase" }).click();
 
       // Test 1: Invalid word
-      await page.getByLabel("Recovery phrase").first().fill("apple banana cherry dog elephant frog grape hat ice juice kite lizard"); // 12 words
+      await page
+        .getByLabel("Recovery phrase")
+        .first()
+        .fill("apple banana cherry dog elephant frog grape hat ice juice kite lizard"); // 12 words
       await page.getByLabel("Display name").first().fill("Fuzzer");
-      await page.getByLabel("New passphrase (this device)").first().fill("supersecret123");
-      
+      await page
+        .getByLabel("New passphrase (this device)")
+        .first()
+        .fill("supersecret123");
+
       await expect(page.getByText(/Not a valid 12-word phrase/i)).toBeVisible();
       await expect(page.getByRole("button", { name: "Restore" })).toBeDisabled();
 
       // Test 2: Only 11 words
-      await page.getByLabel("Recovery phrase").first().fill("apple banana cherry dog elephant frog grape hat ice juice kite");
+      await page
+        .getByLabel("Recovery phrase")
+        .first()
+        .fill("apple banana cherry dog elephant frog grape hat ice juice kite");
       await expect(page.getByText(/Not a valid 12-word phrase/i)).toBeVisible();
       await expect(page.getByRole("button", { name: "Restore" })).toBeDisabled();
-
     } finally {
       await peer.close();
     }

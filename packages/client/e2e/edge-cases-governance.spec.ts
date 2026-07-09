@@ -29,24 +29,28 @@ test.describe("Governance & Proposals Edge Cases", () => {
     const decaySlider = page.locator('input[type="range"]').nth(0);
     await decaySlider.fill("0");
     await decaySlider.dispatchEvent("mouseup");
-    
+
     // Check if the values were updated in the UI (span.value next to the input)
-    await expect(page.locator('.slider-row .value').nth(1)).toContainText('100');
-    await expect(page.locator('.slider-row .value').nth(0)).toContainText('0');
+    await expect(page.locator(".slider-row .value").nth(1)).toContainText("100");
+    await expect(page.locator(".slider-row .value").nth(0)).toContainText("0");
 
     // If quorum is 100%, and I am the only member, any proposal should execute instantly.
     await page.getByRole("button", { name: "Proposals" }).click();
-    await page.locator('#kind').selectOption('link_subcell');
-    
+    await page.locator("#kind").selectOption("link_subcell");
+
     // Fill the required target field for link_subcell
-    await page.getByLabel("Community ID", { exact: true }).fill("some_other_namespace_id");
-    
+    await page
+      .getByLabel("Community ID", { exact: true })
+      .fill("some_other_namespace_id");
+
     // Create the proposal
     await page.getByRole("button", { name: "Start proposal" }).click();
-    
+
     // Since I hold 100% of the network, and Quorum is 100%, approving it should pass!
     await page.getByRole("button", { name: "Approve" }).click();
-    
-    await expect(page.getByText("Proposal executed")).toBeVisible({ timeout: 10000 }).catch(() => {});
+
+    await expect(page.getByText("Proposal executed"))
+      .toBeVisible({ timeout: 10000 })
+      .catch(() => {});
   });
 });

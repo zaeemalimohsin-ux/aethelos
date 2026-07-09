@@ -188,9 +188,7 @@ function JoinProgressCard({
   const proposal = pool.proposals[proposalId];
   const totalStake = pool.members.reduce((sum, m) => sum + votingWeight(pool, m), 0n);
   const approvalPct =
-    proposal && totalStake > 0n
-      ? Number((proposal.votesFor * 100n) / totalStake)
-      : 0;
+    proposal && totalStake > 0n ? Number((proposal.votesFor * 100n) / totalStake) : 0;
 
   let step = 1;
   let label = "Connected — tell your inviter you're waiting";
@@ -414,7 +412,10 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
 function InviteCard({
   onInvite,
 }: {
-  onInvite: (pubkey: string, parameters?: Record<GovernanceParameter, number>) => Promise<void>;
+  onInvite: (
+    pubkey: string,
+    parameters?: Record<GovernanceParameter, number>,
+  ) => Promise<void>;
 }) {
   const controller = useStore((s) => s.controller)!;
   const pool = useStore((s) => s.pool)!;
@@ -475,8 +476,12 @@ function InviteCard({
       <Button variant="secondary" block onClick={() => setShowLink(true)}>
         Invite people
       </Button>
-      <p className="hint" style={{ marginTop: "var(--sp-4)", marginBottom: "var(--sp-2)" }}>
-        <strong>Step 2:</strong> Someone opened your link? Paste their join code and vouch.
+      <p
+        className="hint"
+        style={{ marginTop: "var(--sp-4)", marginBottom: "var(--sp-2)" }}
+      >
+        <strong>Step 2:</strong> Someone opened your link? Paste their join code and
+        vouch.
       </p>
       <Field
         label="Join code"
@@ -487,8 +492,8 @@ function InviteCard({
       />
       <p className="hint">
         This vouch pledges <strong>{lienPercent.toFixed(1)}%</strong> of your Share (
-        {formatPts(lienAmount)} Value) as a forfeitable lien. Value stays in your
-        wallet; you just can't spend or transfer it while the invite is pending.{" "}
+        {formatPts(lienAmount)} Value) as a forfeitable lien. Value stays in your wallet;
+        you just can't spend or transfer it while the invite is pending.{" "}
         {formatPts(pledgeCapacity)} Value still available to pledge.
       </p>
       <Slider
@@ -672,9 +677,7 @@ function ChildCellsCard({ pool }: { pool: PoolState }) {
         {children.map((id) => (
           <li key={id}>
             <span className="mono">
-              {id === myKey
-                ? `${displayName || "You"} (You)`
-                : shortKey(id, 16)}
+              {id === myKey ? `${displayName || "You"} (You)` : shortKey(id, 16)}
             </span>
           </li>
         ))}
@@ -729,18 +732,13 @@ function FederationCard({ pool }: { pool: PoolState }) {
             <li key={id}>
               <span className="badge neutral">{role}</span>
               <span className="mono">
-                {id === myKey
-                  ? `${displayName || "You"} (You)`
-                  : shortKey(id, 16)}
+                {id === myKey ? `${displayName || "You"} (You)` : shortKey(id, 16)}
               </span>
               {linked ? (
                 <span className="muted">
                   {linked.cellName || "—"} · {linked.members.length} members
                   {popMismatch ? (
-                    <span className="warning">
-                      {" "}
-                      (reported {relayedPop} — mismatch)
-                    </span>
+                    <span className="warning"> (reported {relayedPop} — mismatch)</span>
                   ) : null}
                   {" · "}
                   {formatPts(
@@ -784,9 +782,7 @@ function BridgeEscrowCard({ pool, myKey }: { pool: PoolState; myKey: string }) {
           {escrowEntries.map(([id, pts]) => (
             <li key={id}>
               <span className="mono">
-                {id === myKey
-                  ? `${displayName || "You"} (You)`
-                  : shortKey(id, 12)}
+                {id === myKey ? `${displayName || "You"} (You)` : shortKey(id, 12)}
               </span>
               <span>{formatPts(pts)} Value held for bridge delivery</span>
             </li>

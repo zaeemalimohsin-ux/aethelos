@@ -1,9 +1,5 @@
 import type { SignedEvent } from "@aethelos/core";
-import {
-  filterCausalClosure,
-  isValidSignedEvent,
-  verifyEventSync,
-} from "@aethelos/core";
+import { filterCausalClosure, isValidSignedEvent, verifyEventSync } from "@aethelos/core";
 
 const DB_NAME = "aethelos-eventlog";
 const STORE = "events";

@@ -85,7 +85,8 @@ test.describe("federation seam", () => {
   test("child governance slider relay shifts parent resolved decay_rate", async ({
     browser,
   }) => {
-    const { parentPeer, childPeer, pageParent, pageChild } = await linkParentChild(browser);
+    const { parentPeer, childPeer, pageParent, pageChild } =
+      await linkParentChild(browser);
 
     const beforeParent = (await getPoolSummary(pageParent))!.parameters.decay_rate;
     await bridgeUpdateSlider(pageChild, "decay_rate", 18);
@@ -123,7 +124,9 @@ test.describe("federation seam", () => {
     await childPeer.close();
   });
 
-  test("non-head member proposes join to parent via Proposals UI", async ({ browser }) => {
+  test("non-head member proposes join to parent via Proposals UI", async ({
+    browser,
+  }) => {
     test.setTimeout(180_000);
     const parentPeer = await OmniHarness.launchPeer(browser);
     const parentPage = parentPeer.page;
@@ -161,11 +164,7 @@ test.describe("federation seam", () => {
     await bridgeVoteProposal(founder, joinProposal.id, true);
     await bridgeVoteProposal(bobPage, joinProposal.id, true);
 
-    await waitForPool(
-      bobPage,
-      (p) => p.parentSuperstructures.includes(parentNs),
-      60_000,
-    );
+    await waitForPool(bobPage, (p) => p.parentSuperstructures.includes(parentNs), 60_000);
 
     await parentPeer.close();
     await closeContexts(contexts);

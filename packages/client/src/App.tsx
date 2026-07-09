@@ -9,7 +9,10 @@ import { IdentityView } from "./features/IdentityView.js";
 import { ToastHost } from "./components/ToastHost.js";
 import { SyncIndicator } from "./components/SyncIndicator.js";
 
-class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+class AppErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null }
+> {
   override state = { error: null as Error | null };
 
   static getDerivedStateFromError(error: Error) {

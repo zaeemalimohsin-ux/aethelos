@@ -95,9 +95,7 @@ export function GovernanceView({ pool }: { pool: PoolState }) {
   const isMember = pool.members.includes(myKey);
   const countdown = useCirculationCountdown(pool);
   const livenessMinutes = Math.round(livenessWindowMs(pool) / MS_PER_MINUTE);
-  const liveCount = pool.members.filter((m) =>
-    isLiveSoul(pool, m, Date.now()),
-  ).length;
+  const liveCount = pool.members.filter((m) => isLiveSoul(pool, m, Date.now())).length;
 
   if (!isMember) {
     return (

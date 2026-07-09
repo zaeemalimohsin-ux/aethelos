@@ -18,9 +18,7 @@ run("pnpm test");
 run("node scripts/check-user-docs.mjs");
 run("pnpm test:e2e");
 
-console.log(
-  "\n>> Deploy-path note: default E2E is localhost vite+relay.",
-);
+console.log("\n>> Deploy-path note: default E2E is localhost vite+relay.");
 console.log(
   ">> CI also runs docker-founder (same-origin /ws) on ubuntu — that is the real publish-path gate.",
 );

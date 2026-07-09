@@ -147,7 +147,10 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
         />
       )}
       {step === "lostDevice" && (
-        <LostDeviceIntro onContinue={() => setStep("restore")} onBack={() => setStep("welcome")} />
+        <LostDeviceIntro
+          onContinue={() => setStep("restore")}
+          onBack={() => setStep("welcome")}
+        />
       )}
       {step === "recoverMethod" && (
         <RecoverMethod
@@ -287,8 +290,8 @@ function BackupScreen({ mnemonic }: { mnemonic: string }) {
       <Card title="Save your recovery phrase">
         <div className="alert warning">
           These 12 words restore your <strong>identity only</strong> — not your community
-          membership. To get back into a community you also need an invite link or an event
-          log export from another device. Write them down safely. Never share them.
+          membership. To get back into a community you also need an invite link or an
+          event log export from another device. Write them down safely. Never share them.
         </div>
         <div className="recovery-grid">
           {words.map((w, i) => (
@@ -533,9 +536,7 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
               setRelayProbed(false);
             }}
             className="mono"
-            {...(customRelay.trim() && !relayValid
-              ? { error: "Invalid relay URL" }
-              : {})}
+            {...(customRelay.trim() && !relayValid ? { error: "Invalid relay URL" } : {})}
           />
           <Button
             variant="secondary"
@@ -670,7 +671,8 @@ function LostDeviceIntro({
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
         Your <strong>recovery phrase</strong> brings back your identity on a new device.
         Your <strong>community</strong> comes back when you either paste your invite link
-        again (the mailbox syncs history) or import an event log file you exported earlier.
+        again (the mailbox syncs history) or import an event log file you exported
+        earlier.
       </p>
       <Button block onClick={onContinue}>
         Continue with recovery phrase
@@ -732,7 +734,10 @@ function ImportEventLog({ onBack }: { onBack: () => void }) {
       return;
     }
     setImported(true);
-    toast(`Imported ${result.imported} events — enter your passphrase to open`, "success");
+    toast(
+      `Imported ${result.imported} events — enter your passphrase to open`,
+      "success",
+    );
   };
 
   return (
