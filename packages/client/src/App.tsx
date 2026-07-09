@@ -6,6 +6,7 @@ import { CellView } from "./features/CellView.js";
 import { GovernanceView } from "./features/GovernanceView.js";
 import { ProposalsView } from "./features/ProposalsView.js";
 import { IdentityView } from "./features/IdentityView.js";
+import { ConnectionView } from "./features/ConnectionView.js";
 import { ToastHost } from "./components/ToastHost.js";
 import { SyncIndicator } from "./components/SyncIndicator.js";
 
@@ -45,6 +46,7 @@ const NAV: { id: View; label: string }[] = [
   { id: "cell", label: "Community" },
   { id: "governance", label: "Governance" },
   { id: "proposals", label: "Proposals" },
+  { id: "connection", label: "Connection" },
   { id: "identity", label: "Identity" },
 ];
 
@@ -134,6 +136,8 @@ function MainApp() {
           <GovernanceView pool={pool} />
         ) : view === "proposals" ? (
           <ProposalsView pool={pool} />
+        ) : view === "connection" ? (
+          <ConnectionView />
         ) : (
           <IdentityView />
         )}

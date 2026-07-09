@@ -15,7 +15,7 @@ const USER_MESSAGES: Record<string, string> = {
   proposal_closed:
     "That proposal is closed or still syncing — refresh Proposals and try again.",
   invite_pending: "That person already has a pending invite.",
-  lien_exceeds_self: "You cannot pledge more lien than your available Share.",
+  lien_exceeds_self: "You cannot pledge more lien than your available stake.",
   invalid_lien_amount: "That vouch amount is not valid.",
   use_proposal: "Use a proposal for that action instead.",
   self_vouch_forbidden: "You cannot vouch for yourself.",

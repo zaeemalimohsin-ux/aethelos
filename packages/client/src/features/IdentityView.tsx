@@ -9,8 +9,6 @@ import {
 } from "../storage/keystore.js";
 import { collectDiagnostics } from "../app/diagnostics.js";
 import { WIRE_VERSION } from "@aethelos/core";
-import { Disclosure } from "../design/components/Disclosure.js";
-import { NetworkAdvancedPanel } from "./NetworkAdvancedPanel.js";
 
 function download(filename: string, content: string): void {
   const blob = new Blob([content], { type: "application/json" });
@@ -155,10 +153,6 @@ export function IdentityView() {
         </p>
       </Card>
 
-      <Disclosure summary="Advanced: network">
-        <NetworkAdvancedPanel />
-      </Disclosure>
-
       <Card eyebrow="Preferences">
         <div className="row between">
           <span>Theme</span>
@@ -206,7 +200,10 @@ export function IdentityView() {
           </li>
           <li>
             <span className="muted">App version</span>
-            <span className="mono">0.1.3 / wire {WIRE_VERSION}</span>
+            <span className="mono">
+              {typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "unknown"} / wire{" "}
+              {WIRE_VERSION}
+            </span>
           </li>
         </ul>
       </Card>

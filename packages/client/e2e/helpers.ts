@@ -298,13 +298,6 @@ export async function sendOnChainInvite(
   await page.getByRole("button", { name: "Vouch and send invite" }).click();
 }
 
-export async function bridgeApproveAdmission(page: Page, invitee: string): Promise<void> {
-  await page.evaluate(
-    (invitee) => window.__aethelosTest?.approveAdmission(invitee),
-    invitee,
-  );
-}
-
 /** Vote Approve on the admit_member proposal in the Proposals UI (no test bridge). */
 export async function approveAdmissionInUi(
   founderPage: Page,

@@ -10,7 +10,7 @@ describe("rejectionMessage", () => {
 
   it("maps pilot-critical invite and vouch reasons", () => {
     expect(rejectionMessage("invite_pending")).toMatch(/pending invite/i);
-    expect(rejectionMessage("lien_exceeds_self")).toMatch(/lien/i);
+    expect(rejectionMessage("lien_exceeds_self")).toMatch(/stake/i);
     expect(rejectionMessage("self_vouch_forbidden")).toMatch(/yourself/i);
     expect(rejectionMessage("invalid_relay_url")).toMatch(/connection point/i);
   });

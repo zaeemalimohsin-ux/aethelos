@@ -10,6 +10,17 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 | **2 — Local product E2E** | `pnpm test:e2e` (Playwright `chromium` project) | Vite dev + relay dev flows | Every merge (CI `e2e` job) |
 | **3 — Publish path** | CI `docker-founder` → Playwright `founder-docker` | Same-origin `/ws` via nginx on port 8080 | Every merge |
 | **4 — Windows product proof** | `pnpm proof:product` | Desktop installer, live tunnel share URL, `share-url-mobile` Playwright | Release sign-off (Windows) |
+
+### Tier 4 Android prerequisites (Windows)
+
+| Prerequisite | Notes |
+|--------------|-------|
+| Android SDK | `%LOCALAPPDATA%\Android\Sdk` or `ANDROID_HOME` |
+| AVD | `AethelosProof` — proof uses `.android-avd` as `ANDROID_AVD_HOME` |
+| ADB auth | `start-android-emulator.ps1` sets `ADBKEY` / `ADB_VENDOR_KEYS` and `-skip-adb-auth` |
+| First boot | `-wipe-data` once; `.android-avd/.adb-initialized` marker on success |
+| Manual check | `scripts/start-android-emulator.ps1` then `pnpm android:smoke` |
+
 | **5 — Deep desktop** | `pnpm desktop:proof`, `pnpm desktop:gui-walkthrough` | Tunnel smoke, two-person sync, Tauri `local_node` | Optional pre-tag desktop review |
 
 `desktop-proof.mjs` is the scripted subset of tier 5 (tunnel + community E2E + Rust tests). Prefer `proof:product` for full Windows sign-off.
@@ -40,6 +51,7 @@ Before tagging a release candidate, confirm:
 - [ ] Relay tests green if `@aethelos/relay` changed
 - [ ] Manual smoke: identity → community → invite → transfer → proposal → (if federation) bridge
 - [ ] **Windows:** `pnpm proof:product` (tiers 4–5)
+- [ ] **Android (Windows proof):** emulator boots headless; `android:smoke` PASS inside `proof:product`
 
 ## Standard test commands
 

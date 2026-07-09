@@ -13,6 +13,8 @@ function run(cmd) {
   execSync(cmd, { cwd: root, stdio: "inherit" });
 }
 
+run("node scripts/check-version-sync.mjs");
+
 run("pnpm typecheck");
 run("pnpm test");
 run("node scripts/check-user-docs.mjs");

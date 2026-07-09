@@ -3,7 +3,7 @@ import { onboardGenesis, waitForSyncConnected } from "./helpers.js";
 
 /**
  * UX philosophy alignment: one invite flow, plain connection language,
- * infrastructure tucked under Identity → Advanced: network.
+ * infrastructure tucked under Connection.
  */
 test.describe("philosophy UX", () => {
   test("community tab centers Invite people and hides relay infrastructure", async ({
@@ -16,7 +16,7 @@ test.describe("philosophy UX", () => {
     await expect(page.getByText("Reach others")).toHaveCount(0);
     await expect(page.getByText("Share invite link")).toHaveCount(0);
     await expect(
-      page.getByRole("status").filter({ hasText: /Connected|Syncing/ }),
+      page.getByRole("button", { name: /Connected|Syncing/ }),
     ).toBeVisible();
   });
 
@@ -27,17 +27,14 @@ test.describe("philosophy UX", () => {
     await expect(page.getByText("Advanced: redistribution sliders")).toHaveCount(0);
   });
 
-  test("relay settings live under Identity → Advanced: network", async ({ page }) => {
+  test("relay settings live on the Connection tab", async ({ page }) => {
     await onboardGenesis(page, "Founder", "Advanced Network Cell");
-    await page.getByRole("button", { name: "Identity" }).click();
-
-    const network = page.locator("details").filter({
-      has: page.getByText("Advanced: network"),
-    });
-    await expect(network).toBeVisible();
-    await network.getByText("Advanced: network").click();
+    await page.getByRole("navigation", { name: "Sections" }).getByRole("button", { name: "Connection" }).click();
     await expect(page.getByTestId("network-advanced-panel")).toBeVisible();
     await expect(page.getByText(/Community endpoints:/)).toBeVisible();
+
+    await page.getByRole("button", { name: "Identity" }).click();
+    await expect(page.getByTestId("network-advanced-panel")).toHaveCount(0);
   });
 
   test("welcome screen does not expose join before identity", async ({ page }) => {

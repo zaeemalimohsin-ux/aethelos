@@ -11,6 +11,7 @@ import { shortKey } from "../app/format.js";
 import { Disclosure } from "../design/components/Disclosure.js";
 import { parseInviteInput, type InvitePayload } from "../app/invite.js";
 import { PwaInstallHint } from "../components/PwaInstallHint.js";
+import { trackEvent } from "../app/analytics.js";
 
 import { loadBootstrapRelay, saveBootstrapRelay } from "../app/session-storage.js";
 
@@ -74,6 +75,10 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
   const myKey = useStore((s) => s.myKey);
   const pendingInvite = useStore((s) => s.pendingInvite);
   const hasIdentity = myKey.length > 0;
+
+  useEffect(() => {
+    trackEvent("onboarding_step", { step });
+  }, [step]);
 
   useEffect(() => {
     if (
@@ -345,7 +350,7 @@ function RestoreIdentity({ onDone, onBack }: { onDone: () => void; onBack: () =>
     <Card title="Restore identity">
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
         Your recovery phrase restores your cryptographic identity. Community history syncs
-        from a mailbox after you rejoin with an invite link or import an event log backup.
+        from a connection point after you rejoin with an invite link or import an event log backup.
       </p>
       <div className="field">
         <label htmlFor="phrase">Recovery phrase</label>
@@ -493,7 +498,7 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
   const probeRelay = async () => {
     const url = customRelay.trim();
     if (!isValidRelayUrl(url)) {
-      toast("Enter a valid ws:// or wss:// mailbox URL", "error");
+      toast("Enter a valid ws:// or wss:// connection point URL", "error");
       return;
     }
     setProbeBusy(true);
@@ -503,7 +508,7 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
     setRelayProbed(ok);
     saveBootstrapRelay(url);
     toast(
-      ok ? "Connection point reachable" : "Can't reach that mailbox — check the URL",
+      ok ? "Connection point reachable" : "Can't reach that connection point — check the URL",
       ok ? "success" : "error",
     );
   };
@@ -516,11 +521,11 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
       </p>
       {mailboxReady ? (
         <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-          This install can use its built-in mailbox automatically.
+          This install can use its built-in connection point automatically.
         </p>
       ) : (
         <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-          This copy has no automatic mailbox. Enter a reachable{" "}
+          This copy has no automatic connection point. Enter a reachable{" "}
           <code className="mono">wss://</code> connection point below, or use the desktop
           app / a hosted install.
         </p>
@@ -528,7 +533,7 @@ function StartCommunity({ onBack }: { onBack: () => void }) {
       {!mailboxReady ? (
         <>
           <Field
-            label="Connection point (mailbox)"
+            label="Connection point"
             hint="ws:// or wss:// URL where your community syncs"
             value={customRelay}
             onChange={(e) => {
@@ -672,7 +677,7 @@ function LostDeviceIntro({
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
         Your <strong>recovery phrase</strong> brings back your identity on a new device.
         Your <strong>community</strong> comes back when you either paste your invite link
-        again (the mailbox syncs history) or import an event log file you exported
+        again (the connection point syncs history) or import an event log file you exported
         earlier.
       </p>
       <Button block onClick={onContinue}>

@@ -51,6 +51,7 @@ import {
   type LocalNodeStatus,
 } from "./local-node.js";
 import { rejectionMessage } from "./rejection-messages.js";
+import { trackEvent } from "./analytics.js";
 import {
   loadBootstrapRelay,
   saveBootstrapRelay,
@@ -65,7 +66,7 @@ import { sameOriginRelayUrl, isPublishableRelayUrl } from "./bootstrap-relays.js
 import { ensureOnline } from "./connectivity.js";
 
 export type Phase = "loading" | "onboarding" | "locked" | "ready";
-export type View = "cell" | "governance" | "proposals" | "identity";
+export type View = "cell" | "governance" | "proposals" | "connection" | "identity";
 export type Theme = "dark" | "light";
 
 export interface Toast {
@@ -362,9 +363,10 @@ export const useStore = create<AppStore>((set, get) => ({
     const { canAttemptCommunityGenesis } = await import("./bootstrap-relays.js");
     if (!isDesktopApp() && !customRelay && !canAttemptCommunityGenesis()) {
       get().toast(
-        "This copy has no automatic mailbox. Use the desktop app, a hosted install, or enter a connection point on this screen.",
+        "This copy has no automatic connection point. Use the desktop app, a hosted install, or enter a connection point on this screen.",
         "error",
       );
+      trackEvent("genesis_blocked", { reason: "no_connection_point" });
       return;
     }
 
@@ -380,6 +382,7 @@ export const useStore = create<AppStore>((set, get) => ({
         "Can't reach that connection point. Check the address or try a hosted install.",
         "error",
       );
+      trackEvent("genesis_failed", { reason: "connection_unreachable" });
       return;
     }
 
@@ -408,6 +411,7 @@ export const useStore = create<AppStore>((set, get) => ({
     const finalShareUrl = publicRelayUrl ?? get().shareUrl;
     if (finalShareUrl) syncShareUrlFile(finalShareUrl);
     get().toast(`Community "${cellName}" created`, "success");
+    trackEvent("genesis_success", { cellName });
   },
 
   async joinCommunity(invite) {
@@ -429,9 +433,10 @@ export const useStore = create<AppStore>((set, get) => ({
       const live = await probeAnyRelay(relays);
       if (!live) {
         get().toast(
-          "Can't reach the community mailbox. Check the invite link or ask your inviter for a fresh link.",
+          "Can't reach the community connection point. Check the invite link or ask your inviter for a fresh link.",
           "error",
         );
+        trackEvent("join_failed", { reason: "connection_unreachable" });
         return;
       }
     }
@@ -472,7 +477,7 @@ export const useStore = create<AppStore>((set, get) => ({
     }
     if (availableToPledge(pool, myKey) < lienAmount) {
       get().toast(
-        `Not enough unpledged Share (need ${formatPointsAmount(lienAmount)} pts available to pledge)`,
+        `Not enough unpledged stake (need ${formatPointsAmount(lienAmount)} Points available to pledge)`,
         "error",
       );
       return;

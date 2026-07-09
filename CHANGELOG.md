@@ -6,6 +6,31 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-09
+
+### Added
+
+- **Connection tab:** Network and share-link panels moved out of Identity; sync indicator opens Connection.
+- **Recovery E2E:** Mnemonic round-trip UI test (create → scrape phrase → restore → same public key).
+- **Analytics (tier 1):** Local-only funnel events buffered in diagnostics export; onboarding step tracking.
+- **Android emulator proof docs:** Maintainer sections for `AethelosProof` AVD, ADB keys, and wipe-data bootstrap.
+- **Version sync gate:** `scripts/check-version-sync.mjs` in `verify:release`.
+
+### Changed
+
+- **Pilot terminology:** Points (not Value), connection point (not mailbox) on error paths; stake in vouch toasts.
+- **Admission E2E:** Proposals UI Approve (no test bridge); desktop GUI walkthrough migrated to UI approve.
+- **Product proof:** Headless Play Store AVD, ADB auth skip, first-boot wipe marker, proof retry and process cleanup.
+- **Release metadata:** All workspace packages aligned to 0.2.0; Identity tab shows build-injected version.
+- **Docs honesty:** RELEASE-NOTES toned to match Pass 4 / BETA_README known limitations.
+
+### Fixed
+
+- **CI:** Prettier drift in `playwright.config.ts`.
+- **Playwright:** Skip bundled webServer when `AETHELOS_SHARE_URL` is set (share-url proof path).
+- **Rejection toasts:** Production-safe messages for invite, vouch, and relay errors.
+- **Guided vouch → vote:** Admission requires Proposals Approve after vouch.
+
 ## [0.1.4] - 2026-06-15
 
 ### Added

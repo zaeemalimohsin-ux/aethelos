@@ -188,6 +188,24 @@ async function ensurePublicMailbox(page) {
   }
 }
 
+function admissionProposalId(pubkey) {
+  return `admit_member:${pubkey.trim()}`;
+}
+
+async function approveAdmissionInUi(page, inviteePubkey) {
+  const proposalId = admissionProposalId(inviteePubkey);
+  await waitForPool(
+    page,
+    (p) => p.proposals?.some((pr) => pr.id === proposalId && !pr.executed) ?? false,
+    60_000,
+    "admission proposal",
+  );
+  await page.getByRole("button", { name: "Proposals" }).click();
+  const row = page.getByTestId(`proposal-${proposalId}`);
+  await row.waitFor({ state: "visible", timeout: 15_000 });
+  await row.getByRole("button", { name: "Approve" }).click();
+}
+
 async function waitForPool(page, predicate, timeoutMs = 60_000, label = "waitForPool") {
   const deadline = Date.now() + timeoutMs;
   let pool = null;
@@ -335,10 +353,7 @@ async function main() {
     await panel.getByLabel("Join code").fill(joinerKey);
     await panel.getByRole("button", { name: "Vouch and send invite" }).click();
     await waitForPool(page, (p) => p.pendingInviteCount >= 1, 60_000, "founder invite");
-    await page.evaluate(
-      (invitee) => window.__aethelosTest?.approveAdmission(invitee),
-      joinerKey,
-    );
+    await approveAdmissionInUi(page, joinerKey);
     await joinPage.getByRole("button", { name: "Community" }).click();
     await waitForPool(
       joinPage,

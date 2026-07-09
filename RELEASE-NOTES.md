@@ -1,29 +1,37 @@
 # AethelOS v0.2.0 Release Notes
 
-Welcome to **AethelOS v0.2.0**! 
+Welcome to **AethelOS v0.2.0** — the vouch-pilot beta milestone.
 
-This milestone release officially transforms AethelOS from an experimental philosophy engine into a fully fortified, distributed peer-to-peer ecosystem. The core deterministic engine has been mathematically proven against all philosophical invariants, and the network layer has been hardened to withstand chaos and high load.
+This release hardens the desktop + mobile product path, aligns pilot-facing language, and documents what is proven in CI versus what remains beta scope.
 
-## 🚀 Major Highlights
+## Highlights
 
-### 1. Algorithmic Philosophy Automation
-The pure, deterministic reducer engine has been rigorously stress-tested against the fundamental doctrines of AethelOS. We codified the final philosophical invariants (Charters A, B, and C) into automated adversarial test suites:
-- **Fracture Recovery (Charter A):** The engine mathematically proves that it cleanly isolates and freezes any node attempting a cryptographic double-spend, while still allowing the healthy community to pass a `resolve_fracture` proposal to unfreeze and recover them.
-- **Head-only Closures (Charter B):** We programmatically verified that no standard member can unilaterally close a governance proposal. Only the mathematically elected `Head` possesses the routing authority to dispatch closures.
-- **Dictator Rejection (Charter C):** The engine mathematically proves that the `Head` is simply a relayer of consensus and NOT a dictator. The network deterministic layer natively drops any "fiat" attempts by a Head to expel members or alter state without an approved community proposal.
+### 1. Deterministic core (Charters A–C)
 
-### 2. Network Chaos and Load Hardening
-The stateless WebSocket relay mesh has been fully fortified for production traffic. We implemented a comprehensive chaos and load-testing suite that guarantees network resilience:
-- **Broadcast Flooding Protection:** The relay node securely handles massive broadcast storms, gracefully evicting data using `maxBuffer` constraints without dropping the connection loop.
-- **DDOS & Rate Limiting:** Invalid packets and spam bursts are safely absorbed and rate-limited at the socket layer.
-- **Connection Saturation:** The relay explicitly handles the hard `maxConnections` threshold, ensuring that the system caps out gracefully instead of crashing under intense load.
+The reducer engine is covered by adversarial unit tests for fracture isolation, head-only closures, and head non-dictatorship. **Full fracture → `resolve_fracture` UI E2E remains deferred** — see [CODEBASE_AUDIT_PASS4.md](./docs/CODEBASE_AUDIT_PASS4.md).
 
-### 3. Absolute Data Portability
-Data sovereignty is guaranteed. The Disaster Recovery pipeline has been upgraded, and our E2E testing fully proves that an `exportLog` followed by an `importLog` on a completely fresh, wiped device flawlessly reconstructs the exact pool state, cryptographic identity, and share balances.
+### 2. Network resilience (relay)
 
-### 4. Zero P0 Gaps
-With these final additions, the `PHILOSOPHY_TRACEABILITY.md` matrix is absolutely clean. Every single doctrine, governance parameter, and network expectation is automatically tested by CI on every commit.
+The stateless WebSocket relay has chaos/load tests: broadcast buffering, rate limits, and connection caps. Production traffic still depends on reachable connection points — relays cannot invent consensus.
+
+### 3. Data portability
+
+Event log export/import is tested (unit + E2E). **Dual-fork causal validation on import is still open.** Recovery phrase restores identity only; community history needs an invite link or event log from another device.
+
+### 4. Pilot UX (Wave D)
+
+- **Connection** tab for network/share settings (no relay UI on Community).
+- Plain-language toasts: Points, connection point, stake.
+- Admission: vouch → vote Approve in Proposals → Accept invitation.
+
+### 5. Product proof (Windows)
+
+`pnpm proof:product` exercises dev + release desktop paths, live tunnel share URLs, mobile E2E, and Android emulator smoke. See [TESTING_RELEASE.md](./docs/TESTING_RELEASE.md).
+
+## Known limitations
+
+See [BETA_README.md](./docs/BETA_README.md): SmartScreen on unsigned Windows builds, federation rough edges, offline queueing, four-step guest admission.
 
 ---
 
-*Thank you to the AethelOS AI architectural team for willing this deterministic reality into existence!*
+*Thank you to pilots and contributors helping shape AethelOS.*

@@ -45,7 +45,7 @@ All steps required (no SKIP for Android):
 
 1. Kill stale processes: `aethelos-desktop`, `cloudflared`, `emulator`
 2. Free ports: 5173, 5174, 5175, 8080, 8787, 9222
-3. Android: SDK at `%LOCALAPPDATA%\Android\Sdk`; proof uses `D:\App2\.android-avd` for AVD home (needs free disk). Auto-starts `AethelosProof` AVD.
+3. Android: SDK at `%LOCALAPPDATA%\Android\Sdk`; proof uses `D:\App2\.android-avd` for AVD home (needs free disk). Auto-starts `AethelosProof` AVD via `scripts/start-android-emulator.ps1` (`ADBKEY` / `ADB_VENDOR_KEYS`, `-skip-adb-auth`, first-boot `-wipe-data` + `.adb-initialized` marker).
 4. Release proof builds client with `VITE_E2E=1` via `AETHELOS_PROOF_BUILD=1` and stages sidecars beside `target/release/aethelos-desktop.exe`.
 5. Do **not** use em-dashes in `.ps1` files (PowerShell parse errors on Windows)
 
@@ -56,7 +56,7 @@ All steps required (no SKIP for Android):
 | Timed out waiting for share URL | Wait for cargo build; check vite on 127.0.0.1:5173 (not IPv6 ::1); run `node scripts/wait-share-url.mjs` |
 | Tunnel HTTP 502 | Vite must bind `host: "127.0.0.1"`; cloudflared targets 127.0.0.1:5173 |
 | Joiner pool empty | Fix relay bootstrap (same-origin /ws in DEV on trycloudflare) |
-| Android FAIL | Start emulator via `scripts/start-android-emulator.ps1`; check screenshot in `test-results/android-smoke.png` |
+| Android FAIL | Start emulator via `scripts/start-android-emulator.ps1`; delete `.android-avd/.adb-initialized` to force wipe; check screenshot in `test-results/android-smoke.png` |
 | Release path timeout | Set `AETHELOS_PROOF_MODE=release`; wait for :8080 + :8787 |
 
 ## Key files
@@ -64,7 +64,7 @@ All steps required (no SKIP for Android):
 - [`scripts/proof-product.ps1`](../../scripts/proof-product.ps1) - orchestrator
 - [`scripts/proof-desktop-lib.mjs`](../../scripts/proof-desktop-lib.mjs) - CDP, DNS, tunnel helpers
 - [`scripts/wait-share-url.mjs`](../../scripts/wait-share-url.mjs) - share URL wait
-- [`scripts/proof-desktop-dev.ps1`](../../scripts/proof-desktop-dev.ps1) - desktop dev launcher
+- [`scripts/start-android-emulator.ps1`](../../scripts/start-android-emulator.ps1) - headless AVD + ADB keys
 - [`packages/client/e2e/founder-share-url.spec.ts`](../../packages/client/e2e/founder-share-url.spec.ts)
 - [`packages/client/e2e/joiner-share-url.spec.ts`](../../packages/client/e2e/joiner-share-url.spec.ts)
 

@@ -17,8 +17,8 @@ export function displayNameFor(
 }
 
 export function pts(value: bigint | number): string {
-  if (typeof value === "number") return `${value} Value`;
-  return `${formatPts(value)} Value`;
+  if (typeof value === "number") return `${value} Points`;
+  return `${formatPts(value)} Points`;
 }
 
 export function formatPts(value: bigint): string {

@@ -20,11 +20,11 @@ test.describe("Accessibility smoke", () => {
 
     await page.evaluate(async () => {
       const { useStore } = await import("/src/app/store.ts");
-      useStore.getState().toast("Can't reach the community mailbox", "error");
+      useStore.getState().toast("Can't reach the community connection point", "error");
     });
 
     await expect(
-      page.getByRole("alert").filter({ hasText: /Can't reach the community mailbox/i }),
+      page.getByRole("alert").filter({ hasText: /Can't reach the community connection point/i }),
     ).toBeVisible({ timeout: 5_000 });
   });
 

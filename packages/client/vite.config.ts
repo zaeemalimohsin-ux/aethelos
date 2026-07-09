@@ -1,13 +1,21 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
+const clientRoot = dirname(fileURLToPath(import.meta.url));
+const appVersion = JSON.parse(
+  readFileSync(join(clientRoot, "../../package.json"), "utf8"),
+).version as string;
 const proofBuild = process.env.AETHELOS_PROOF_BUILD === "1";
 
 export default defineConfig({
   root: ".",
   publicDir: "public",
   define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
     __PROOF_E2E__: JSON.stringify(proofBuild ? "1" : "0"),
     ...(proofBuild ? { "import.meta.env.VITE_E2E": JSON.stringify("1") } : {}),
   },
