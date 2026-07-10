@@ -18,13 +18,13 @@ It introduces no new gatekeeper — it is distributed directly, not via an app s
 
 ## Quick install (Windows)
 
-1. **Everyday users:** double-click [`Build-Release.bat`](../../Build-Release.bat) → send `dist/releases/*.exe`.
+1. **Everyday users:** download the Windows installer from [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (v0.2.0).
 2. **Developers:** [`Start-AethelOS.bat`](../../Start-AethelOS.bat) at repo root.
-3. **GitHub Release:** download the Windows installer from Releases (tag `v0.1.2+`).
+3. **Maintainers:** [`Build-Release.bat`](../../Build-Release.bat) to produce `dist/releases/*.exe`.
 
-Release builds bundle relay + Node — recipients do not install Node separately. The app connects automatically; operators tune hosting under **Identity → Advanced → network**.
+Release builds bundle relay + Node — recipients do not install Node separately. The app connects automatically; operators tune hosting on the **Connection** tab.
 
-## Peer hosting (optional, Advanced)
+## Peer hosting (optional)
 
 Before `desktop:dev`, prepare the relay sidecar (or use `Start-AethelOS.bat` which builds it):
 

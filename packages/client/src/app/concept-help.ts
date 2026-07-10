@@ -11,8 +11,6 @@ export const CONCEPT = {
   head: "The Head is whoever the community currently trusts to propose certain actions. A challenger must reach the vouch threshold to take the role.",
   epoch:
     "Stake circulates continuously on activity — a time-proportional slice accrues to the commons. On a schedule the community sets, those commons are redistributed.",
-  relay:
-    "A relay is just a mailbox for messages. It cannot change your balances or rules; anyone can run one.",
   connection:
     "Your community stays in sync over the internet. The app picks connection points automatically.",
   proposal:

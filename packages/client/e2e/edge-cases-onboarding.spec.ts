@@ -21,12 +21,6 @@ test.describe("Onboarding & Authentication Edge Cases", () => {
       await expect(page.getByRole("button", { name: "Create identity" })).toBeDisabled();
       await expect(page.getByText("Passphrases do not match")).toBeVisible();
 
-      // Test 3: Short passphrase (if applicable)
-      // await page.getByLabel("Passphrase", { exact: true }).fill("123");
-      // await page.getByLabel("Confirm passphrase").fill("123");
-      // await page.getByRole("button", { name: "Create identity" }).click();
-      // await expect(page.getByText("Passphrase must be at least")).toBeVisible();
-
       // Success case to move on
       await page.getByLabel("Passphrase", { exact: true }).first().fill("supersecret123");
       await page.getByLabel("Confirm passphrase").first().fill("supersecret123");

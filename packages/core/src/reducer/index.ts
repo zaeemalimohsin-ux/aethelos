@@ -213,11 +213,6 @@ function maybeRedistribute(state: PoolState, eventTimestamp: number): PoolState 
   return s;
 }
 
-/** @deprecated use maybeRedistribute */
-function maybeRunEpoch(state: PoolState, eventTimestamp: number): PoolState {
-  return maybeRedistribute(state, eventTimestamp);
-}
-
 /** Redistribute accumulated commons; does not accrue decay. */
 export function runRedistributionCycle(
   state: PoolState,
@@ -586,7 +581,7 @@ function applyEvent(state: PoolState, event: SignedEvent): ReduceResult {
     }
 
     case "epoch_close": {
-      // Retired: Epochs now close deterministically from log progress (see maybeRunEpoch).
+      // Retired: Epochs now close deterministically from log progress (see maybeRedistribute).
       // Kept as an idempotent no-op for wire back-compat; cannot be used to force decay.
       return { ok: true, state };
     }

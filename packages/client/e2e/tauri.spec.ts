@@ -5,6 +5,8 @@ import * as path from "path";
 import { rmSync } from "fs";
 
 test.describe("Tauri E2E", () => {
+  test.skip(process.platform !== "win32", "Windows desktop only");
+
   let peer: PeerDevice;
 
   test.beforeAll(() => {

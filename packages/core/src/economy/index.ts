@@ -9,7 +9,6 @@ import {
   MIN_EPOCH_INTERVAL_MINUTES,
   MS_PER_DAY,
   MS_PER_YEAR,
-  resolveVouchHead,
   totalPoolPoints,
 } from "../reducer/state.js";
 
@@ -369,64 +368,6 @@ export function releaseVouchBondToPool(
     state.members.map((m) => [m, 100 / state.members.length]),
   );
   return distributeRedistribution(s, forfeited, targets);
-}
-
-/** @deprecated use expelMemberReducer in the reducer — this helper is not wired to the event log. */
-export function expelMember(state: PoolState, target: PublicKeyHex): PoolState {
-  if (!isMember(state, target)) return state;
-
-  const balance = getBalance(state, target);
-  let s = { ...state };
-
-  if (balance > 0n) {
-    const remaining = s.members.filter((m) => m !== target);
-    if (remaining.length > 0) {
-      const equal = 100 / remaining.length;
-      const targets = Object.fromEntries(remaining.map((m) => [m, equal]));
-      const { [target]: _bal, ...restBalances } = s.balances;
-      s = { ...s, balances: restBalances };
-      s = distributeRedistribution(s, balance, targets);
-    }
-  }
-
-  const { state: afterForfeit, forfeited } = forfeitVouchLien(s, target);
-  s = afterForfeit;
-
-  if (forfeited > 0n) {
-    const parents = s.parentSuperstructures;
-    if (parents.length > 0) {
-      const top = parents[parents.length - 1]!;
-      s = {
-        ...s,
-        superstructureEscrow: {
-          ...s.superstructureEscrow,
-          [top]: (s.superstructureEscrow[top] ?? 0n) + forfeited,
-        },
-      };
-    } else {
-      const remaining = s.members.filter((m) => m !== target);
-      if (remaining.length > 0) {
-        const equal = 100 / remaining.length;
-        const targets = Object.fromEntries(remaining.map((m) => [m, equal]));
-        s = distributeRedistribution(s, forfeited, targets);
-      } else {
-        s = { ...s, commons: (s.commons ?? 0n) + forfeited };
-      }
-    }
-  }
-
-  const { [target]: _inv, ...restInviters } = s.inviters;
-  s = {
-    ...s,
-    members: s.members.filter((m) => m !== target),
-    inviters: restInviters,
-    frozen: s.frozen.filter((f) => f !== target),
-    fractures: s.fractures.filter((f) => f !== target),
-  };
-
-  if (s.head === target) s = { ...s, head: resolveVouchHead(s) };
-
-  return s;
 }
 
 export { totalPoolPoints };

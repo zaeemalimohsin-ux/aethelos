@@ -38,4 +38,9 @@ test("create identity and start a community", async ({ page }) => {
     timeout: 30_000,
   });
   await expect(page.getByText("100.0%", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Proposals" }).click();
+  await expect(page.getByText("Open decisions")).toBeVisible();
+  await page.getByRole("button", { name: "Identity" }).click();
+  await expect(page.getByText("E2E Tester")).toBeVisible();
 });

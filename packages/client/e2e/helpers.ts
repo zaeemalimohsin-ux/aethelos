@@ -298,6 +298,10 @@ export async function sendOnChainInvite(
   await page.getByRole("button", { name: "Community" }).click();
   await page.getByLabel("Join code").fill(inviteePubkey);
   await page.getByRole("button", { name: "Vouch and send invite" }).click();
+  await expect(page.getByRole("button", { name: "Proposals" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
 }
 
 /** Vote Approve on the admit_member proposal in the Proposals UI (no test bridge). */

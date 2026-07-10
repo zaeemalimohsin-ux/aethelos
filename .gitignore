@@ -35,8 +35,3 @@ packages/client/debug-cdp.cjs
 _reset*.log
 _tmp*.log
 _tmpcheck.txt
-# Native Android build outputs (PWA-only; Capacitor tree archived)
-packages/client/android/local.properties
-packages/client/android/.gradle/
-packages/client/android/**/build/
-packages/client/android/app/src/main/assets/nodejs-project/

@@ -56,4 +56,18 @@ test.describe("Accessibility smoke", () => {
     });
     expect(outlineWidth).not.toBe("0px");
   });
+
+  test("welcome screen is usable on phone width", async ({ browser }) => {
+    const peer = await OmniHarness.launchPeer(browser as any);
+    const page = peer.page;
+    try {
+      await page.setViewportSize({ width: 375, height: 667 });
+      await page.goto(process.env.BASE_URL || "http://localhost:5173");
+      await expect(
+        page.getByRole("button", { name: "Create a new identity" }),
+      ).toBeVisible();
+    } finally {
+      await peer.close();
+    }
+  });
 });

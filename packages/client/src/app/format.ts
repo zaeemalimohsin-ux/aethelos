@@ -11,21 +11,6 @@ export function shortKey(key: string, len = 8): string {
   return `${key.slice(0, len)}…${key.slice(-4)}`;
 }
 
-export function displayNameFor(
-  pool: import("@aethelos/core").PoolState | null,
-  key: string,
-  names: Record<string, string>,
-): string {
-  const name = names[key];
-  if (name) return name;
-  return shortKey(key);
-}
-
-export function pts(value: bigint | number): string {
-  if (typeof value === "number") return `${value} Points`;
-  return `${formatPts(value)} Points`;
-}
-
 export function formatPts(value: bigint): string {
   const formatted = formatPointsAmount(value);
   const parts = formatted.split(".");

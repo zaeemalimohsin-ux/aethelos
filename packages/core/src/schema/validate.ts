@@ -55,11 +55,6 @@ function isNonNegativeIntString(v: unknown): v is string {
   return typeof v === "string" && /^\d+$/.test(v);
 }
 
-/** @deprecated use isNonNegativeIntString for amounts */
-function isIntString(v: unknown): v is string {
-  return typeof v === "string" && /^-?\d+$/.test(v);
-}
-
 export function isValidPayload(p: unknown): p is EventPayload {
   if (!isObject(p)) return false;
   const type = p["type"];

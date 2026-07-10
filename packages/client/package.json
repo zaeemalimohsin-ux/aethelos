@@ -16,8 +16,6 @@
   },
   "dependencies": {
     "@aethelos/core": "workspace:*",
-    "@capacitor/core": "8.4.0",
-    "@choreruiz/capacitor-node-js": "1.0.2",
     "@noble/ed25519": "^2.1.0",
     "@noble/hashes": "^1.6.1",
     "@scure/bip39": "^1.5.0",
@@ -28,8 +26,6 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
-    "@capacitor/android": "8.4.0",
-    "@capacitor/cli": "8.4.0",
     "@playwright/test": "^1.49.1",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.18",
@@ -43,7 +39,6 @@
     "vite": "^6.0.3",
     "vite-plugin-pwa": "^0.21.1",
     "vitest": "^3.2.6",
-    "workbox-window": "^7.3.0",
     "ws": "^8.18.0"
   }
 }
