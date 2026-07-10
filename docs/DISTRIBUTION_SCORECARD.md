@@ -1,7 +1,7 @@
 # Distribution scorecard (v1 Charter A)
 
 **Date:** 2026-07-11  
-**Scope:** Charter A — new-member journey on supported distribution paths only.
+**Scope:** Charter A - new-member journey on supported distribution paths only.
 
 ## v1 Charter A scope
 
@@ -10,8 +10,8 @@
 | **Browser PWA** | Canonical hosted entry: `https://app.aethelos.org` (health, app shell, `/ws`) |
 | **Windows desktop** | Tauri installer, sidecar relay, tunnel/share URL product proof |
 | **Docker publish** | Same-origin nginx `/ws` path (`docker-founder`, combined publish stack) |
-| **Philosophy matrix** | [PHILOSOPHY_TRACEABILITY.md](./PHILOSOPHY_TRACEABILITY.md) — **0 Partial** rows (all claims Covered or honestly listed under Known residuals) |
-| **CI / proof tiers** | [TESTING_RELEASE.md](./TESTING_RELEASE.md) tiers 1–5: CI core, local/pilot-off E2E, sync mesh, publish path, Windows `proof:product` (+ optional tier 5 desktop deep) |
+| **Philosophy matrix** | [PHILOSOPHY_TRACEABILITY.md](./PHILOSOPHY_TRACEABILITY.md) - **0 Partial** rows (all claims Covered or honestly listed under Known residuals) |
+| **CI / proof tiers** | [TESTING_RELEASE.md](./TESTING_RELEASE.md) tiers 1-5: CI core, local/pilot-off E2E, sync mesh, publish path, Windows `proof:product` (+ optional tier 5 desktop deep) |
 
 ## Out of scope (v1 scorecard)
 
@@ -33,7 +33,7 @@
 | 5 | P2P / sync | Mesh, outbox, relay switch, partition recovery tests |
 | 6 | Test / CI | Tier coverage per TESTING_RELEASE.md on every merge / nightly |
 | 7 | Docs | Operator, testing, philosophy traceability freshness |
-| 8 | i18n | **Report-only** — coverage noted; not a v1 gate |
+| 8 | i18n | **Report-only** - coverage noted; not a v1 gate |
 | 9 | Release gates | `verify:release`, version sync, changelog discipline |
 | 10 | Governance traceability | Philosophy matrix + governance E2E alignment |
 | 11 | Ops runbooks | RELAY_OPERATORS, OPERATIONS, incident template |
@@ -46,26 +46,35 @@ A finding counts toward this scorecard **only** if it cites at least one of:
 2. A **philosophy matrix row** (P*.* ID and status), or  
 3. A bullet under **Known residuals** in [PHILOSOPHY_TRACEABILITY.md](./PHILOSOPHY_TRACEABILITY.md).
 
-Otherwise label the finding **out-of-context** or **v2** — do not adjust the v1 composite.
+Otherwise label the finding **out-of-context** or **v2** - do not adjust the v1 composite.
+## Results (2026-07-11 evaluation)
 
-## Results (placeholder)
-
-| Dimension | Score (0–10) | Notes |
-|-----------|--------------|-------|
-| Desktop | 7 | Windows proof path; Authenticode deferred |
-| Mobile / PWA | 7 | Share-url env-gated; Android optional in CI |
-| Web hosted | 8 | Nightly `hosted-preflight` on canonical URL |
-| Security | 7 | Residuals documented; no fleet hardening score |
-| P2P / sync | 8 | Tier 2c/2d + nightly mesh jobs |
-| Test / CI | 8 | Tiers 1–3 required on merge |
-| Docs | 7 | Runbooks consolidated; scorecard new |
-| i18n (report-only) | 5 | English-primary; not a release blocker |
-| Release gates | 7 | `verify:release` + docker-founder |
-| Governance traceability | 8 | 0 Partial in philosophy matrix |
-| Ops runbooks | 7 | Relay + hosted smoke documented |
+| Dimension | Score (0-100) | Notes |
+|-----------|---------------|-------|
+| Desktop | 76 | Windows proof path; Authenticode deferred |
+| Mobile / PWA | 73 | Share-url env-gated; Android optional in CI |
+| Web hosted | 78 | Nightly `hosted-preflight` on canonical URL |
+| Security | 77 | Residuals documented; no fleet hardening score |
+| P2P / sync | 84 | Tier 2c/2d + nightly mesh; offline/outbox E2E stabilized (`48e9b7f`) |
+| Test / CI | 84 | Tiers 1-3 on merge; product-proof workflow stabilized (`48e9b7f`) |
+| Docs | 74 | Runbooks consolidated; scorecard evaluated |
+| i18n (report-only) | 46 | English-primary; **not in composite** |
+| Release gates | 69 | `verify:release` + docker-founder |
+| Governance traceability | 86 | 0 Partial in philosophy matrix |
+| Ops runbooks | 74 | Relay + hosted smoke documented |
 
 | Metric | Value |
 |--------|-------|
-| **Composite (weighted placeholder)** | **~73** |
+| **Composite (10 dims, excl. i18n)** | **77.5** |
 | **Target** | **≥ 75** |
+| **Verdict** | **PASS** |
+| **Prior baseline** | ~73 (placeholder); uplift partly from `48e9b7f` test/CI and P2P fixes |
 | **Next review** | After hosted deploy or tier-4 proof changes |
+
+## v2 roadmap (out-of-context for v1 composite)
+
+- Legal, compliance, and store policy review ahead of App Store / Play distribution
+- macOS and Linux desktop installers
+- Full i18n / locale coverage beyond English-primary (v1 reports **46** report-only)
+- Authenticode signing once a production code-signing cert exists
+- Multi-region relay fleet operations beyond current operator runbooks

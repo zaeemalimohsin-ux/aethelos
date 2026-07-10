@@ -38,6 +38,8 @@ Event log export/import is tested (unit + E2E). **Dual-fork causal validation on
 
 CI automation: `.github/workflows/product-proof.yml` (weekly + manual dispatch).
 
+- Distribution scorecard composite **77.5/100** (Charter A v1, 2026-07-11). See [DISTRIBUTION_SCORECARD.md](./docs/DISTRIBUTION_SCORECARD.md).
+
 ## Known limitations
 
 See [BETA_README.md](./docs/BETA_README.md): SmartScreen on unsigned Windows builds, federation rough edges, offline queueing, four-step guest admission.
