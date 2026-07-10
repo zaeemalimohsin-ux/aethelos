@@ -9,6 +9,7 @@ import {
   PROPOSAL_HELP,
   PROPOSAL_LABELS,
 } from "../app/concept-help.js";
+import { isFederationEnabled } from "../app/pilot-features.js";
 import { Card } from "../design/components/Card.js";
 import { Button } from "../design/components/Button.js";
 import { Field } from "../design/components/Field.js";
@@ -74,9 +75,11 @@ export function ProposalsView({ pool }: { pool: PoolState }) {
         </div>
       )}
       <CreateProposal pool={pool} />
-      <Disclosure summary="Link chapters">
-        <SuperstructureCard pool={pool} />
-      </Disclosure>
+      {isFederationEnabled() ? (
+        <Disclosure summary="Link chapters">
+          <SuperstructureCard pool={pool} />
+        </Disclosure>
+      ) : null}
       <Card eyebrow="Open decisions">
         <AdmissionSyncHint pool={pool} />
         {proposals.length === 0 ? (
@@ -95,6 +98,7 @@ export function ProposalsView({ pool }: { pool: PoolState }) {
 
 function CreateProposal({ pool }: { pool: PoolState }) {
   const create = useStore((s) => s.createProposal);
+  const federationUi = isFederationEnabled();
   const [kind, setKind] = useState<ProposalKind>(() => defaultProposalKind(pool));
   const [memberTarget, setMemberTarget] = useState("");
   const [idTarget, setIdTarget] = useState("");
@@ -123,11 +127,13 @@ function CreateProposal({ pool }: { pool: PoolState }) {
               {PROPOSAL_LABELS[k]}
             </option>
           ))}
-          {ADVANCED_PROPOSAL_KINDS.map((k) => (
-            <option key={k} value={k}>
-              {PROPOSAL_LABELS[k]} (linked chapters)
-            </option>
-          ))}
+          {federationUi
+            ? ADVANCED_PROPOSAL_KINDS.map((k) => (
+                <option key={k} value={k}>
+                  {PROPOSAL_LABELS[k]} (linked chapters)
+                </option>
+              ))
+            : null}
         </select>
       </div>
       {needsMember ? (

@@ -24,6 +24,7 @@ import {
   loadSubCellParentContext,
 } from "../app/subcell-context.js";
 import { CONCEPT } from "../app/concept-help.js";
+import { isFederationEnabled } from "../app/pilot-features.js";
 import { HelpTip } from "../design/components/HelpTip.js";
 import { Disclosure } from "../design/components/Disclosure.js";
 import { Slider } from "../design/components/Slider.js";
@@ -50,6 +51,7 @@ export function CellView({ pool }: { pool: PoolState }) {
   const waitingToJoin = isGuest;
   const countdown = useCirculationCountdown(pool);
   const sync = useStore((s) => s.sync);
+  const federationUi = isFederationEnabled();
 
   return (
     <div className="stack">
@@ -74,8 +76,8 @@ export function CellView({ pool }: { pool: PoolState }) {
           <strong>Proposals</strong> to request an unfreeze vote.
         </div>
       )}
-      <SubCellCapBanner pool={pool} isHead={isHead} />
-      <SubCellLinkageBanner pool={pool} />
+      {federationUi ? <SubCellCapBanner pool={pool} isHead={isHead} /> : null}
+      {federationUi ? <SubCellLinkageBanner pool={pool} /> : null}
       <div className="grid">
         <Card eyebrow="Your stake">
           <div className="stat-value">{myPercent.toFixed(1)}%</div>
@@ -94,7 +96,7 @@ export function CellView({ pool }: { pool: PoolState }) {
           <div className="stat">{pool.members.length}</div>
           <div className="stat-label">
             Members · Cycle {pool.epochNumber} · Pool {formatPts(poolTotal)} Points
-            {controller.getFederatedPoolTotal() > poolTotal ? (
+            {federationUi && controller.getFederatedPoolTotal() > poolTotal ? (
               <> · Federated {formatPts(controller.getFederatedPoolTotal())} Points</>
             ) : null}
             {" · Commons "}
@@ -112,10 +114,11 @@ export function CellView({ pool }: { pool: PoolState }) {
 
       <Members pool={pool} />
 
-      {(pool.childCells?.length ?? 0) > 0 ||
-      (pool.parentSuperstructures?.length ?? 0) > 0 ||
-      Object.values(pool.superstructureEscrow ?? {}).some((v) => v > 0n) ||
-      Object.values(pool.childCellEscrow ?? {}).some((v) => v > 0n) ? (
+      {federationUi &&
+      ((pool.childCells?.length ?? 0) > 0 ||
+        (pool.parentSuperstructures?.length ?? 0) > 0 ||
+        Object.values(pool.superstructureEscrow ?? {}).some((v) => v > 0n) ||
+        Object.values(pool.childCellEscrow ?? {}).some((v) => v > 0n)) ? (
         <Disclosure summary="Linked chapters & bridges">
           {(pool.childCells?.length ?? 0) > 0 && <ChildCellsCard pool={pool} />}
           <FederationCard pool={pool} />

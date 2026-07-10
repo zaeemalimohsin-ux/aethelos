@@ -11,6 +11,7 @@ interface ImportMetaEnv {
   readonly VITE_DOWNLOAD_URL?: string;
   readonly VITE_RELAY_OPERATOR_GUIDE_URL?: string;
   readonly VITE_E2E?: string;
+  readonly VITE_ENABLE_FEDERATION?: string;
 }
 
 interface ImportMeta {

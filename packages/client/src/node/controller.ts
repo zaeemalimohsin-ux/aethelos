@@ -25,6 +25,7 @@ import {
   relaySetsEqual,
   relayUrlsForInvite,
 } from "../app/active-relays.js";
+import { isFederationEnabled } from "../app/pilot-features.js";
 import { BridgeMirrorCoordinator } from "./bridge-mirror.js";
 import { FederationReader, type LinkedPools } from "./federation-reader.js";
 
@@ -180,6 +181,7 @@ export class NodeController {
   }
 
   private async maybeMirrorBridges(events: SignedEvent[]): Promise<void> {
+    if (!isFederationEnabled()) return;
     if (!this.state || this.mirrorPending) return;
     const pool = this.state;
     const myKey = this.keyPair.publicKeyHex;

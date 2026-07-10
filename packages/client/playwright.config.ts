@@ -45,6 +45,7 @@ export default defineConfig({
           reuseExistingServer: !process.env.CI,
           env: {
             VITE_E2E: "1",
+            VITE_ENABLE_FEDERATION: "1",
           },
         },
 });
