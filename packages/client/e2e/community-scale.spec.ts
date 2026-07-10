@@ -103,6 +103,37 @@ test.describe("six-member community (UI instances)", () => {
     await closeContexts(contexts);
   });
 
+  test("expel proposal executes when majority stake approves", async ({ browser }) => {
+    const { founder, joiners, keys, contexts } = await bootstrapStarCommunity(
+      browser,
+      "Expel Six",
+      SIX,
+    );
+    await waitForMemberCount(founder, 6);
+
+    for (let i = 0; i < joiners.length - 1; i++) {
+      await bridgeTransfer(founder, keys[i]!, "1300");
+    }
+    await founder.waitForTimeout(2000);
+
+    const target = keys[keys.length - 1]!;
+    await bridgeCreateProposal(founder, "expel_member", target);
+    await waitForPool(founder, (p) => p.proposalCount >= 1, 60_000);
+    const proposal = (await getPoolSummary(founder))!.proposals!.find(
+      (p) => p.kind === "expel_member",
+    )!;
+
+    await bridgeVoteProposal(founder, proposal.id, true);
+    for (let i = 0; i < joiners.length - 1; i++) {
+      await bridgeVoteProposal(joiners[i]!, proposal.id, true);
+    }
+
+    const after = await waitForPool(founder, (p) => !p.members.includes(target), 90_000);
+    expect(after.memberCount).toBe(5);
+    expect(after.members).not.toContain(target);
+    await closeContexts(contexts);
+  });
+
   test("head shifts when members vouch for a joiner over founder", async ({
     browser,
   }) => {

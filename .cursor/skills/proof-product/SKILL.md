@@ -20,7 +20,7 @@ cd D:\App2
 pnpm proof:product
 ```
 
-Escape hatches (internal only): `-SkipRelease`, `-SkipStaticGates`, `-SkipPreflight`, `-ForceRelease`
+Escape hatches (internal only): `-SkipRelease`, `-SkipStaticGates`, `-SkipPreflight`, `-SkipAndroid`, `-ForceRelease`
 
 ## Expected PASS summary
 

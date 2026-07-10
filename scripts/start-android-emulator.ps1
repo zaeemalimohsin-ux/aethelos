@@ -80,6 +80,9 @@ try {
         "-skip-adb-auth",
         "-partition-size", "512"
     )
+    if ($env:GITHUB_ACTIONS -eq "true") {
+        $emuArgs += @("-gpu", "swiftshader_indirect", "-no-snapshot-save")
+    }
     if (-not (Test-Path $initializedMarker)) {
         $emuArgs += "-wipe-data"
         Write-Host "First boot: wiping AVD data to seed host adb keys"

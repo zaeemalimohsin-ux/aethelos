@@ -7,49 +7,54 @@ import {
   waitForMemberCount,
 } from "./helpers.js";
 
+const hostedUrl = process.env.AETHELOS_URL?.trim().replace(/\/$/, "");
+
 test.skip(
-  process.env.AETHELOS_DOCKER !== "1",
-  "Requires AETHELOS_DOCKER=1 and docker compose on port 8080",
+  !hostedUrl,
+  "Set AETHELOS_URL to the production hosted origin (https://app.aethelos.org)",
 );
 
-test("mobile joiner completes admission on docker stack", async ({ browser }) => {
-  test.setTimeout(180_000);
+test("mobile joiner completes admission on hosted stack", async ({ browser }) => {
+  test.setTimeout(300_000);
+
   const mobile = devices["Pixel 5"];
+  const baseURL = hostedUrl!;
   const founderCtx = await browser.newContext({
     ...mobile,
-    baseURL: "http://localhost:8080",
+    baseURL,
   });
   const joinerCtx = await browser.newContext({
     ...mobile,
-    baseURL: "http://localhost:8080",
+    baseURL,
   });
   const founder = await founderCtx.newPage();
   const joiner = await joinerCtx.newPage();
 
   await founder.goto("/");
   await founder.getByRole("button", { name: "Create a new identity" }).click();
-  await founder.getByLabel("Display name").fill("Docker Founder");
+  await founder.getByLabel("Display name").fill("Hosted Founder");
   await founder.getByLabel("Passphrase", { exact: true }).fill("founder-pass-123");
   await founder.getByLabel("Confirm passphrase").fill("founder-pass-123");
   await founder.getByRole("button", { name: "Create identity" }).click();
   await expect(founder.getByText("Save your recovery phrase")).toBeVisible({
-    timeout: 15_000,
+    timeout: 30_000,
   });
   await founder.getByRole("checkbox").check();
   await founder.getByRole("button", { name: /Continue/ }).click();
   await founder.getByRole("button", { name: "Start a new community" }).click();
-  await founder.getByLabel("Community name").fill("Docker Mobile Cell");
+  await founder.getByLabel("Community name").fill("Hosted Mobile Cell");
   await founder.getByRole("button", { name: "Create community" }).click();
   await expect(founder.getByRole("button", { name: "Community" })).toBeVisible({
-    timeout: 45_000,
+    timeout: 90_000,
   });
 
   const inviteLink = await buildInviteLink(founder);
-  await joinViaInviteLink(joiner, inviteLink, "Mobile Joiner");
+  expect(inviteLink).toMatch(new URL(baseURL).host);
+  await joinViaInviteLink(joiner, inviteLink, "Hosted Joiner");
   const joinerKey = await getPublicKey(joiner);
   await admitJoiner(founder, joiner, joinerKey);
-  await waitForMemberCount(founder, 2);
-  await waitForMemberCount(joiner, 2);
+  await waitForMemberCount(founder, 2, 90_000);
+  await waitForMemberCount(joiner, 2, 90_000);
 
   await founderCtx.close();
   await joinerCtx.close();

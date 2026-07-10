@@ -3,10 +3,7 @@ import { generateKeyPair, DEFAULT_PARAMETERS } from "@aethelos/core";
 import { startRelayServer, type RelayServer } from "../../relay/src/server.js";
 import { SyncEngine } from "../src/sync/engine.js";
 
-async function waitFor(
-  predicate: () => boolean,
-  timeoutMs = 15_000,
-): Promise<void> {
+async function waitFor(predicate: () => boolean, timeoutMs = 15_000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (predicate()) return;

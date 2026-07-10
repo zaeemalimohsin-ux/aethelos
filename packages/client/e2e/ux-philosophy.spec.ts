@@ -53,6 +53,24 @@ test.describe("philosophy UX", () => {
     await expect(page.getByTestId("network-advanced-panel")).toHaveCount(0);
   });
 
+  test("offline failure mode surfaces plain connection status", async ({
+    page,
+    context,
+  }) => {
+    await onboardGenesis(page, "Founder", "Offline Philosophy Cell");
+    await waitForSyncConnected(page);
+
+    await context.setOffline(true);
+    await expect(
+      page.getByRole("button", { name: /Offline.*Open connection settings/i }),
+    ).toBeVisible({ timeout: 45_000 });
+    await expect(
+      page.getByText(/Offline — your actions queue until you're back online/i),
+    ).toBeVisible();
+
+    await context.setOffline(false);
+  });
+
   test("philosophy card reflects federation pilot gate", async ({ page }) => {
     await onboardGenesis(page, "Founder", "Pilot Copy Cell");
     await page.getByRole("button", { name: "Community" }).click();

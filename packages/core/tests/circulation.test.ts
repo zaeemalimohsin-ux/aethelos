@@ -9,10 +9,12 @@ import {
   generateKeyPair,
   totalPoolPoints,
   createInitialState,
+  circulationIntervalMinutes,
   MS_PER_MINUTE,
   MS_PER_DAY,
   TIMESTAMP_FORWARD_SKEW_MS,
   DEFAULT_PARAMETERS,
+  MIN_EPOCH_INTERVAL_MINUTES,
   type PoolState,
   points,
 } from "../src/index.js";
@@ -317,5 +319,36 @@ describe("time-proportional accrual", () => {
     expect(state.eventCount).toBe(1);
     expect(rejected).toHaveLength(1);
     expect(rejected[0]!.reason).toBe("timestamp_too_far_future");
+  });
+});
+
+describe("epoch interval floor (P2.2)", () => {
+  it("clamps redistribution interval to the 15-minute philosophy floor", () => {
+    const state: PoolState = {
+      ...createInitialState("floor"),
+      initialized: true,
+      members: ["alice"],
+      balances: { alice: points("1000") },
+      parameters: { ...DEFAULT_PARAMETERS, epoch_interval: 5 },
+    };
+    expect(MIN_EPOCH_INTERVAL_MINUTES).toBe(15);
+    expect(circulationIntervalMinutes(state)).toBe(15);
+  });
+
+  it("steps epoch_interval to the nearest 15-minute increment", () => {
+    const low: PoolState = {
+      ...createInitialState("step-low"),
+      initialized: true,
+      members: ["alice"],
+      balances: { alice: points("1000") },
+      parameters: { ...DEFAULT_PARAMETERS, epoch_interval: 22 },
+    };
+    const high: PoolState = {
+      ...low,
+      namespaceId: "step-high",
+      parameters: { ...DEFAULT_PARAMETERS, epoch_interval: 38 },
+    };
+    expect(circulationIntervalMinutes(low)).toBe(15);
+    expect(circulationIntervalMinutes(high)).toBe(45);
   });
 });

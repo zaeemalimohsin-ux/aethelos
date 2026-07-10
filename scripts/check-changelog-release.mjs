@@ -10,8 +10,7 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const version =
-  process.argv[2] ??
-  JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
+  process.argv[2] ?? JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
 
 const changelog = readFileSync(join(root, "CHANGELOG.md"), "utf8");
 const heading = `## [${version}]`;

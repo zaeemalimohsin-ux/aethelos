@@ -21,6 +21,18 @@ async function fetchHealth() {
     throw new Error(`healthz unexpected body: ${JSON.stringify(body)}`);
 }
 
+async function fetchAppShell() {
+  const res = await fetch(base, {
+    signal: AbortSignal.timeout(15_000),
+    headers: { Accept: "text/html" },
+  });
+  if (!res.ok) throw new Error(`app shell HTTP ${res.status}`);
+  const html = await res.text();
+  if (!html.includes('id="root"') && !/AethelOS/i.test(html)) {
+    throw new Error("app shell missing #root or AethelOS marker");
+  }
+}
+
 async function probeWebSocket() {
   if (typeof WebSocket === "undefined") {
     console.log("charter-a-preflight: WebSocket probe skipped (no global WebSocket)");
@@ -47,6 +59,8 @@ async function probeWebSocket() {
 try {
   await fetchHealth();
   console.log(`charter-a-preflight: OK ${healthUrl}`);
+  await fetchAppShell();
+  console.log(`charter-a-preflight: OK app shell ${base}`);
   try {
     await probeWebSocket();
     console.log(`charter-a-preflight: OK ${wsUrl}`);

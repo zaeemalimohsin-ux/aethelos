@@ -2,8 +2,10 @@ import { defineConfig, devices } from "@playwright/test";
 
 const dockerStack = process.env.AETHELOS_DOCKER === "1";
 const shareUrlProof = Boolean(process.env.AETHELOS_SHARE_URL?.trim());
+const hostedUrl = process.env.AETHELOS_URL?.trim().replace(/\/$/, "");
 const shareUrlSpecs = /(?:founder|joiner)-share-url\.spec\.ts$/;
 const dockerMobileSpecs = /(?:founder|joiner)-mobile\.spec\.ts$/;
+const hostedAdmissionSpecs = /hosted-admission\.spec\.ts$/;
 const pilotGateSpecs = /pilot-cap\.spec\.ts$/;
 
 export default defineConfig({
@@ -20,7 +22,12 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      testIgnore: [dockerMobileSpecs, shareUrlSpecs, pilotGateSpecs],
+      testIgnore: [
+        dockerMobileSpecs,
+        shareUrlSpecs,
+        pilotGateSpecs,
+        hostedAdmissionSpecs,
+      ],
       use: { ...devices["Desktop Chrome"] },
     },
     {
@@ -36,9 +43,17 @@ export default defineConfig({
       testMatch: shareUrlSpecs,
       use: { ...devices["Pixel 5"] },
     },
+    {
+      name: "hosted",
+      testMatch: hostedAdmissionSpecs,
+      use: {
+        ...devices["Pixel 5"],
+        baseURL: hostedUrl || "https://app.aethelos.org",
+      },
+    },
   ],
   webServer:
-    dockerStack || shareUrlProof
+    dockerStack || shareUrlProof || hostedUrl
       ? undefined
       : {
           command: 'npx concurrently "vite" "pnpm --filter @aethelos/relay dev"',

@@ -34,6 +34,9 @@ jobs:
       - name: Version sync check
         run: node scripts/check-version-sync.mjs
 
+      - name: Tag version check
+        run: node scripts/check-tag-version.mjs
+
       - name: Changelog check
         run: node scripts/check-changelog-release.mjs
 

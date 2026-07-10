@@ -63,8 +63,7 @@ export function CellView({ pool }: { pool: PoolState }) {
             sync?.pendingOutbox ?? 0,
             sync?.outboxAtCap ?? false,
           )}{" "}
-          Others won't
-          see them yet.
+          Others won't see them yet.
         </div>
       ) : null}
       {isHead && pool.members.length === 1 && !waitingToJoin ? (
