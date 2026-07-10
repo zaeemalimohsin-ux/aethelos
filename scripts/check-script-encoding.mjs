@@ -25,6 +25,7 @@ const files = [
   ...walk(join(root, "packages/client"), (name, p) =>
     /playwright.*\.config\.ts$/.test(name),
   ),
+  ...walk(join(root, ".github/workflows"), (name) => name.endsWith(".yml")),
   join(root, "packages/client/src/app/pilot-features.ts"),
 ].filter((p) => existsSync(p));
 
