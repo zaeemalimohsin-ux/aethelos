@@ -6,6 +6,26 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **Test Wave C:** Admission-edge E2E, pilot-off Playwright project, crypto/rejection oracle unit suites, governance progressive disclosure E2E, mesh-chain 3-peer E2E, store `waitForConfirmedState`, head-election and governance-threshold unit tests.
+- **Charter A E2E:** Automated happy-path admission, transfer, redistribution, and post-unfreeze transfer in `community.spec.ts`.
+- **charter-a-preflight:** `node scripts/charter-a-preflight.mjs` for optional hosted `AETHELOS_URL` smoke.
+- **recovery-relays test:** Session relays derived from imported log `communityRelays`.
+
+### Changed
+
+- **Import recovery:** `recoverCommunityFromEventLog` uses ledger `communityRelays` via `mergeActiveRelays`, not bootstrap-only.
+- **Pilot copy:** Federation-off at-cap and philosophy card messaging; federation UI remains gated by `VITE_ENABLE_FEDERATION`.
+- **Outbox honesty:** Queue retained until `sync_batch` confirms; full-buffer catch-up after flush.
+- **Toast honesty:** Invite, transfer, and proposal success toasts wait for reducer + outbox drain (`waitForConfirmedState`).
+- **Governance UX:** Slider grid hidden until ≥2 members; redistribution card always visible.
+- **Analytics:** `onboarding_step` DEV-only; `genesis_success` drops `cellName` prop.
+
+### Fixed
+
+- **Docs:** BETA operator checklist; Charter A mapped to automated E2E; traceability P2.2 Covered.
+
 ## [0.2.0] - 2026-07-10
 
 ### Added

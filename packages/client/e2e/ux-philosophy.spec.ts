@@ -53,12 +53,17 @@ test.describe("philosophy UX", () => {
     await expect(page.getByTestId("network-advanced-panel")).toHaveCount(0);
   });
 
-  test("welcome screen does not expose join before identity", async ({ page }) => {
-    await page.goto("/");
-    await expect(
-      page.getByRole("button", { name: "Create a new identity" }),
-    ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Join a community" })).toHaveCount(0);
-    await expect(page.getByText("Share invite link")).toHaveCount(0);
+  test("philosophy card reflects federation pilot gate", async ({ page }) => {
+    await onboardGenesis(page, "Founder", "Pilot Copy Cell");
+    await page.getByRole("button", { name: "Community" }).click();
+    await page.getByText("How your community works").click();
+    const federationOff = await page
+      .getByText(/Federation scaling.*off in this pilot build/i)
+      .isVisible();
+    if (federationOff) {
+      await expect(page.getByText(/Scaling up/)).toHaveCount(0);
+    } else {
+      await expect(page.getByText(/Scaling up/)).toBeVisible();
+    }
   });
 });

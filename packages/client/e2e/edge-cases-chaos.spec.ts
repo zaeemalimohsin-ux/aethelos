@@ -79,11 +79,9 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
 
   test("app does not crash or freeze on 50 rapid slider changes", async ({ browser }) => {
     test.setTimeout(120_000);
-    const { founder, contexts } = await bootstrapStarCommunity(
-      browser,
-      "Slider Chaos",
-      [],
-    );
+    const { founder, contexts } = await bootstrapStarCommunity(browser, "Slider Chaos", [
+      "SliderJoiner",
+    ]);
 
     await founder.getByRole("button", { name: "Governance", exact: true }).click();
     await expect(
@@ -178,8 +176,9 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
     const targetBal = (poolAfter as any)?.balances[targetKey] ?? "0";
     const commons = (poolAfter as any)?.commons ?? "0";
 
-    // Just ensure state is not corrupted (pool summary is present)
+    // Total pool points must be conserved
     expect(poolAfter).not.toBeNull();
+    expect((poolAfter as any)!.totalPoints).toBe((initialPool as any)!.totalPoints);
     expect(typeof founderBal).toBe("string");
 
     await closeContexts(contexts);

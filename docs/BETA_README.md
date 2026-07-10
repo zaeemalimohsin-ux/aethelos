@@ -28,9 +28,19 @@ Windows friends install from [GitHub Releases](https://github.com/zaeemalimohsin
 
 ## Hosting (for operators)
 
-- Preferred: VPS + `docker compose` + TLS + permanent domain ([PUBLISHER.md](./PUBLISHER.md))
+- Preferred: VPS with TLS and a permanent domain ([PUBLISHER.md](./PUBLISHER.md))
 - Run `./scripts/publisher-preflight.sh https://your-domain` before sharing the link (see PUBLISHER.md)
 - Ephemeral tunnel URLs are for demos, not long-term communities
+
+## Operator checklist (pilot cohort)
+
+1. Install from [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (Windows `.exe` / `.msi`).
+2. Founder: create identity → start community → **Invite people** → share link.
+3. Run `node scripts/charter-a-preflight.mjs` against your hosted URL when `AETHELOS_URL` is set (optional smoke).
+4. Joiner: open invite on phone browser → join code → wait for vouch + admission vote → accept.
+5. Export event logs periodically from at least one device.
+
+Pilot scope: federation / linked chapters are **off** unless the build sets `VITE_ENABLE_FEDERATION=1` (developer/E2E only).
 
 ## Getting help
 

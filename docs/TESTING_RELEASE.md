@@ -7,7 +7,8 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 | Tier | Command / job | What it proves | Required for |
 |------|----------------|----------------|--------------|
 | **1 — CI core** | `pnpm typecheck`, `pnpm lint:eslint`, `pnpm test` | Kernel, relay, client units | Every merge |
-| **2 — Local product E2E** | `pnpm test:e2e` (Playwright `chromium` project) | Vite dev + relay dev flows | Every merge (CI `e2e` job) |
+| **2 — Local product E2E** | `pnpm test:e2e --project=chromium` | Vite dev + relay dev flows (federation on) | Every merge (CI `e2e` job) |
+| **2b — Pilot-off E2E** | `pnpm test:e2e:pilot-off` | Admission edge, pilot cap, philosophy UX without federation | Nightly (`nightly-integration` workflow) |
 | **3 — Publish path** | CI `docker-founder` → Playwright `founder-docker` | Same-origin `/ws` via nginx on port 8080 | Every merge |
 | **4 — Windows product proof** | `pnpm proof:product` | Desktop installer, live tunnel share URL, `share-url-mobile` Playwright | Release sign-off (Windows) |
 
@@ -29,7 +30,9 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 
 | Gate | What it proves | Where |
 |------|----------------|-------|
-| `pnpm test:e2e` | Local vite + `dev:relay` product flows | Local + CI `e2e` job |
+| `pnpm test:e2e --project=chromium` | Local vite + `dev:relay` product flows (federation on) | Local + CI `e2e` job |
+| `pnpm test:e2e:pilot-off` | Pilot-gate UX (no `VITE_ENABLE_FEDERATION`) | Nightly `pilot-off-e2e` job |
+| Nightly `sync-mesh` + `mesh-chain-e2e` | Headless mesh convergence + 3-peer admission chain | `.github/workflows/nightly-integration.yml` |
 | CI `docker-founder` | Same-origin `/ws` publish stack (nginx) | Ubuntu CI — **required** publish-path proof |
 | Playwright `share-url-mobile` | Live public tunnel URLs | Env-gated (`AETHELOS_SHARE_URL`); `proof:product` on Windows |
 | `pnpm desktop:proof` / `proof-product.ps1` | Windows desktop remote path | Windows only; skipped on Linux verify |
@@ -57,11 +60,15 @@ Before tagging a release candidate, confirm:
 
 ```bash
 pnpm typecheck && pnpm lint:eslint && pnpm format:check
+node scripts/check-script-encoding.mjs
 pnpm --filter @aethelos/core build
 pnpm test
 pnpm --filter @aethelos/core test:coverage
-pnpm test:e2e
+pnpm --filter @aethelos/client exec playwright test --project=chromium
+pnpm test:e2e:pilot-off
 ```
+
+Use `--project=chromium` explicitly when running E2E locally. Bare `pnpm test:e2e` also attempts `founder-docker` and `share-url-mobile` projects, which need Docker or `AETHELOS_SHARE_URL` respectively.
 
 ## Exploratory testing charters (90 minutes each)
 
@@ -70,6 +77,8 @@ pnpm test:e2e
 **Scope:** Invite link → admission proposal → accept → first transfer → redistribution visibility.
 
 **Oracles:** Points conserved; invitee cannot join before admission; share percentages sum sensibly.
+
+**Automated:** `packages/client/e2e/community.spec.ts` — `Charter A — new member journey` (CI `e2e` job).
 
 ### Charter B — Governance stress
 
@@ -88,6 +97,8 @@ pnpm test:e2e
 **Scope:** Passphrase restore; event log export/import; relay URL change.
 
 **Oracles:** Imported log reproduces pool; switching relay catches up from local log.
+
+**Automated:** `packages/client/e2e/recovery-relay-switch.spec.ts` (Connection tab relay swap preserves local log state).
 
 ## Defect logging template
 

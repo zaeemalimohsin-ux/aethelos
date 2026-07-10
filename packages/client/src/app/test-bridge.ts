@@ -115,6 +115,10 @@ export function installTestBridge(): void {
       return useStore.getState().sync;
     },
 
+    getSessionRelays() {
+      return useStore.getState().session?.relayUrls ?? [];
+    },
+
     async setRelaySharing(on: boolean) {
       await useStore.getState().setRelaySharing(on);
     },

@@ -12,8 +12,11 @@ import {
   bridgeTransfer,
   bridgeAdvanceCirculation,
   bridgeUpdateSlider,
+  bootstrapStarCommunity,
   freshContext,
   sendOnChainInvite,
+  bridgeCreateProposal,
+  bridgeVoteProposal,
 } from "./helpers.js";
 
 test.describe("two-person genesis & join", () => {
@@ -95,18 +98,17 @@ test.describe("economy & transfers", () => {
 });
 
 test.describe("governance sliders", () => {
-  test("governance slider updates resolved parameters", async ({ page }) => {
-    await onboardGenesis(page, "Gov Tester", "Gov Cell");
-    await page.waitForFunction(
-      async () => {
-        const bridge = window.__aethelosTest;
-        if (!bridge?.getNamespaceId()) return false;
-        await bridge.updateSlider("decay_rate", 15);
-        return bridge.getPoolSummary()?.parameters.decay_rate === 15;
-      },
-      undefined,
-      { timeout: 90_000 },
-    );
+  test("governance slider updates resolved parameters with two members", async ({
+    browser,
+  }) => {
+    const { founder, contexts } = await bootstrapStarCommunity(browser, "Gov Cell", [
+      "Bob",
+    ]);
+    await bridgeUpdateSlider(founder, "decay_rate", 15);
+    await waitForPool(founder, (p) => p.parameters.decay_rate === 15, 60_000);
+    for (const ctx of contexts) {
+      await ctx.close();
+    }
   });
 });
 
@@ -146,9 +148,7 @@ test.describe("epoch & redistribution conservation", () => {
 });
 
 test.describe("proposals", () => {
-  test("proposal syncs across nodes and resolves with share-weighted vote", async ({
-    browser,
-  }) => {
+  test("resolve_fracture executes after real overspend fracture", async ({ browser }) => {
     const ctxA = await freshContext(browser);
     const ctxB = await freshContext(browser);
     const pageA = await ctxA.newPage();
@@ -158,28 +158,44 @@ test.describe("proposals", () => {
     const inviteLink = await buildInviteLink(pageA);
     await joinViaInviteLink(pageB, inviteLink);
     const joinerKey = await getPublicKey(pageB);
+    const founderKey = await getPublicKey(pageA);
     await admitJoiner(pageA, pageB, joinerKey);
     await waitForMemberCount(pageA, 2);
     await waitForMemberCount(pageB, 2);
 
-    await pageA.getByRole("button", { name: "Proposals" }).click();
-    await pageA.locator("#kind").selectOption("resolve_fracture");
-    await pageA.getByLabel("About who?").selectOption(joinerKey);
-    await pageA.getByRole("button", { name: "Start proposal" }).click();
+    await pageA.getByLabel("Send to").selectOption(joinerKey);
+    await pageA.getByLabel("Amount (Points)").fill("10");
+    await pageA.getByRole("button", { name: "Send transaction" }).click();
+    await waitForPool(pageB, (p) => p.balances[joinerKey] > 0);
 
-    await waitForPool(pageA, (p) => p.proposalCount >= 1);
-    await waitForPool(pageB, (p) => p.proposalCount >= 1, 60_000);
-    await pageA.getByRole("button", { name: "Approve" }).first().click();
+    await pageB.evaluate(
+      (to) => window.__aethelosTest?.dispatchDoubleSpend(to, "9999999999999"),
+      founderKey,
+    );
+    await waitForPool(pageA, (p) => (p.fractures ?? []).includes(joinerKey));
+    await waitForPool(pageB, (p) => (p.fractures ?? []).includes(joinerKey), 30_000);
 
-    await pageB.getByRole("button", { name: "Proposals" }).click();
-    await waitForPool(
-      pageB,
+    await bridgeCreateProposal(pageA, "resolve_fracture", joinerKey);
+    const poolAfter = await waitForPool(
+      pageA,
       (p) =>
-        (p.proposals ?? []).some((pr) => pr.kind === "resolve_fracture" && pr.executed),
+        (p.proposals ?? []).some((pr) => pr.kind === "resolve_fracture" && !pr.executed),
+      60_000,
+    );
+    const proposalId = poolAfter.proposals!.find(
+      (pr) => pr.kind === "resolve_fracture" && !pr.executed,
+    )!.id;
+    await bridgeVoteProposal(pageA, proposalId, true);
+
+    await waitForPool(
+      pageA,
+      (p) =>
+        (p.proposals ?? []).some(
+          (pr) => pr.id === proposalId && pr.kind === "resolve_fracture" && pr.executed,
+        ),
       30_000,
     );
-    await waitForMemberCount(pageA, 2);
-    await waitForMemberCount(pageB, 2);
+    await waitForPool(pageA, (p) => (p.fractures ?? []).length === 0, 30_000);
 
     await ctxA.close();
     await ctxB.close();
@@ -422,6 +438,124 @@ test.describe("fracture recovery", () => {
     await expect(
       pageB.getByText("Your account is frozen after suspicious activity"),
     ).not.toBeVisible();
+
+    await ctxA.close();
+    await ctxB.close();
+  });
+});
+
+test.describe("Charter A — new member journey", () => {
+  test("invite → blocked before admission → transfer → redistribution visibility", async ({
+    browser,
+  }) => {
+    const ctxA = await freshContext(browser);
+    const ctxB = await freshContext(browser);
+    const pageA = await ctxA.newPage();
+    const pageB = await ctxB.newPage();
+
+    await onboardGenesis(pageA, "Alice", "Charter A Happy Path");
+    const inviteLink = await buildInviteLink(pageA);
+    await joinViaInviteLink(pageB, inviteLink);
+
+    await pageB.getByRole("button", { name: "Community" }).click();
+    await expect(pageB.locator(".alert.info").getByText(/step 1 of 4/i)).toBeVisible({
+      timeout: 30_000,
+    });
+    await expect(pageB.getByRole("button", { name: "Send transaction" })).toHaveCount(0);
+
+    const joinerKey = await getPublicKey(pageB);
+    await admitJoiner(pageA, pageB, joinerKey);
+    await waitForMemberCount(pageA, 2);
+    await waitForMemberCount(pageB, 2);
+
+    const beforeJoiner = (await getPoolSummary(pageB))!.balances[joinerKey];
+    await bridgeTransfer(pageA, joinerKey, "250");
+    await waitForPool(
+      pageB,
+      (p) =>
+        parseFloat(p.balances[joinerKey] || "0") > parseFloat(beforeJoiner || "0") + 200,
+    );
+
+    const after = await getPoolSummary(pageA);
+    const afterJoiner = await getPoolSummary(pageB);
+    expect(after!.totalPoints).toBe(afterJoiner!.totalPoints);
+
+    await pageB.getByRole("button", { name: "Governance", exact: true }).click();
+    await expect(pageB.getByText("Direct your flow")).toBeVisible();
+
+    await bridgeUpdateSlider(pageA, "epoch_interval", 15);
+    await bridgeUpdateSlider(pageB, "epoch_interval", 15);
+    await bridgeAdvanceCirculation(pageA, joinerKey);
+    await waitForPool(pageA, (p) => p.epochNumber >= 1, 60_000);
+    expect((await getPoolSummary(pageA))!.totalPoints).toBe(after!.totalPoints);
+
+    await ctxA.close();
+    await ctxB.close();
+  });
+
+  test("joiner blocked at step 1 before admission vote", async ({ browser }) => {
+    const ctxA = await freshContext(browser);
+    const ctxB = await freshContext(browser);
+    const pageA = await ctxA.newPage();
+    const pageB = await ctxB.newPage();
+
+    await onboardGenesis(pageA, "Alice", "Charter A Blocked");
+    const inviteLink = await buildInviteLink(pageA);
+    await joinViaInviteLink(pageB, inviteLink);
+    const joinerKey = await getPublicKey(pageB);
+    await sendOnChainInvite(pageA, joinerKey);
+    await waitForPool(pageA, (p) => p.pendingInviteCount >= 1);
+
+    await pageB.getByRole("button", { name: "Community" }).click();
+    await expect(pageB.locator(".alert.info").getByText(/step [23] of 4/i)).toBeVisible({
+      timeout: 30_000,
+    });
+    await expect(pageB.getByRole("button", { name: "Accept invitation" })).toHaveCount(0);
+    await waitForPool(pageB, (p) => p.memberCount === 1);
+
+    await ctxA.close();
+    await ctxB.close();
+  });
+
+  test("after unfreeze offender can transfer again with conservation", async ({
+    browser,
+  }) => {
+    const ctxA = await freshContext(browser);
+    const ctxB = await freshContext(browser);
+    const pageA = await ctxA.newPage();
+    const pageB = await ctxB.newPage();
+
+    await onboardGenesis(pageA, "Alice", "Charter A Unfreeze");
+    const inviteLink = await buildInviteLink(pageA);
+    await joinViaInviteLink(pageB, inviteLink);
+    const joinerKey = await getPublicKey(pageB);
+    await admitJoiner(pageA, pageB, joinerKey);
+    await waitForMemberCount(pageA, 2);
+
+    const aliceKey = await getPublicKey(pageA);
+    await pageB.evaluate(
+      (recipient) => window.__aethelosTest?.dispatchSiblingDoubleSpend?.(recipient, "6"),
+      aliceKey,
+    );
+    await waitForPool(pageB, (p) => (p.fractures ?? []).includes(joinerKey));
+
+    await pageA.getByRole("button", { name: "Proposals" }).click();
+    await pageA.locator("#kind").selectOption("resolve_fracture");
+    await pageA.getByLabel("About who?").selectOption(joinerKey);
+    await pageA.getByRole("button", { name: "Start proposal" }).click();
+    await pageA.getByRole("button", { name: "Approve" }).first().click();
+    await waitForPool(pageA, (p) => p.fractures.length === 0, 30_000);
+    await waitForPool(pageB, (p) => p.fractures.length === 0, 30_000);
+
+    const totalBefore = (await getPoolSummary(pageA))!.totalPoints;
+    await bridgeTransfer(pageB, aliceKey, "5");
+    await waitForPool(
+      pageA,
+      (p) => parseFloat(p.balances[aliceKey] || "0") > 9990,
+      30_000,
+    );
+    const totalAfter = (await getPoolSummary(pageA))!.totalPoints;
+    expect(totalAfter).toBe(totalBefore);
 
     await ctxA.close();
     await ctxB.close();

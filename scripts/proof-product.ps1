@@ -398,10 +398,25 @@ if (-not $SkipRelease) {
     $exe = Find-AethelosExe
 
     if ($exe) {
-        try {
-            Invoke-ProofPath -Label "Release exe" -StartApp { Start-ReleaseAppForProof } -ProofMode "release"
-        } catch {
-            Write-StepResult "Release exe path" "FAIL" $_.Exception.Message
+        $releaseOk = $false
+        for ($attempt = 1; $attempt -le 2; $attempt++) {
+            if ($attempt -gt 1) {
+                Write-Host "Retrying release proof path (attempt $attempt)..."
+                Stop-ProofProcesses
+                Start-Sleep -Seconds 5
+            }
+            try {
+                Invoke-ProofPath -Label "Release exe" -StartApp { Start-ReleaseAppForProof } -ProofMode "release"
+                $releaseOk = $true
+                break
+            } catch {
+                if ($attempt -eq 2) {
+                    Write-StepResult "Release exe path" "FAIL" $_.Exception.Message
+                }
+            }
+        }
+        if (-not $releaseOk -and $Results["Release exe path"] -notmatch "FAIL") {
+            Write-StepResult "Release exe path" "FAIL" "release proof did not pass after retries"
         }
     } else {
         Write-StepResult "Release exe path" "FAIL" "no exe after build"

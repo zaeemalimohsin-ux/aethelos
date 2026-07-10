@@ -37,6 +37,7 @@ type StatusListener = (s: SyncStatus) => void;
 
 const MAX_BACKOFF = 30_000;
 const BASE_BACKOFF = 1_000;
+const MAX_OUTBOX = 500;
 
 interface RelayConn {
   url: string;
@@ -244,6 +245,16 @@ export class SyncEngine {
     }
   }
 
+  private async pruneOutboxForEvents(events: SignedEvent[]): Promise<void> {
+    if (this.outbox.length === 0 || events.length === 0) return;
+    const confirmed = new Set(events.map((e) => e.id));
+    const next = this.outbox.filter((env) => !confirmed.has(env.event.id));
+    if (next.length === this.outbox.length) return;
+    this.outbox = next;
+    await saveOutbox(this.namespaceId, this.outbox);
+    this.emitStatus();
+  }
+
   private async ingestRemote(remote: SignedEvent[]): Promise<void> {
     // Defense in depth: verify signatures and namespace before persisting anything.
     const valid = remote.filter(
@@ -251,6 +262,7 @@ export class SyncEngine {
     );
     const known = new Set(this.localEvents.map((e) => e.id));
     const fresh = valid.filter((e) => !known.has(e.id));
+    await this.pruneOutboxForEvents(valid);
     if (fresh.length === 0) return;
     await appendEvents(fresh);
     this.localEvents = mergeEventLogs(this.localEvents, fresh);
@@ -279,15 +291,29 @@ export class SyncEngine {
     return sentToAny;
   }
 
+  private async queueOutbox(envelope: WireEnvelope): Promise<void> {
+    if (this.outbox.some((e) => e.event.id === envelope.event.id)) return;
+    if (this.outbox.length >= MAX_OUTBOX) return;
+    this.outbox.push(envelope);
+    await saveOutbox(this.namespaceId, this.outbox);
+    this.emitStatus();
+  }
+
   private async flushOutbox(): Promise<void> {
     if (this.outbox.length === 0) return;
-    const remaining: WireEnvelope[] = [];
     for (const envelope of this.outbox) {
-      const sent = this.broadcast({ type: "announce", envelope });
-      if (!sent) remaining.push(envelope);
+      this.broadcast({ type: "announce", envelope });
     }
-    this.outbox = remaining;
-    await saveOutbox(this.namespaceId, this.outbox);
+    for (const conn of this.conns.values()) {
+      if (conn.ws?.readyState === WebSocket.OPEN) {
+        conn.ws.send(
+          JSON.stringify({
+            type: "request_sync",
+            namespaceId: this.namespaceId,
+          } satisfies RelayMessage),
+        );
+      }
+    }
     this.emitStatus();
   }
 
@@ -319,10 +345,7 @@ export class SyncEngine {
     };
     const sent = this.broadcast({ type: "announce", envelope });
     if (!sent) {
-      // Offline: durably queue so it propagates when a relay returns.
-      this.outbox.push(envelope);
-      await saveOutbox(this.namespaceId, this.outbox);
-      this.emitStatus();
+      await this.queueOutbox(envelope);
     }
 
     return event;
@@ -364,10 +387,9 @@ export class SyncEngine {
       };
       const sent = this.broadcast({ type: "announce", envelope });
       if (!sent) {
-        this.outbox.push(envelope);
+        await this.queueOutbox(envelope);
       }
     }
-    await saveOutbox(this.namespaceId, this.outbox);
     this.localEvents = mergeEventLogs(this.localEvents, signed);
     this.emitEvents();
     this.emitStatus();

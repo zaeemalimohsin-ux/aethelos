@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:pilot-off": "playwright test -c playwright.pilot.config.ts --project=pilot-off",
     "setup:e2e": "playwright install chromium",
     "playground": "node scripts/multi-person-playground.mjs"
   },

@@ -86,7 +86,9 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
   const hasStoredIdentity = identities.length > 0;
 
   useEffect(() => {
-    trackEvent("onboarding_step", { step });
+    if (import.meta.env.DEV) {
+      trackEvent("onboarding_step", { step });
+    }
   }, [step]);
 
   useEffect(() => {

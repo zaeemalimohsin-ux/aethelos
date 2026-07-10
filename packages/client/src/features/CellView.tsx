@@ -55,7 +55,7 @@ export function CellView({ pool }: { pool: PoolState }) {
 
   return (
     <div className="stack">
-      <PhilosophyCard />
+      <PhilosophyCard federationUi={federationUi} />
       {sync?.overall === "offline" ? (
         <div className="alert warning">
           {connectionStatusMessage(sync?.overall, sync?.pendingOutbox ?? 0)} Others won't
@@ -110,7 +110,9 @@ export function CellView({ pool }: { pool: PoolState }) {
         </Card>
       </div>
 
-      {pool.members.includes(myKey) && !isFrozen && <InviteCard onInvite={invite} />}
+      {pool.members.includes(myKey) && !isFrozen && (
+        <InviteCard onInvite={invite} federationUi={federationUi} />
+      )}
 
       <Members pool={pool} />
 
@@ -139,7 +141,7 @@ export function CellView({ pool }: { pool: PoolState }) {
   );
 }
 
-function PhilosophyCard() {
+function PhilosophyCard({ federationUi }: { federationUi: boolean }) {
   return (
     <Disclosure summary="How your community works">
       <div className="concept-card">
@@ -158,9 +160,15 @@ function PhilosophyCard() {
         <p>
           <strong>Stake circulation</strong> — {CONCEPT.epoch}
         </p>
-        <p>
-          <strong>Scaling up</strong> — {CONCEPT.subCell}
-        </p>
+        {federationUi ? (
+          <p>
+            <strong>Scaling up</strong> — {CONCEPT.subCell}
+          </p>
+        ) : (
+          <p className="hint">
+            Federation scaling (linked chapters) is off in this pilot build.
+          </p>
+        )}
       </div>
     </Disclosure>
   );
@@ -425,11 +433,13 @@ function PendingInvitesCard({ pool, myKey }: { pool: PoolState; myKey: string })
 
 function InviteCard({
   onInvite,
+  federationUi,
 }: {
   onInvite: (
     pubkey: string,
     parameters?: Record<GovernanceParameter, number>,
   ) => Promise<void>;
+  federationUi: boolean;
 }) {
   const controller = useStore((s) => s.controller)!;
   const pool = useStore((s) => s.pool)!;
@@ -486,12 +496,31 @@ function InviteCard({
     <Card eyebrow="Invite people">
       {atCap ? (
         <div className="alert warning" style={{ marginBottom: "var(--sp-3)" }}>
-          At capacity ({SOFT_CELL_CAP} members). New people join through linked chapters —
-          start one from the banner above if you are Head.
+          {federationUi ? (
+            <>
+              At capacity ({SOFT_CELL_CAP} members). New people join through linked
+              chapters — start one from the banner above if you are Head.
+            </>
+          ) : (
+            <>
+              Pilot cap reached ({SOFT_CELL_CAP} members). Ask the Head to manage
+              membership.
+            </>
+          )}
         </div>
       ) : nearCap ? (
         <div className="alert info" style={{ marginBottom: "var(--sp-3)" }}>
-          {pool.members.length} / {SOFT_CELL_CAP} members — plan a linked chapter soon.
+          {federationUi ? (
+            <>
+              {pool.members.length} / {SOFT_CELL_CAP} members — plan a linked chapter
+              soon.
+            </>
+          ) : (
+            <>
+              {pool.members.length} / {SOFT_CELL_CAP} members — pilot cap is{" "}
+              {SOFT_CELL_CAP}.
+            </>
+          )}
         </div>
       ) : null}
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>

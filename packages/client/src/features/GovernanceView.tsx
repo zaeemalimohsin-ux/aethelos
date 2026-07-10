@@ -116,40 +116,49 @@ export function GovernanceView({ pool }: { pool: PoolState }) {
 
   return (
     <div className="stack">
-      <Card eyebrow="Community rules" title="Your voice shapes the average">
-        <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-          Move a slider to where you think the rule should sit. The community's actual
-          rule is the stake-weighted average of everyone's choice.{" "}
-          <HelpTip text={CONCEPT.proposal} />
-        </p>
-        {params.map((p) => (
-          <Slider
-            key={p}
-            label={PARAM_LABELS[p]}
-            help={GOVERNANCE_HELP[p]}
-            value={sliderValue(pool, myKey, p)}
-            min={p === "epoch_interval" ? MIN_EPOCH_INTERVAL_MINUTES : 0}
-            max={sliderMax(p)}
-            step={sliderStep(p)}
-            onCommit={(v) => void updateSlider(p, v)}
-          />
-        ))}
-        <p className="hint" style={{ marginTop: "var(--sp-3)" }}>
-          Right now: {annualCirculation.toFixed(1)}% per year accrues continuously on
-          activity · redistribution every {intervalLabel} ·{" "}
-          {pool.parameters.approval_threshold.toFixed(0)}% to pass proposals. Commons
-          pool: {formatPointsAmount(pool.commons)} Points.{" "}
-          <HelpTip text={CONCEPT.epoch} />
-        </p>
-        {countdown.label ? (
-          <p className={`hint${countdown.due ? " warning" : ""}`}>{countdown.label}</p>
-        ) : null}
-        <p className="hint" style={{ marginTop: "var(--sp-2)" }}>
-          Liveness: stay active within {livenessMinutes} minutes to keep your equal share
-          of redistribution ({liveCount} of {pool.members.length} members live now).{" "}
-          <HelpTip text={CONCEPT.epoch} />
-        </p>
-      </Card>
+      {pool.members.length < 2 ? (
+        <Card eyebrow="Community rules">
+          <p className="hint">
+            Invite at least one more member before tuning governance sliders — rules
+            average everyone's stake-weighted choices.
+          </p>
+        </Card>
+      ) : (
+        <Card eyebrow="Community rules" title="Your voice shapes the average">
+          <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+            Move a slider to where you think the rule should sit. The community's actual
+            rule is the stake-weighted average of everyone's choice.{" "}
+            <HelpTip text={CONCEPT.proposal} />
+          </p>
+          {params.map((p) => (
+            <Slider
+              key={p}
+              label={PARAM_LABELS[p]}
+              help={GOVERNANCE_HELP[p]}
+              value={sliderValue(pool, myKey, p)}
+              min={p === "epoch_interval" ? MIN_EPOCH_INTERVAL_MINUTES : 0}
+              max={sliderMax(p)}
+              step={sliderStep(p)}
+              onCommit={(v) => void updateSlider(p, v)}
+            />
+          ))}
+          <p className="hint" style={{ marginTop: "var(--sp-3)" }}>
+            Right now: {annualCirculation.toFixed(1)}% per year accrues continuously on
+            activity · redistribution every {intervalLabel} ·{" "}
+            {pool.parameters.approval_threshold.toFixed(0)}% to pass proposals. Commons
+            pool: {formatPointsAmount(pool.commons)} Points.{" "}
+            <HelpTip text={CONCEPT.epoch} />
+          </p>
+          {countdown.label ? (
+            <p className={`hint${countdown.due ? " warning" : ""}`}>{countdown.label}</p>
+          ) : null}
+          <p className="hint" style={{ marginTop: "var(--sp-2)" }}>
+            Liveness: stay active within {livenessMinutes} minutes to keep your equal
+            share of redistribution ({liveCount} of {pool.members.length} members live
+            now). <HelpTip text={CONCEPT.epoch} />
+          </p>
+        </Card>
+      )}
 
       <Card eyebrow="Direct your flow" title="Redistribution targets">
         <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>

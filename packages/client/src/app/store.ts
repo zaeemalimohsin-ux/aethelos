@@ -12,6 +12,7 @@ import {
   parsePointsAmount,
   formatPointsAmount,
   admissionProposalId,
+  reduceWithSnapshot,
 } from "@aethelos/core";
 import { NodeController, generateNamespaceId } from "../node/controller.js";
 import type { LinkedPools } from "../node/federation-reader.js";
@@ -53,6 +54,7 @@ import {
 } from "./local-node.js";
 import { rejectionMessage } from "./rejection-messages.js";
 import { trackEvent } from "./analytics.js";
+import { mergeActiveRelays } from "./active-relays.js";
 import {
   loadBootstrapRelay,
   saveBootstrapRelay,
@@ -445,7 +447,7 @@ export const useStore = create<AppStore>((set, get) => ({
     const finalShareUrl = publicRelayUrl ?? get().shareUrl;
     if (finalShareUrl) syncShareUrlFile(finalShareUrl);
     get().toast(`Community "${cellName}" created`, "success");
-    trackEvent("genesis_success", { cellName });
+    trackEvent("genesis_success");
   },
 
   async joinCommunity(invite) {
@@ -496,7 +498,12 @@ export const useStore = create<AppStore>((set, get) => ({
       return;
     }
     await controller.acceptInvite(invite.inviter);
-    get().toast("Invite accepted", "success");
+    const ok = await controller.waitForConfirmedState((p) => p.members.includes(myKey));
+    if (ok) {
+      get().toast("Invite accepted", "success");
+    } else {
+      get().toast("Didn't sync yet — check your connection", "error");
+    }
   },
 
   async invite(pubkey, parameters) {
@@ -527,6 +534,11 @@ export const useStore = create<AppStore>((set, get) => ({
       return;
     }
     await controller.invite(trimmed, parameters);
+    const ok = await controller.waitForConfirmedState((p) => !!p.pendingInvites[trimmed]);
+    if (!ok) {
+      get().toast("Didn't sync yet — check your connection", "error");
+      return;
+    }
     get().toast(
       "Vouch sent — open Proposals to vote Approve on their admission",
       "success",
@@ -537,8 +549,16 @@ export const useStore = create<AppStore>((set, get) => ({
     });
   },
   async cancelInvite(pubkey) {
-    await get().controller?.cancelInvite(pubkey);
-    get().toast("Invite cancelled — lien released", "success");
+    const trimmed = pubkey.trim();
+    const controller = get().controller;
+    if (!controller) return;
+    await controller.cancelInvite(trimmed);
+    const ok = await controller.waitForConfirmedState((p) => !p.pendingInvites[trimmed]);
+    if (ok) {
+      get().toast("Invite cancelled — lien released", "success");
+    } else {
+      get().toast("Didn't sync yet — check your connection", "error");
+    }
   },
   async transfer(to, amount, memo) {
     const { pool, myKey, controller } = get();
@@ -559,8 +579,16 @@ export const useStore = create<AppStore>((set, get) => ({
       get().toast("Not enough Points for this transfer", "error");
       return;
     }
+    const beforeRecipient = getBalance(pool, recipient);
     await controller.transfer(recipient, formatPointsAmount(transferAmount), memo);
-    get().toast("Transaction sent", "success");
+    const ok = await controller.waitForConfirmedState(
+      (p) => getBalance(p, recipient) > beforeRecipient,
+    );
+    if (ok) {
+      get().toast("Transaction sent", "success");
+    } else {
+      get().toast("Didn't sync yet — check your connection", "error");
+    }
   },
   async updateSlider(p, v, target) {
     await get().controller?.updateSlider(p, v, target);
@@ -569,8 +597,16 @@ export const useStore = create<AppStore>((set, get) => ({
     await get().controller?.updateVouch(target, weight);
   },
   async createProposal(kind, data) {
-    await get().controller?.createProposal(crypto.randomUUID(), kind, data);
-    get().toast("Proposal created", "success");
+    const controller = get().controller;
+    if (!controller) return;
+    const id = crypto.randomUUID();
+    await controller.createProposal(id, kind, data);
+    const ok = await controller.waitForConfirmedState((p) => !!p.proposals[id]);
+    if (ok) {
+      get().toast("Proposal created", "success");
+    } else {
+      get().toast("Didn't sync yet — check your connection", "error");
+    }
   },
   async voteProposal(id, approve) {
     await get().controller?.voteProposal(id, approve);
@@ -590,14 +626,28 @@ export const useStore = create<AppStore>((set, get) => ({
     if (parentPool) {
       data["parameters"] = JSON.stringify(resolvedGovernanceParameters(parentPool));
     }
-    await controller?.createProposal(crypto.randomUUID(), "join_superstructure", data);
-    get().toast("Link to parent group proposed — vote in Proposals", "success");
+    const proposalId = crypto.randomUUID();
+    await controller?.createProposal(proposalId, "join_superstructure", data);
+    const ok = await controller?.waitForConfirmedState((p) => !!p.proposals[proposalId]);
+    if (ok) {
+      get().toast("Link to parent group proposed — vote in Proposals", "success");
+    } else {
+      get().toast("Didn't sync yet — check your connection", "error");
+    }
   },
   async leaveSuperstructure(id) {
-    await get().controller?.createProposal(crypto.randomUUID(), "leave_superstructure", {
-      target: id,
+    const controller = get().controller;
+    const parentId = id.trim();
+    const proposalId = crypto.randomUUID();
+    await controller?.createProposal(proposalId, "leave_superstructure", {
+      target: parentId,
     });
-    get().toast("Leave parent group proposed — vote in Proposals", "success");
+    const ok = await controller?.waitForConfirmedState((p) => !!p.proposals[proposalId]);
+    if (ok) {
+      get().toast("Leave parent group proposed — vote in Proposals", "success");
+    } else {
+      get().toast("Didn't sync yet — check your connection", "error");
+    }
   },
   async spawnSubCell(name) {
     if (!keyPair) return;
@@ -637,16 +687,32 @@ export const useStore = create<AppStore>((set, get) => ({
     if (bridge) {
       data["bridge"] = bridge;
     }
-    await get().controller?.createProposal(crypto.randomUUID(), "link_subcell", data);
-    get().toast("Link chapter proposed — vote in Proposals", "success");
+    const proposalId = crypto.randomUUID();
+    await get().controller?.createProposal(proposalId, "link_subcell", data);
+    const ok = await get().controller?.waitForConfirmedState(
+      (p) => !!p.proposals[proposalId],
+    );
+    if (ok) {
+      get().toast("Link chapter proposed — vote in Proposals", "success");
+    } else {
+      get().toast("Didn't sync yet — check your connection", "error");
+    }
   },
   async bridgeEscrow(remoteId, to, amount) {
-    await get().controller?.createProposal(crypto.randomUUID(), "bridge_transfer", {
+    const proposalId = crypto.randomUUID();
+    await get().controller?.createProposal(proposalId, "bridge_transfer", {
       target: remoteId.trim(),
       to: to.trim(),
       amount: amount.trim(),
     });
-    get().toast("Bridge transfer proposed — vote to approve", "success");
+    const ok = await get().controller?.waitForConfirmedState(
+      (p) => !!p.proposals[proposalId],
+    );
+    if (ok) {
+      get().toast("Bridge transfer proposed — vote to approve", "success");
+    } else {
+      get().toast("Didn't sync yet — check your connection", "error");
+    }
   },
   addRelay(url) {
     const trimmed = url.trim();
@@ -745,14 +811,18 @@ export const useStore = create<AppStore>((set, get) => ({
         return { ok: false, imported: 0, error: "no_valid_entries" };
       }
       const ns = parsed[0].namespaceId;
-      const { importEventLog } = await import("../storage/event-log.js");
+      const { importEventLog, loadEvents } = await import("../storage/event-log.js");
       const result = await importEventLog(json, ns);
-      const relayUrls = selectRelaysForCommunity(ns);
+      const events = await loadEvents(ns);
+      const { state: importedPool } = reduceWithSnapshot(ns, events);
+      const relayUrls = mergeActiveRelays([], importedPool.communityRelays, ns);
+      const ignored = state.session?.ignoredCommunityRelays ?? [];
       saveSession({
         publicKeyHex: state.myKey,
         displayName: state.displayName,
         namespaceId: ns,
         relayUrls,
+        ...(ignored.length ? { ignoredCommunityRelays: ignored } : {}),
       });
       set({
         session: {
@@ -760,6 +830,7 @@ export const useStore = create<AppStore>((set, get) => ({
           displayName: state.displayName,
           namespaceId: ns,
           relayUrls,
+          ...(ignored.length ? { ignoredCommunityRelays: ignored } : {}),
         },
       });
       return {

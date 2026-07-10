@@ -59,6 +59,7 @@ export class NodeController {
   private sessionRelays: string[];
   private ignoredCommunityRelays: Set<string>;
   private onRejected: ((rejected: RejectedReduction[]) => void) | undefined;
+  private pendingWaitFinishes: Array<(ok: boolean) => void> = [];
 
   constructor(config: NodeConfig) {
     this.namespaceId = config.namespaceId;
@@ -119,12 +120,61 @@ export class NodeController {
     this.sync.disconnect();
     this.worker?.terminate();
     this.worker = null;
+    for (const finish of this.pendingWaitFinishes.splice(0)) {
+      finish(false);
+    }
     this.listeners.clear();
   }
 
   subscribe(listener: StateListener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
+  }
+
+  /** Wait until pool state matches predicate (post-publish confirmation). */
+  waitForState(
+    predicate: (pool: PoolState) => boolean,
+    timeoutMs = 15_000,
+  ): Promise<boolean> {
+    return this.waitForConfirmedState(predicate, timeoutMs, false);
+  }
+
+  /**
+   * Wait until reducer predicate holds and outbox is drained (relay echo path).
+   * When requireOutboxDrain is false, behaves like waitForState.
+   */
+  waitForConfirmedState(
+    predicate: (pool: PoolState) => boolean,
+    timeoutMs = 15_000,
+    requireOutboxDrain = true,
+  ): Promise<boolean> {
+    const ready = () => {
+      if (!this.state || !predicate(this.state)) return false;
+      if (!requireOutboxDrain) return true;
+      return this.sync.getStatus().pendingOutbox === 0;
+    };
+    if (ready()) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = (ok: boolean) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        unsub();
+        statusUnsub();
+        const idx = this.pendingWaitFinishes.indexOf(finish);
+        if (idx >= 0) this.pendingWaitFinishes.splice(idx, 1);
+        resolve(ok);
+      };
+      this.pendingWaitFinishes.push(finish);
+      const unsub = this.subscribe(() => {
+        if (ready()) finish(true);
+      });
+      const statusUnsub = this.sync.onStatus(() => {
+        if (ready()) finish(true);
+      });
+      const timer = setTimeout(() => finish(ready()), timeoutMs);
+    });
   }
 
   onSyncStatus(listener: (s: SyncStatus) => void): () => void {

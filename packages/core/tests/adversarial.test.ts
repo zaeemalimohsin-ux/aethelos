@@ -1091,3 +1091,44 @@ describe("Malicious Payload Exploits", () => {
     expect(resFuture.reason).toBe("timestamp_too_far_future");
   });
 });
+
+describe("namespace guards", () => {
+  it("rejects cross-namespace event with namespace_mismatch", async () => {
+    const kp = await generateKeyPair();
+    const nsA = "ns-guard-a";
+    const gA = await genesis(nsA, kp);
+    const stateA = reduceEvents(nsA, [gA]);
+
+    const gB = await genesis("ns-guard-b", kp);
+    const result = reduceOneSync(stateA, gB);
+    expect(result.ok).toBe(false);
+    expect(result.reason).toBe("namespace_mismatch");
+    expect(result.state).toEqual(stateA);
+  });
+
+  it("rejects second genesis with already_initialized", async () => {
+    const kp = await generateKeyPair();
+    const ns = "ns-double-genesis";
+    const g1 = await genesis(ns, kp);
+    const state = reduceEvents(ns, [g1]);
+    const g2 = await signEvent(
+      {
+        namespaceId: ns,
+        prevHash: g1.id,
+        lamport: 2,
+        author: kp.publicKeyHex,
+        timestamp: 2,
+        payload: {
+          type: "genesis",
+          cellName: "Again",
+          initialPoints: "1",
+          parameters: DEFAULT_PARAMETERS,
+        },
+      },
+      kp.privateKey,
+    );
+    const result = reduceOneSync(state, g2);
+    expect(result.ok).toBe(false);
+    expect(result.reason).toBe("already_initialized");
+  });
+});

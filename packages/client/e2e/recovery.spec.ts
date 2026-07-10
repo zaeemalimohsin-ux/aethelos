@@ -77,4 +77,49 @@ test.describe("disaster recovery", () => {
     await ctxB.close();
     await ctxC.close();
   });
+
+  test("import preserves fracture and frozen offender state", async ({ browser }) => {
+    test.setTimeout(180_000);
+
+    const ctxA = await freshContext(browser);
+    const ctxB = await freshContext(browser);
+    const pageA = await ctxA.newPage();
+    const pageB = await ctxB.newPage();
+
+    await onboardGenesis(pageA, "Alice", "Frozen Recovery Cell");
+    const inviteLink = await buildInviteLink(pageA);
+    await joinViaInviteLink(pageB, inviteLink);
+    const joinerKey = await getPublicKey(pageB);
+    await admitJoiner(pageA, pageB, joinerKey);
+    await waitForMemberCount(pageA, 2);
+
+    const aliceKey = await getPublicKey(pageA);
+    await pageB.evaluate(
+      (recipient) => window.__aethelosTest?.dispatchSiblingDoubleSpend?.(recipient, "6"),
+      aliceKey,
+    );
+    await waitForPool(pageA, (p) => (p.fractures ?? []).includes(joinerKey), 30_000);
+    await expect(
+      pageB.getByText("Your account is frozen after suspicious activity"),
+    ).toBeVisible();
+
+    const exportedLog = await pageA.evaluate(() => window.__aethelosTest?.exportLog());
+    expect(exportedLog).toBeDefined();
+
+    const ctxC = await freshContext(browser);
+    const pageC = await ctxC.newPage();
+    await createIdentity(pageC, "Alice Recovered Frozen");
+    await pageC.evaluate(async (logJson) => {
+      await window.__aethelosTest?.disasterRecoveryImport(logJson!);
+    }, exportedLog);
+    await pageC.reload();
+    await pageC.getByLabel("Passphrase").fill("e2e-test-pass-123");
+    await pageC.getByRole("button", { name: "Unlock" }).click();
+    await waitForSyncConnected(pageC, 60_000);
+    await waitForPool(pageC, (p) => (p.fractures ?? []).includes(joinerKey), 90_000);
+
+    await ctxA.close();
+    await ctxB.close();
+    await ctxC.close();
+  });
 });

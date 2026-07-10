@@ -73,7 +73,7 @@ describe("collectDiagnostics analytics integration", () => {
     const { collectDiagnostics } = await import("../src/app/diagnostics.js");
 
     trackEvent("join_failed", { reason: "connection_unreachable" });
-    trackEvent("genesis_success", { cellName: "Alpha" });
+    trackEvent("genesis_success");
 
     const diagnostics = collectDiagnostics();
 
@@ -84,7 +84,6 @@ describe("collectDiagnostics analytics integration", () => {
     });
     expect(diagnostics.analyticsEvents[1]).toMatchObject({
       name: "genesis_success",
-      props: { cellName: "Alpha" },
     });
     expect(diagnostics.generatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(diagnostics.userAgent).toBe("vitest");

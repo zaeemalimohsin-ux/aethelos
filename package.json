@@ -15,6 +15,7 @@
     "dev:relay": "pnpm --filter @aethelos/relay dev",
     "dev:client": "pnpm --filter @aethelos/client dev",
     "test:e2e": "pnpm --filter @aethelos/client test:e2e",
+    "test:e2e:pilot-off": "pnpm --filter @aethelos/client test:e2e:pilot-off",
     "setup:e2e": "pnpm --filter @aethelos/client setup:e2e",
     "playground": "pnpm --filter @aethelos/client playground",
     "desktop:proof": "node scripts/desktop-proof.mjs",
@@ -27,6 +28,7 @@
     "proof:product": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/proof-product.ps1",
     "release:desktop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1",
     "verify:release": "node scripts/verify-release.mjs",
+    "charter-a-preflight": "node scripts/charter-a-preflight.mjs",
     "check:user-docs": "node scripts/check-user-docs.mjs",
     "typecheck": "pnpm -r typecheck"
   },

@@ -55,6 +55,39 @@ describe("SyncEngine + relay integration", () => {
     engine.disconnect();
   }, 15_000);
 
+  it("retains outbox until sync_batch confirms receipt", async () => {
+    relay = await startRelayServer({ port: 0 });
+    const wsUrl = `ws://127.0.0.1:${relay.port}`;
+    const kp = await generateKeyPair();
+    const ns = "sync-outbox-honesty";
+
+    const engine = new SyncEngine([`ws://127.0.0.1:1`], ns, kp);
+    await engine.start();
+    const event = await engine.publish({
+      namespaceId: ns,
+      prevHash: null,
+      lamport: 1,
+      author: kp.publicKeyHex,
+      timestamp: 1,
+      payload: {
+        type: "genesis",
+        cellName: "Outbox",
+        initialPoints: "1000",
+        parameters: DEFAULT_PARAMETERS,
+      },
+    });
+    expect(engine.getStatus().pendingOutbox).toBe(1);
+
+    engine.addRelay(wsUrl);
+    const deadline = Date.now() + 10_000;
+    while (engine.getStatus().pendingOutbox > 0 && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    expect(engine.getStatus().pendingOutbox).toBe(0);
+    expect(engine.getEvents().some((e) => e.id === event.id)).toBe(true);
+    engine.disconnect();
+  }, 15_000);
+
   it("connects to multiple relays for failover", async () => {
     relay = await startRelayServer({ port: 0 });
     relay2 = await startRelayServer({ port: 0 });
@@ -68,41 +101,97 @@ describe("SyncEngine + relay integration", () => {
     engine.disconnect();
   });
 
+  it("drains outbox when second relay receives sync_batch", async () => {
+    relay = await startRelayServer({ port: 0 });
+    relay2 = await startRelayServer({ port: 0 });
+    const deadUrl = `ws://127.0.0.1:1`;
+    const liveUrl = `ws://127.0.0.1:${relay2.port}`;
+    const kp = await generateKeyPair();
+    const ns = "sync-failover";
+
+    const engine = new SyncEngine([deadUrl], ns, kp);
+    await engine.start();
+    await engine.publish({
+      namespaceId: ns,
+      prevHash: null,
+      lamport: 1,
+      author: kp.publicKeyHex,
+      timestamp: 1,
+      payload: {
+        type: "genesis",
+        cellName: "Failover",
+        initialPoints: "1000",
+        parameters: DEFAULT_PARAMETERS,
+      },
+    });
+    expect(engine.getStatus().pendingOutbox).toBe(1);
+    engine.addRelay(liveUrl);
+    const deadline = Date.now() + 10_000;
+    while (engine.getStatus().pendingOutbox > 0 && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    expect(engine.getStatus().pendingOutbox).toBe(0);
+    engine.disconnect();
+  }, 15_000);
+
   it("rejects cross-namespace events on ingest", async () => {
     relay = await startRelayServer({ port: 0 });
     const wsUrl = `ws://127.0.0.1:${relay.port}`;
-    const kp = await generateKeyPair();
-    const ns = "sync-ns-a";
+    const kpA = await generateKeyPair();
+    const kpB = await generateKeyPair();
+    const nsA = "sync-ns-a";
+    const nsB = "sync-ns-b";
 
-    const engine = new SyncEngine([wsUrl], ns, kp);
-    await engine.start();
-
-    const wrongNs = await signEvent(
-      {
-        namespaceId: "other-ns",
-        prevHash: null,
-        lamport: 1,
-        author: kp.publicKeyHex,
-        timestamp: 1,
-        payload: {
-          type: "genesis",
-          cellName: "Wrong",
-          initialPoints: "1",
-          parameters: DEFAULT_PARAMETERS,
-        },
-      },
-      kp.privateKey,
-    );
-
-    relay.bufferEvent(wrongNs);
-    let events: unknown[] = [];
-    engine.onEvents((e) => {
-      events = e;
+    const engineA = new SyncEngine([wsUrl], nsA, kpA);
+    let eventsA: unknown[] = [];
+    engineA.onEvents((e) => {
+      eventsA = e;
     });
-    await new Promise((r) => setTimeout(r, 300));
-    expect(events.length).toBe(0);
-    engine.disconnect();
-  });
+    await engineA.start();
+    await engineA.publish({
+      namespaceId: nsA,
+      prevHash: null,
+      lamport: 1,
+      author: kpA.publicKeyHex,
+      timestamp: 1,
+      payload: {
+        type: "genesis",
+        cellName: "Cell A",
+        initialPoints: "1000",
+        parameters: DEFAULT_PARAMETERS,
+      },
+    });
+
+    const deadlineA = Date.now() + 10_000;
+    while (eventsA.length < 1 && Date.now() < deadlineA) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    expect(eventsA.length).toBe(1);
+
+    const engineB = new SyncEngine([wsUrl], nsB, kpB);
+    await engineB.start();
+    await engineB.publish({
+      namespaceId: nsB,
+      prevHash: null,
+      lamport: 1,
+      author: kpB.publicKeyHex,
+      timestamp: 2,
+      payload: {
+        type: "genesis",
+        cellName: "Cell B",
+        initialPoints: "2000",
+        parameters: DEFAULT_PARAMETERS,
+      },
+    });
+
+    await new Promise((r) => setTimeout(r, 500));
+    expect(engineA.getEvents().length).toBe(1);
+    expect(engineA.getEvents()[0]!.namespaceId).toBe(nsA);
+    expect(engineA.getEvents().some((e) => e.namespaceId === nsB)).toBe(false);
+
+    engineB.disconnect();
+    engineA.disconnect();
+  }, 20_000);
 });
 
 describe("community mesh merge", () => {

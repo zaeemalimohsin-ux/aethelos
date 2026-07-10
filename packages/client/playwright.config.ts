@@ -4,6 +4,7 @@ const dockerStack = process.env.AETHELOS_DOCKER === "1";
 const shareUrlProof = Boolean(process.env.AETHELOS_SHARE_URL?.trim());
 const shareUrlSpecs = /(?:founder|joiner)-share-url\.spec\.ts$/;
 const dockerFounderSpec = /founder-mobile\.spec\.ts$/;
+const pilotGateSpecs = /pilot-cap\.spec\.ts$/;
 
 export default defineConfig({
   timeout: 120000,
@@ -19,7 +20,7 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      testIgnore: [dockerFounderSpec, shareUrlSpecs],
+      testIgnore: [dockerFounderSpec, shareUrlSpecs, pilotGateSpecs],
       use: { ...devices["Desktop Chrome"] },
     },
     {

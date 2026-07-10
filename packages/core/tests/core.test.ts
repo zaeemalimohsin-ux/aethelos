@@ -12,8 +12,11 @@ import {
   reduceOne,
   applyDecay,
   distributeRedistribution,
+  accrueCirculation,
+  runRedistributionCycle,
   totalPoolPoints,
   resolveVouchHead,
+  resolveRedistributionTargets,
   createInitialState,
   admissionProposalId,
   type PoolState,
@@ -252,7 +255,7 @@ describe("economy integer conservation", () => {
     expect(state.balances[kp2.publicKeyHex]).toBe(points("0.75"));
   });
 
-  it("decay + redistribution preserves total points", () => {
+  it("decay + redistribution preserves total points (legacy applyDecay helper)", () => {
     const state = {
       namespaceId: "cell-1",
       cellName: "Test",
@@ -286,6 +289,95 @@ describe("economy integer conservation", () => {
     const afterTotal = totalPoolPoints(after);
 
     expect(afterTotal).toBe(before);
+  });
+
+  it("accrueCirculation + runRedistributionCycle preserves total points (production path)", () => {
+    const t0 = 1_700_000_000_000;
+    const asOf = t0 + 20 * 60_000;
+    const state: PoolState = {
+      namespaceId: "cell-1",
+      cellName: "Test",
+      initialized: true,
+      members: ["a", "b"],
+      balances: { a: points("6000"), b: points("4000") },
+      frozen: [],
+      vouchLiens: { b: { inviter: "a", amount: 0n } },
+      inviters: { b: "a" },
+      head: "a",
+      parameters: { ...DEFAULT_PARAMETERS, decay_rate: 10, epoch_interval: 15 },
+      governanceSliders: {},
+      redistributionSliders: {
+        a: { a: 50, b: 50 },
+        b: { a: 50, b: 50 },
+      },
+      vouchSliders: {},
+      proposals: {},
+      superstructureId: null,
+      parentSuperstructures: [],
+      epochNumber: 0,
+      totalSupply: points("10000"),
+      fractures: [],
+      pendingInvites: {},
+      commons: 0n,
+      genesisTimestamp: t0,
+      lastEpochTimestamp: t0,
+      lastAccrualTimestamp: t0,
+      lastRedistributionTimestamp: t0,
+      maxEventTimestamp: asOf,
+      lastActiveTimestamp: { a: asOf, b: asOf },
+      circulationCarry: 0n,
+    } as PoolState;
+
+    const before = totalPoolPoints(state);
+    const { state: accrued } = accrueCirculation(state, 10, 20 * 60_000);
+    const after = runRedistributionCycle(accrued, asOf);
+    expect(totalPoolPoints(after)).toBe(before);
+  });
+
+  it("resolveRedistributionTargets percentages sum to approximately 100", () => {
+    const t0 = 1_700_000_000_000;
+    const asOf = t0 + 20 * 60_000;
+    const state: PoolState = {
+      namespaceId: "cell-1",
+      cellName: "Test",
+      initialized: true,
+      members: ["a", "b", "c"],
+      balances: { a: points("4000"), b: points("3000"), c: points("3000") },
+      frozen: [],
+      vouchLiens: {
+        b: { inviter: "a", amount: 0n },
+        c: { inviter: "a", amount: 0n },
+      },
+      inviters: { b: "a", c: "a" },
+      head: "a",
+      parameters: { ...DEFAULT_PARAMETERS },
+      governanceSliders: {},
+      redistributionSliders: {
+        a: { a: 10, b: 45, c: 45 },
+        b: { a: 20, b: 40, c: 40 },
+        c: { a: 30, b: 35, c: 35 },
+      },
+      vouchSliders: {},
+      proposals: {},
+      superstructureId: null,
+      parentSuperstructures: [],
+      epochNumber: 0,
+      totalSupply: points("10000"),
+      fractures: [],
+      pendingInvites: {},
+      commons: 0n,
+      genesisTimestamp: t0,
+      lastEpochTimestamp: t0,
+      lastAccrualTimestamp: t0,
+      lastRedistributionTimestamp: t0,
+      maxEventTimestamp: asOf,
+      lastActiveTimestamp: { a: asOf, b: asOf, c: asOf },
+      circulationCarry: 0n,
+    } as PoolState;
+    const targets = resolveRedistributionTargets(state, asOf);
+    const sum = Object.values(targets).reduce((a, b) => a + b, 0);
+    expect(sum).toBeGreaterThan(99.9);
+    expect(sum).toBeLessThan(100.1);
   });
 });
 
