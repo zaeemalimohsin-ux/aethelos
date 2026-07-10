@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { generateKeyPair, signEvent, DEFAULT_PARAMETERS } from "../src/index.js";
-import { isValidWireEnvelope } from "../src/schema/validate.js";
+import { isValidWireEnvelope, isValidRelayMessage } from "../src/schema/validate.js";
 
 describe("wire envelope security", () => {
   it("accepts envelope when namespace matches event", async () => {
@@ -47,6 +47,33 @@ describe("wire envelope security", () => {
         version: 1,
         namespaceId: "envelope-ns",
         event,
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects sync_batch when event namespace does not match message", async () => {
+    const kp = await generateKeyPair();
+    const event = await signEvent(
+      {
+        namespaceId: "event-ns",
+        prevHash: null,
+        lamport: 1,
+        author: kp.publicKeyHex,
+        timestamp: 1,
+        payload: {
+          type: "genesis",
+          cellName: "Wire",
+          initialPoints: "1000",
+          parameters: DEFAULT_PARAMETERS,
+        },
+      },
+      kp.privateKey,
+    );
+    expect(
+      isValidRelayMessage({
+        type: "sync_batch",
+        namespaceId: "batch-ns",
+        events: [event],
       }),
     ).toBe(false);
   });

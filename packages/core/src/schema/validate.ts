@@ -177,7 +177,11 @@ export function isValidRelayMessage(msg: unknown): msg is RelayMessage {
       return (
         isNonEmptyString(msg["namespaceId"]) &&
         Array.isArray(msg["events"]) &&
-        msg["events"].every(isValidSignedEvent)
+        msg["events"].every(
+          (e) =>
+            isValidSignedEvent(e) &&
+            (e as { namespaceId: string }).namespaceId === msg["namespaceId"],
+        )
       );
     default:
       return false;

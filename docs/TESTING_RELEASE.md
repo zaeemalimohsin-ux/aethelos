@@ -36,7 +36,7 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 | Nightly `sync-mesh` + `sync-partition` + `mesh-chain-e2e` | Headless mesh + relay failover + 3-peer admission chain | `.github/workflows/nightly-integration.yml` |
 | Nightly `hosted-preflight` | Canonical `https://app.aethelos.org` health + WS | `nightly-integration` workflow |
 | Weekly `product-proof` | Full Windows `pnpm proof:product` | `.github/workflows/product-proof.yml` |
-| CI `docker-founder` | Same-origin `/ws` publish stack (nginx) | Ubuntu CI — **required** publish-path proof |
+| CI `docker-founder` | Same-origin `/ws` publish stack (nginx) + mobile founder/joiner admission | Ubuntu CI — **required** publish-path proof |
 | Playwright `share-url-mobile` | Live public tunnel URLs | Env-gated (`AETHELOS_SHARE_URL`); `proof:product` on Windows |
 | `pnpm desktop:proof` / `proof-product.ps1` | Windows desktop remote path | Windows only; skipped on Linux verify |
 

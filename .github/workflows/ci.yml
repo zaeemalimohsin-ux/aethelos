@@ -218,7 +218,7 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
 
-      - name: Founder mobile E2E (Docker)
+      - name: Mobile publish E2E (Docker founder + joiner)
         run: pnpm --filter @aethelos/client exec playwright test --project=founder-docker
         env:
           AETHELOS_DOCKER: "1"
