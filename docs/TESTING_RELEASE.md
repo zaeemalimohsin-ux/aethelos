@@ -8,7 +8,8 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 |------|----------------|----------------|--------------|
 | **1 — CI core** | `pnpm typecheck`, `pnpm lint:eslint`, `pnpm test` | Kernel, relay, client units | Every merge |
 | **2 — Local product E2E** | `pnpm test:e2e --project=chromium` | Vite dev + relay dev flows (federation on) | Every merge (CI `e2e` job) |
-| **2b — Pilot-off E2E** | `pnpm test:e2e:pilot-off` | Admission edge, pilot cap, philosophy UX without federation | Nightly (`nightly-integration` workflow) |
+| **2b — Pilot-off E2E** | `pnpm test:e2e:pilot-off` | Admission edge, pilot cap, philosophy UX without federation | Every merge (CI `e2e` job) + nightly |
+| **2c — Sync mesh** | `pnpm --filter @aethelos/client test -- tests/sync-mesh.test.ts` | Headless multi-engine convergence | Every merge (CI `build-and-test`) |
 | **3 — Publish path** | CI `docker-founder` → Playwright `founder-docker` | Same-origin `/ws` via nginx on port 8080 | Every merge |
 | **4 — Windows product proof** | `pnpm proof:product` | Desktop installer, live tunnel share URL, `share-url-mobile` Playwright | Release sign-off (Windows) |
 
@@ -32,7 +33,9 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 |------|----------------|-------|
 | `pnpm test:e2e --project=chromium` | Local vite + `dev:relay` product flows (federation on) | Local + CI `e2e` job |
 | `pnpm test:e2e:pilot-off` | Pilot-gate UX (no `VITE_ENABLE_FEDERATION`) | Nightly `pilot-off-e2e` job |
-| Nightly `sync-mesh` + `mesh-chain-e2e` | Headless mesh convergence + 3-peer admission chain | `.github/workflows/nightly-integration.yml` |
+| Nightly `sync-mesh` + `sync-partition` + `mesh-chain-e2e` | Headless mesh + relay failover + 3-peer admission chain | `.github/workflows/nightly-integration.yml` |
+| Nightly `hosted-preflight` | Canonical `https://app.aethelos.org` health + WS | `nightly-integration` workflow |
+| Weekly `product-proof` | Full Windows `pnpm proof:product` | `.github/workflows/product-proof.yml` |
 | CI `docker-founder` | Same-origin `/ws` publish stack (nginx) | Ubuntu CI — **required** publish-path proof |
 | Playwright `share-url-mobile` | Live public tunnel URLs | Env-gated (`AETHELOS_SHARE_URL`); `proof:product` on Windows |
 | `pnpm desktop:proof` / `proof-product.ps1` | Windows desktop remote path | Windows only; skipped on Linux verify |

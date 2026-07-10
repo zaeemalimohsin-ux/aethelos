@@ -19,7 +19,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @aethelos/core build
-      - run: pnpm --filter @aethelos/client test -- tests/sync-mesh.test.ts
+      - run: pnpm --filter @aethelos/client test -- tests/sync-mesh.test.ts tests/sync-partition.test.ts
 
   mesh-chain-e2e:
     runs-on: ubuntu-latest
@@ -56,3 +56,15 @@ jobs:
       - run: pnpm test:e2e:pilot-off
         env:
           CI: true
+
+  hosted-preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Charter A preflight on hosted URL
+        env:
+          AETHELOS_URL: https://app.aethelos.org
+        run: node scripts/charter-a-preflight.mjs

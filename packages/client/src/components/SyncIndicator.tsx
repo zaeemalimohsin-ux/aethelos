@@ -20,7 +20,9 @@ export function SyncIndicator() {
     >
       <span className={`dot ${status}`} aria-hidden="true" />
       <span className="muted">{label}</span>
-      {sync && sync.pendingOutbox > 0 ? (
+      {sync && sync.outboxAtCap ? (
+        <span className="badge danger">Queue full</span>
+      ) : sync && sync.pendingOutbox > 0 ? (
         <span className="badge warning">{sync.pendingOutbox} queued</span>
       ) : null}
     </button>

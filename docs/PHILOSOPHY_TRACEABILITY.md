@@ -42,5 +42,5 @@ See [TESTING_RELEASE.md](./TESTING_RELEASE.md) for sign-off checklist and 90-min
 - **Empty bootstrap:** static PWA without same-origin `/ws` or mailbox must fail loudly (Onboarding + probe honesty).
 - **Same-origin health vs WebSocket:** `/healthz` proves relay HTTP liveness; it does not prove `/ws` upgrade path (accepted residual — CI smokes both separately).
 - **Population attestation:** self-reported child counts cross-checked in UI when federation reader disagrees; full cryptographic attestation out of scope.
-- **Outbox cap silent drop:** when `pendingOutbox` exceeds 500 events (`packages/client/src/sync/engine.ts` L296), additional events are dropped without user-visible signal — accepted residual until UX/backpressure lands.
+- **Outbox cap backpressure:** when `pendingOutbox` reaches 500 (`packages/client/src/sync/engine.ts`), `publish` throws and the sync indicator shows **Queue full** — covered by `sync-outbox-cap.test.ts` and `SyncIndicator`.
 - **Client god-module splits / relay module consolidation:** deferred — behavior correct; structure cleanup is cosmetic.

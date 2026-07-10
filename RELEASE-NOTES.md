@@ -28,6 +28,16 @@ Event log export/import is tested (unit + E2E). **Dual-fork causal validation on
 
 `pnpm proof:product` exercises dev + release desktop paths, live tunnel share URLs, mobile E2E, and Android emulator smoke. See [TESTING_RELEASE.md](./docs/TESTING_RELEASE.md).
 
+**Sign-off log (local):**
+
+| Run | Date (UTC) | Result |
+|-----|------------|--------|
+| 1 | 2026-07-10 | PASS |
+| 2 | 2026-07-10 | PASS |
+| 3 | 2026-07-10 | PASS (release Android smoke retried once) |
+
+CI automation: `.github/workflows/product-proof.yml` (weekly + manual dispatch).
+
 ## Known limitations
 
 See [BETA_README.md](./docs/BETA_README.md): SmartScreen on unsigned Windows builds, federation rough edges, offline queueing, four-step guest admission.

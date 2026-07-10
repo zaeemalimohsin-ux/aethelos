@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 const dockerStack = process.env.AETHELOS_DOCKER === "1";
 const shareUrlProof = Boolean(process.env.AETHELOS_SHARE_URL?.trim());
 const shareUrlSpecs = /(?:founder|joiner)-share-url\.spec\.ts$/;
-const dockerFounderSpec = /founder-mobile\.spec\.ts$/;
+const dockerMobileSpecs = /(?:founder|joiner)-mobile\.spec\.ts$/;
 const pilotGateSpecs = /pilot-cap\.spec\.ts$/;
 
 export default defineConfig({
@@ -20,12 +20,12 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      testIgnore: [dockerFounderSpec, shareUrlSpecs, pilotGateSpecs],
+      testIgnore: [dockerMobileSpecs, shareUrlSpecs, pilotGateSpecs],
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "founder-docker",
-      testMatch: dockerFounderSpec,
+      testMatch: dockerMobileSpecs,
       use: {
         ...devices["Pixel 5"],
         baseURL: "http://localhost:8080",

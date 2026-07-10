@@ -58,7 +58,12 @@ export function CellView({ pool }: { pool: PoolState }) {
       <PhilosophyCard federationUi={federationUi} />
       {sync?.overall === "offline" ? (
         <div className="alert warning">
-          {connectionStatusMessage(sync?.overall, sync?.pendingOutbox ?? 0)} Others won't
+          {connectionStatusMessage(
+            sync?.overall,
+            sync?.pendingOutbox ?? 0,
+            sync?.outboxAtCap ?? false,
+          )}{" "}
+          Others won't
           see them yet.
         </div>
       ) : null}
@@ -490,7 +495,11 @@ function InviteCard({
     };
   }, [showLink, controller, pool.cellName, toast, shareUrl]);
 
-  const statusLine = connectionStatusMessage(sync?.overall, sync?.pendingOutbox ?? 0);
+  const statusLine = connectionStatusMessage(
+    sync?.overall,
+    sync?.pendingOutbox ?? 0,
+    sync?.outboxAtCap ?? false,
+  );
 
   return (
     <Card eyebrow="Invite people">

@@ -94,7 +94,11 @@ export type SyncOverall = "online" | "connecting" | "offline";
 export function connectionStatusMessage(
   overall: SyncOverall | undefined,
   pendingOutbox = 0,
+  outboxAtCap = false,
 ): string {
+  if (outboxAtCap) {
+    return "Sync queue full — wait for your connection to catch up before sending more actions.";
+  }
   if (overall === "online") {
     return pendingOutbox > 0
       ? "Connected — sending queued actions…"

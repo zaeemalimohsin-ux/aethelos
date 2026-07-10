@@ -152,11 +152,11 @@ export function isValidSignedEvent(e: unknown): e is SignedEvent {
 
 export function isValidWireEnvelope(env: unknown): env is WireEnvelope {
   if (!isObject(env)) return false;
-  return (
-    env["version"] === WIRE_VERSION &&
-    isNonEmptyString(env["namespaceId"]) &&
-    isValidSignedEvent(env["event"])
-  );
+  if (env["version"] !== WIRE_VERSION) return false;
+  if (!isNonEmptyString(env["namespaceId"])) return false;
+  if (!isValidSignedEvent(env["event"])) return false;
+  const event = env["event"] as { namespaceId?: unknown };
+  return event.namespaceId === env["namespaceId"];
 }
 
 export function isValidRelayMessage(msg: unknown): msg is RelayMessage {

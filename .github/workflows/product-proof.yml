@@ -1,0 +1,55 @@
+name: product-proof
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 0"
+
+jobs:
+  windows-product-proof:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build core and relay
+        run: |
+          pnpm --filter @aethelos/core build
+          pnpm --filter @aethelos/relay build
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
+
+      - name: Run full product proof
+        run: pnpm proof:product
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-proof-playwright-report
+          path: packages/client/playwright-report/
+
+      - name: Upload share URL artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-proof-share-url
+          path: .share-url
+          if-no-files-found: ignore

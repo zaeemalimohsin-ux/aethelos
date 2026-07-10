@@ -31,6 +31,8 @@ export interface SyncStatus {
   overall: "online" | "connecting" | "offline";
   relays: RelayState[];
   pendingOutbox: number;
+  /** True when the durable outbox is at capacity (additional events are not queued). */
+  outboxAtCap: boolean;
 }
 
 type StatusListener = (s: SyncStatus) => void;
@@ -101,7 +103,12 @@ export class SyncEngine {
       : relays.some((r) => r.status === "connecting")
         ? "connecting"
         : "offline";
-    return { overall, relays, pendingOutbox: this.outbox.length };
+    return {
+      overall,
+      relays,
+      pendingOutbox: this.outbox.length,
+      outboxAtCap: this.outbox.length >= MAX_OUTBOX,
+    };
   }
 
   getRelays(): string[] {
@@ -291,12 +298,16 @@ export class SyncEngine {
     return sentToAny;
   }
 
-  private async queueOutbox(envelope: WireEnvelope): Promise<void> {
-    if (this.outbox.some((e) => e.event.id === envelope.event.id)) return;
-    if (this.outbox.length >= MAX_OUTBOX) return;
+  private async queueOutbox(envelope: WireEnvelope): Promise<boolean> {
+    if (this.outbox.some((e) => e.event.id === envelope.event.id)) return true;
+    if (this.outbox.length >= MAX_OUTBOX) {
+      this.emitStatus();
+      return false;
+    }
     this.outbox.push(envelope);
     await saveOutbox(this.namespaceId, this.outbox);
     this.emitStatus();
+    return true;
   }
 
   private async flushOutbox(): Promise<void> {
@@ -345,7 +356,12 @@ export class SyncEngine {
     };
     const sent = this.broadcast({ type: "announce", envelope });
     if (!sent) {
-      await this.queueOutbox(envelope);
+      const queued = await this.queueOutbox(envelope);
+      if (!queued) {
+        throw new Error(
+          "Outbox full — wait for your relay connection to catch up before sending more actions.",
+        );
+      }
     }
 
     return event;

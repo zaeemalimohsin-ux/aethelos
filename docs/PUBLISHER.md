@@ -115,6 +115,12 @@ CI runs this against `http://localhost:8080` in the `docker-founder` job.
 
 **Do not share** quick-tunnel or ephemeral URLs for long-term communities — use a permanent hostname (see Option A/B above).
 
+## Ledger-published relay mailboxes
+
+Communities can record connection points on-chain with `relay_contribute` events. Clients merge ledger-published mailboxes with session relays (`active-relays.ts`) so joiners discover operator-published endpoints without a global bootstrap fleet. Default `DEFAULT_BOOTSTRAP_RELAYS` stays empty — genesis uses same-origin `/ws`, desktop sidecar, or ledger/session mailboxes.
+
+E2E: `recovery-relay-switch.spec.ts` (Charter D relay swap).
+
 `Build-Release.bat` / `pnpm release:desktop` is the **maintainer** build path, not the friend install story (use GitHub Releases).
 
 ## Android emulator proof (Windows)

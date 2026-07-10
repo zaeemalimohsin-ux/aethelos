@@ -31,6 +31,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Version sync check
+        run: node scripts/check-version-sync.mjs
+
+      - name: Changelog check
+        run: node scripts/check-changelog-release.mjs
+
+      - name: Build core and run tests
+        run: |
+          pnpm --filter @aethelos/core build
+          pnpm typecheck
+          pnpm test
+          node scripts/check-user-docs.mjs
+
       - name: Build Windows desktop release
         run: node scripts/build-release.mjs
 

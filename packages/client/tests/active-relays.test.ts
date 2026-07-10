@@ -101,5 +101,6 @@ describe("connectionStatusMessage", () => {
     );
     expect(connectionStatusMessage("connecting")).toBe("Connecting…");
     expect(connectionStatusMessage("offline")).toMatch(/Offline/);
+    expect(connectionStatusMessage("online", 0, true)).toMatch(/queue full/i);
   });
 });

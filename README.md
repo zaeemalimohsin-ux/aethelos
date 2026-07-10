@@ -21,7 +21,8 @@ app_port: 7860
   <br />
   <br />
   <a href="https://aethelos.org"><strong>Website</strong></a> ·
-  <a href="https://github.com/zaeemalimohsin-ux/aethelos/releases/latest"><strong>Download for Windows</strong></a> ·
+  <a href="https://app.aethelos.org"><strong>Open in browser</strong></a> ·
+  <a href="https://github.com/zaeemalimohsin-ux/aethelos/releases/latest"><strong>Windows download</strong></a> ·
   <a href="./docs/USER_GUIDE.md"><strong>User Guide</strong></a>
 </p>
 
@@ -40,11 +41,17 @@ Read the full [Higher-Level Philosophy](./Higher-Level-Philosophy.md).
 
 ## Get Started
 
-AethelOS is completely free and open source. 
+AethelOS is completely free and open source.
 
-1. **Download the Windows App:** Go to the [Releases page](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) and download the installer (`.exe` or `.msi`) for **v0.2.0**.
-2. **Create Identity:** Open the app and create your identity. 
-3. **Start a Community:** Create a new community and send invite links to your friends. They can join directly from their browser or phone without downloading the app.
+**Fastest path:** open the hosted app in your browser at [app.aethelos.org](https://app.aethelos.org) (or your operator's URL), create an identity, and start or join a community. Friends can join from any phone or desktop browser — no install required.
+
+**Optional — Windows desktop:** [Download the latest installer](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (`.exe` or `.msi`) for local relay + share-link hosting from your PC.
+
+1. **Open in browser** (or install the Windows app) → **Create identity**
+2. **Start a community** or open an **invite link** someone sent you
+3. **Invite people** from the Community tab; they join in their browser
+
+See [Get Started guide](./docs/GET_STARTED.md) for step-by-step admission (vouch → vote → accept).
 
 ---
 
@@ -86,6 +93,8 @@ pnpm test:e2e     # E2E test suite
 - [Beta pilot notes](docs/BETA_README.md) — responsibilities and limitations for trusted pilots
 - [Get Started](docs/GET_STARTED.md) · [User Guide](docs/USER_GUIDE.md)
 - [Publisher Guide](docs/PUBLISHER.md) — Deploying AethelOS online
+- [Genesis & operators](docs/GENESIS.md) · [Operations runbook](docs/OPERATIONS.md)
+- [Testing & release](docs/TESTING_RELEASE.md)
 - [Relay Operators](docs/RELAY_OPERATORS.md) — Running your own relay
 - [Threat Model](docs/THREAT_MODEL.md) & [Security Policy](SECURITY.md)
 - [Versioning Policy](docs/VERSIONING.md)

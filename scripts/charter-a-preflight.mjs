@@ -51,9 +51,10 @@ try {
     await probeWebSocket();
     console.log(`charter-a-preflight: OK ${wsUrl}`);
   } catch (err) {
-    console.warn(
-      `charter-a-preflight: WS probe failed (${err instanceof Error ? err.message : err})`,
+    console.error(
+      `charter-a-preflight: FAIL WS (${err instanceof Error ? err.message : err})`,
     );
+    process.exit(1);
   }
   process.exit(0);
 } catch (err) {

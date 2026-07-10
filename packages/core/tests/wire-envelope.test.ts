@@ -24,7 +24,7 @@ describe("wire envelope security", () => {
     expect(isValidWireEnvelope({ version: 1, namespaceId: "wire-ns", event })).toBe(true);
   });
 
-  it("documents envelope namespace mismatch is structurally allowed today", async () => {
+  it("rejects envelope when namespace does not match event", async () => {
     const kp = await generateKeyPair();
     const event = await signEvent(
       {
@@ -42,11 +42,12 @@ describe("wire envelope security", () => {
       },
       kp.privateKey,
     );
-    const allowed = isValidWireEnvelope({
-      version: 1,
-      namespaceId: "envelope-ns",
-      event,
-    });
-    expect(allowed).toBe(true);
+    expect(
+      isValidWireEnvelope({
+        version: 1,
+        namespaceId: "envelope-ns",
+        event,
+      }),
+    ).toBe(false);
   });
 });

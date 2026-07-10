@@ -7,14 +7,14 @@
 
 | You are… | Do this |
 |----------|---------|
-| **Starting a community** | Open AethelOS (web or [Windows installer from GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest)) → create identity → **Start a community** → **Invite people** |
+| **Starting a community** | Open [app.aethelos.org](https://app.aethelos.org) (or your hosted URL) → create identity → **Start a community** → **Invite people**. Optional: [Windows installer](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) for desktop relay + share links. |
 | **Joining a community** | Open the **invite link** someone sent you |
 
 ---
 
 ## Start a community
 
-1. Open AethelOS in your browser, or install the Windows app from [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (download the `.exe` or `.msi` for **v0.2.0**). Send friends the Releases link — don't ask them to build from source.
+1. Open [app.aethelos.org](https://app.aethelos.org) in your browser (recommended), or install the Windows app from [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) if you want desktop relay + tunnel share links.
 2. **Create a new identity** → save your recovery phrase → **Start a community**.
 3. On the **Community** tab, tap **Invite people** and send the link or QR to anyone.
 
