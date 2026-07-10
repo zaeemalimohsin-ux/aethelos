@@ -115,6 +115,10 @@ export function installTestBridge(): void {
       return useStore.getState().sync;
     },
 
+    disconnectSyncForTests() {
+      useStore.getState().controller?.sync.disconnect();
+    },
+
     getSessionRelays() {
       return useStore.getState().session?.relayUrls ?? [];
     },

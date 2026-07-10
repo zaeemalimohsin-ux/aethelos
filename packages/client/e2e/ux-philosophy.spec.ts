@@ -53,22 +53,18 @@ test.describe("philosophy UX", () => {
     await expect(page.getByTestId("network-advanced-panel")).toHaveCount(0);
   });
 
-  test("offline failure mode surfaces plain connection status", async ({
-    page,
-    context,
-  }) => {
+  test("offline failure mode surfaces plain connection status", async ({ page }) => {
     await onboardGenesis(page, "Founder", "Offline Philosophy Cell");
     await waitForSyncConnected(page);
+    await page.evaluate(() => window.__aethelosTest?.disconnectSyncForTests?.());
 
-    await context.setOffline(true);
+    await expect(page.locator(".sync-indicator-btn .muted")).toHaveText("Offline", {
+      timeout: 15_000,
+    });
+    await page.getByRole("button", { name: "Community" }).click();
     await expect(
-      page.getByRole("button", { name: /Offline.*Open connection settings/i }),
-    ).toBeVisible({ timeout: 45_000 });
-    await expect(
-      page.getByText(/Offline — your actions queue until you're back online/i),
-    ).toBeVisible();
-
-    await context.setOffline(false);
+      page.locator(".alert.warning").getByText(/Offline — your actions queue until you're back online/i),
+    ).toBeVisible({ timeout: 15_000 });
   });
 
   test("philosophy card reflects federation pilot gate", async ({ page }) => {

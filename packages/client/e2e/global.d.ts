@@ -11,7 +11,9 @@ declare global {
         overall: "online" | "connecting" | "offline";
         relays: { url: string; status: string }[];
         pendingOutbox: number;
+        outboxAtCap?: boolean;
       } | null;
+      disconnectSyncForTests: () => void;
       setRelaySharing: (on: boolean) => Promise<void>;
       getLocalNodeStatus: () => Promise<{
         localUrl: string;

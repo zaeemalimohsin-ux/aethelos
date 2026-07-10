@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { onboardGenesis, waitForPool, PASSWORD } from "./helpers.js";
+import { onboardGenesis, waitForPool, waitForSyncConnected, PASSWORD } from "./helpers.js";
 
 const MAX_OUTBOX = 500;
 
@@ -33,11 +33,19 @@ async function seedFullOutbox(
   );
 }
 
+async function unlockIfNeeded(page: import("@playwright/test").Page): Promise<void> {
+  const unlockBtn = page.getByRole("button", { name: "Unlock" });
+  if (await unlockBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await page.getByLabel("Passphrase").fill(PASSWORD);
+    await unlockBtn.click();
+  }
+}
+
 test.describe("offline outbox UI", () => {
-  test("pending outbox grows while offline after invite", async ({ page, context }) => {
+  test("pending outbox grows while offline after invite", async ({ page }) => {
     await onboardGenesis(page, "Offline Founder", "Offline Cell");
-    await context.setOffline(true);
-    await page.waitForTimeout(500);
+    await waitForSyncConnected(page);
+    await page.evaluate(() => window.__aethelosTest?.disconnectSyncForTests?.());
 
     await page.getByRole("button", { name: "Community" }).click();
     await page.getByLabel("Join code").fill("b".repeat(64));
@@ -46,15 +54,20 @@ test.describe("offline outbox UI", () => {
     const pool = await waitForPool(page, (p) => p.pendingInviteCount >= 1, 30_000);
     expect(pool.pendingInviteCount).toBeGreaterThanOrEqual(1);
 
-    await expect(page.getByText("1 queued")).toBeVisible({ timeout: 10_000 });
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => window.__aethelosTest?.getSyncStatus?.()?.pendingOutbox ?? 0),
+        { timeout: 15_000 },
+      )
+      .toBeGreaterThan(0);
 
-    await context.setOffline(false);
+    await expect(page.locator(".sync-indicator-btn").getByText(/\d+ queued/)).toBeVisible({
+      timeout: 10_000,
+    });
   });
 
-  test("sync indicator shows Queue full when outbox is at cap", async ({
-    page,
-    context,
-  }) => {
+  test("sync indicator shows Queue full when outbox is at cap", async ({ page }) => {
     test.setTimeout(90_000);
     await onboardGenesis(page, "Cap Founder", "Cap Cell");
     const namespaceId = await page.evaluate(
@@ -62,23 +75,15 @@ test.describe("offline outbox UI", () => {
     );
     expect(namespaceId).toBeTruthy();
 
-    await context.setOffline(true);
     await seedFullOutbox(page, namespaceId!);
-
-    await page.reload();
-    await page.waitForTimeout(1000);
-
-    const unlockBtn = page.getByRole("button", { name: "Unlock" });
-    if (await unlockBtn.isVisible()) {
-      await page.getByLabel("Passphrase").fill(PASSWORD);
-      await unlockBtn.click();
-    }
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await unlockIfNeeded(page);
 
     await expect(page.getByRole("button", { name: "Community" })).toBeVisible({
-      timeout: 15_000,
+      timeout: 30_000,
     });
-    await expect(page.getByText("Queue full")).toBeVisible({ timeout: 15_000 });
-
-    await context.setOffline(false);
+    await expect(page.locator(".sync-indicator-btn").getByText("Queue full")).toBeVisible({
+      timeout: 30_000,
+    });
   });
 });

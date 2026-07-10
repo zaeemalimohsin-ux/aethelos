@@ -75,3 +75,23 @@ Nightly CI runs this against the canonical URL. Failure means the public browser
 2. Collect: client sync indicator, relay `/healthz`, recent deploy tag.
 3. Mitigate: switch relay (client Connection tab) or rollback release.
 4. Post: update [CHANGELOG.md](../CHANGELOG.md) if user-visible.
+
+## Hosted nightly preflight
+
+Nightly **hosted-preflight** failure means check **`app.aethelos.org` deploy health** — it is **not** a merge blocker.
+
+**Triage order:** `charter-a-preflight` → `publisher-preflight` → hosted-admission E2E (CI jobs / Playwright specs).
+
+| Step | What to run |
+|------|-------------|
+| `charter-a-preflight` | `AETHELOS_URL=https://app.aethelos.org node scripts/charter-a-preflight.mjs` |
+| `publisher-preflight` | Publisher / image preflight in CI (e.g. `docker-founder`) |
+| Hosted-admission E2E | Playwright hosted admission specs in nightly / publish path |
+
+**Product-proof CI** (weekly / manual, no Android on default runners):
+
+```powershell
+powershell -File scripts/proof-product.ps1 -SkipAndroid
+```
+
+See [TESTING_RELEASE.md](./TESTING_RELEASE.md) and nightly `hosted-preflight` in `.github/workflows/nightly-integration.yml`.

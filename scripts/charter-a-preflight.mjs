@@ -13,6 +13,49 @@ if (!base) {
 const healthUrl = `${base}/healthz`;
 const wsUrl = base.replace(/^http/, "ws") + "/ws";
 
+const NETWORK_RETRY_ATTEMPTS = 2;
+const NETWORK_RETRY_DELAY_MS = 10_000;
+
+function isRetryableNetworkError(err) {
+  if (!(err instanceof Error)) return false;
+  if (err.name === "AbortError") return true;
+  const msg = err.message.toLowerCase();
+  if (msg.includes("timeout")) return true;
+  if (err instanceof TypeError && msg.includes("fetch")) return true;
+  const cause = err.cause;
+  if (cause instanceof Error) {
+    const causeMsg = cause.message.toLowerCase();
+    if (
+      cause.code === "ECONNRESET" ||
+      cause.code === "ENOTFOUND" ||
+      cause.code === "ETIMEDOUT"
+    ) {
+      return true;
+    }
+    if (causeMsg.includes("fetch failed")) return true;
+  }
+  return false;
+}
+
+async function withNetworkRetry(label, fn) {
+  let lastErr;
+  for (let attempt = 0; attempt <= NETWORK_RETRY_ATTEMPTS; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (!isRetryableNetworkError(err)) throw err;
+      lastErr = err;
+      if (attempt < NETWORK_RETRY_ATTEMPTS) {
+        console.warn(
+          `charter-a-preflight: ${label} network error (retry ${attempt + 1}/${NETWORK_RETRY_ATTEMPTS} in ${NETWORK_RETRY_DELAY_MS / 1000}s): ${err.message}`,
+        );
+        await new Promise((r) => setTimeout(r, NETWORK_RETRY_DELAY_MS));
+      }
+    }
+  }
+  throw lastErr;
+}
+
 async function fetchHealth() {
   const res = await fetch(healthUrl, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) throw new Error(`healthz HTTP ${res.status}`);
@@ -57,9 +100,9 @@ async function probeWebSocket() {
 }
 
 try {
-  await fetchHealth();
+  await withNetworkRetry("healthz", fetchHealth);
   console.log(`charter-a-preflight: OK ${healthUrl}`);
-  await fetchAppShell();
+  await withNetworkRetry("app shell", fetchAppShell);
   console.log(`charter-a-preflight: OK app shell ${base}`);
   try {
     await probeWebSocket();
