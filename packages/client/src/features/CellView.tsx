@@ -18,7 +18,7 @@ import { Field } from "../design/components/Field.js";
 import { Modal } from "../design/components/Modal.js";
 import { QRCode } from "../components/QRCode.js";
 import { buildInviteLink } from "../app/invite.js";
-import { shortKey, formatPts } from "../app/format.js";
+import { shortKey, formatPts, isValidPublicKeyHex } from "../app/format.js";
 import {
   clearSubCellParentContext,
   loadSubCellParentContext,
@@ -542,7 +542,12 @@ function InviteCard({
       />
       <Button
         block
-        disabled={!pubkey.trim() || atCap || lienAmount > pledgeCapacity}
+        disabled={
+          !pubkey.trim() ||
+          !isValidPublicKeyHex(pubkey) ||
+          atCap ||
+          lienAmount > pledgeCapacity
+        }
         onClick={() => {
           void onInvite(pubkey.trim(), {
             ...pool.parameters,
@@ -554,6 +559,11 @@ function InviteCard({
       >
         Vouch and send invite
       </Button>
+      {pubkey.trim() && !isValidPublicKeyHex(pubkey) ? (
+        <p className="error-text" style={{ marginTop: "var(--sp-2)" }}>
+          Paste the full 64-character join code.
+        </p>
+      ) : null}
       <p className="hint" style={{ marginTop: "var(--sp-3)" }}>
         {statusLine}
       </p>

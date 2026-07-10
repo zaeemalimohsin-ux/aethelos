@@ -32,17 +32,11 @@ test.describe("Community & UI Edge Cases", () => {
   test("Invalid Invite Codes", async () => {
     const page = peer.page;
     await page.getByRole("button", { name: "Community" }).click();
-
-    // Try to invite someone with an invalid or short code
-    await page.getByRole("button", { name: "Community" }).click();
     await page.getByLabel("Join code").fill("invalid_code");
 
-    // The vouch button might be enabled, but the network request should fail
-    await page.getByRole("button", { name: "Vouch and send invite" }).click();
-
-    // Should show an error toast about invalid pubkey
-    await expect(page.locator(".toast-item.error"))
-      .toBeVisible({ timeout: 5000 })
-      .catch(() => {});
+    await expect(
+      page.getByRole("button", { name: "Vouch and send invite" }),
+    ).toBeDisabled();
+    await expect(page.getByText("Paste the full 64-character join code")).toBeVisible();
   });
 });

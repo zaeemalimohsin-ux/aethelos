@@ -853,8 +853,8 @@ function ImportEventLog({ onBack }: { onBack: () => void }) {
   return (
     <Card title="Import community backup">
       <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
-        Choose an event log JSON you exported from Identity → Data on a device that was
-        still in the community.
+        Choose an event log JSON you exported from Data &amp; diagnostics (Identity tab)
+        on a device that was still in the community.
       </p>
       <input
         type="file"

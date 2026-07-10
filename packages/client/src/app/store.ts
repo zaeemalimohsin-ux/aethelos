@@ -25,6 +25,7 @@ import {
   markBackedUp,
   type IdentitySummary,
 } from "../storage/keystore.js";
+import { isValidPublicKeyHex } from "./format.js";
 import {
   loadSession,
   saveSession,
@@ -502,6 +503,17 @@ export const useStore = create<AppStore>((set, get) => ({
     const trimmed = pubkey.trim();
     const { pool, myKey, controller } = get();
     if (!controller || !pool || !myKey) return;
+    if (!isValidPublicKeyHex(trimmed)) {
+      get().toast(
+        "That join code doesn't look valid — paste the full 64-character code",
+        "error",
+      );
+      return;
+    }
+    if (trimmed === myKey) {
+      get().toast("You can't vouch for yourself", "error");
+      return;
+    }
     const lienAmount = requiredVouchLien(pool, myKey);
     if (lienAmount <= 0n) {
       get().toast("Cannot compute vouch lien", "error");
@@ -579,13 +591,13 @@ export const useStore = create<AppStore>((set, get) => ({
       data["parameters"] = JSON.stringify(resolvedGovernanceParameters(parentPool));
     }
     await controller?.createProposal(crypto.randomUUID(), "join_superstructure", data);
-    get().toast("Join superstructure proposal created", "success");
+    get().toast("Link to parent group proposed — vote in Proposals", "success");
   },
   async leaveSuperstructure(id) {
     await get().controller?.createProposal(crypto.randomUUID(), "leave_superstructure", {
       target: id,
     });
-    get().toast("Leave superstructure proposal created", "success");
+    get().toast("Leave parent group proposed — vote in Proposals", "success");
   },
   async spawnSubCell(name) {
     if (!keyPair) return;
@@ -593,7 +605,7 @@ export const useStore = create<AppStore>((set, get) => ({
     const controller = get().controller;
     if (!pool || !controller) return;
     if (pool.head !== get().myKey) {
-      get().toast("Only the Head can spawn a sub-Cell", "error");
+      get().toast("Only the Head can start a linked chapter", "error");
       return;
     }
     const trimmed = name.trim();
@@ -609,7 +621,7 @@ export const useStore = create<AppStore>((set, get) => ({
     await get().controller?.genesis(trimmed);
     persistSession(get);
     get().toast(
-      `Sub-Cell "${trimmed}" created. Link it to "${pool.cellName}" from Proposals.`,
+      `Linked chapter "${trimmed}" created. Link it to "${pool.cellName}" from Proposals.`,
       "success",
     );
   },
@@ -626,7 +638,7 @@ export const useStore = create<AppStore>((set, get) => ({
       data["bridge"] = bridge;
     }
     await get().controller?.createProposal(crypto.randomUUID(), "link_subcell", data);
-    get().toast("Link sub-Cell proposal created", "success");
+    get().toast("Link chapter proposed — vote in Proposals", "success");
   },
   async bridgeEscrow(remoteId, to, amount) {
     await get().controller?.createProposal(crypto.randomUUID(), "bridge_transfer", {

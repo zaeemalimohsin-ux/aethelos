@@ -149,7 +149,7 @@ test.describe("federation seam", () => {
     await bobPage.getByText("Link chapters").click();
     await bobPage.getByLabel("Parent community ID").fill(parentNs);
     await bobPage.getByRole("button", { name: "Propose join to parent" }).click();
-    await expect(bobPage.getByText("Join superstructure proposal created")).toBeVisible({
+    await expect(bobPage.getByText("Link to parent group proposed")).toBeVisible({
       timeout: 15_000,
     });
 

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AethelOS — Run a relay</title>
+    <title>AethelOS — Run a connection point</title>
     <style>
       :root {
         color-scheme: light dark;
@@ -35,24 +35,25 @@
     </style>
   </head>
   <body>
-    <h1>Run an AethelOS relay</h1>
+    <h1>Run an AethelOS connection point</h1>
     <p>
-      A relay is a <strong>powerless mailbox</strong>. It holds no ledger, no keys, and no
-      authority — only a short-lived buffer so offline devices can catch up. Anyone can
-      run one; communities can use several at once.
+      A connection point (relay) is a <strong>powerless mailbox</strong>. It holds no
+      ledger, no keys, and no authority — only a short-lived buffer so offline devices can
+      catch up. Anyone can run one; communities can use several at once.
     </p>
 
     <div class="note">
-      After your relay is reachable on the internet (with <code>wss://</code> for HTTPS
-      sites), paste its URL under <strong>Identity → Advanced → network</strong>, or set
-      it when starting a community under Advanced relay settings.
+      After your connection point is reachable on the internet (with
+      <code>wss://</code> for HTTPS sites), add its URL on the
+      <strong>Connection</strong> tab. When founding a community you can also set
+      connection points under advanced options on the onboarding screen.
     </div>
 
     <h2>Quick start (Docker)</h2>
     <p>From the AethelOS repo on a VPS or home server:</p>
     <pre>
 docker compose up -d --build
-# Relay listens on port 8787
+# Connection point listens on port 8787
 # Health check: http://YOUR_HOST:8787/healthz</pre
     >
 
@@ -79,9 +80,12 @@ node packages/relay/dist/index.js</pre
 
     <h2>Resilience</h2>
     <ul>
-      <li>Run multiple independent relays in different places.</li>
-      <li>Add each URL to your community — members sync through all of them.</li>
-      <li>A bad relay cannot forge state; every device verifies signatures locally.</li>
+      <li>Run multiple independent connection points in different places.</li>
+      <li>Add each URL on the Connection tab — members sync through all of them.</li>
+      <li>
+        A bad connection point cannot forge state; every device verifies signatures
+        locally.
+      </li>
     </ul>
 
     <p><a href="javascript:history.back()">← Back</a></p>
