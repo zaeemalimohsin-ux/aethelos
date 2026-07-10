@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { onboardGenesis, waitForPool, waitForSyncConnected, PASSWORD } from "./helpers.js";
+import {
+  onboardGenesis,
+  waitForPool,
+  waitForSyncConnected,
+  PASSWORD,
+} from "./helpers.js";
 
 const MAX_OUTBOX = 500;
 
@@ -57,14 +62,18 @@ test.describe("offline outbox UI", () => {
     await expect
       .poll(
         async () =>
-          page.evaluate(() => window.__aethelosTest?.getSyncStatus?.()?.pendingOutbox ?? 0),
+          page.evaluate(
+            () => window.__aethelosTest?.getSyncStatus?.()?.pendingOutbox ?? 0,
+          ),
         { timeout: 15_000 },
       )
       .toBeGreaterThan(0);
 
-    await expect(page.locator(".sync-indicator-btn").getByText(/\d+ queued/)).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(page.locator(".sync-indicator-btn").getByText(/\d+ queued/)).toBeVisible(
+      {
+        timeout: 10_000,
+      },
+    );
   });
 
   test("sync indicator shows Queue full when outbox is at cap", async ({ page }) => {
@@ -82,8 +91,10 @@ test.describe("offline outbox UI", () => {
     await expect(page.getByRole("button", { name: "Community" })).toBeVisible({
       timeout: 30_000,
     });
-    await expect(page.locator(".sync-indicator-btn").getByText("Queue full")).toBeVisible({
-      timeout: 30_000,
-    });
+    await expect(page.locator(".sync-indicator-btn").getByText("Queue full")).toBeVisible(
+      {
+        timeout: 30_000,
+      },
+    );
   });
 });

@@ -63,7 +63,9 @@ test.describe("philosophy UX", () => {
     });
     await page.getByRole("button", { name: "Community" }).click();
     await expect(
-      page.locator(".alert.warning").getByText(/Offline — your actions queue until you're back online/i),
+      page
+        .locator(".alert.warning")
+        .getByText(/Offline — your actions queue until you're back online/i),
     ).toBeVisible({ timeout: 15_000 });
   });
 
