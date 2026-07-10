@@ -6,7 +6,7 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ## [Unreleased]
 
-## [0.2.0] - 2026-07-09
+## [0.2.0] - 2026-07-10
 
 ### Added
 
@@ -15,6 +15,7 @@ All notable changes to AethelOS are documented here. The format is based on
 - **Analytics (tier 1):** Local-only funnel events buffered in diagnostics export; onboarding step tracking.
 - **Android emulator proof docs:** Maintainer sections for `AethelosProof` AVD, ADB keys, and wipe-data bootstrap.
 - **Version sync gate:** `scripts/check-version-sync.mjs` in `verify:release`.
+- **Invite URL persistence:** Join links survive reload; unlock screen for queued joins across identities.
 
 ### Changed
 
@@ -23,6 +24,7 @@ All notable changes to AethelOS are documented here. The format is based on
 - **Product proof:** Headless Play Store AVD, ADB auth skip, first-boot wipe marker, proof retry and process cleanup.
 - **Release metadata:** All workspace packages aligned to 0.2.0; Identity tab shows build-injected version.
 - **Docs honesty:** RELEASE-NOTES toned to match Pass 4 / BETA_README known limitations.
+- **Relay operator guide:** Connection tab wording; federation toasts use plain language (linked chapter, parent group).
 
 ### Fixed
 
@@ -30,6 +32,10 @@ All notable changes to AethelOS are documented here. The format is based on
 - **Playwright:** Skip bundled webServer when `AETHELOS_SHARE_URL` is set (share-url proof path).
 - **Rejection toasts:** Production-safe messages for invite, vouch, and relay errors.
 - **Guided vouch → vote:** Admission requires Proposals Approve after vouch.
+- **Session / invite:** Unlock respects pending invite; back from join clears hash; import recovery reports skipped rows and identity mismatch.
+- **Admission UI:** Stake-weighted approval %; manual Admit hidden from common proposal kinds.
+- **Sync gates:** Same-origin invite relay resolve; block invite signing without publishable relays.
+- **Join code validation:** Reject invalid vouch targets before lien pledge (64-char hex).
 
 ## [0.1.4] - 2026-06-15
 
