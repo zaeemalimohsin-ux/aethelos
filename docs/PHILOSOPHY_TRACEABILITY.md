@@ -25,7 +25,7 @@ Statuses: **Covered** (automated proof exists), **Partial** (happy path / subset
 | P3.6 | Leave superstructure (exit) | `superstructure.test.ts` / `federation.test.ts` | Covered | E2E: `federation.spec.ts` |
 | P4.1 | Stake-weighted voting | `governance-fixes.test.ts`, `governance-threshold.test.ts`, E2E proposals | Partial | Positive multi-member expel E2E in `community-scale.spec.ts` |
 | P4.2 | Liquid vouch / Head election + recall | `head-election.test.ts`, `core.test.ts`, `community-scale.spec.ts` (head shift E2E); UI threshold in `GovernanceView` | Partial | Sitting Head retained below threshold by design |
-| P4.3 | Governance sliders (share-weighted) | `governance-progressive.spec.ts`, E2E `community-scale.spec.ts` | Partial | Cell-level `resolveGovernanceParameter` unit tests planned |
+| P4.3 | Governance sliders (share-weighted) | `governance-progressive.spec.ts`, E2E `community-scale.spec.ts`, `resolve-governance-parameter.test.ts` | Covered | Cell-level stake-weighted blend, frozen exclusion, default fallback |
 | P4.4 | Superstructure slider relay | `superstructure.test.ts` (relay_cell_governance) | Covered | E2E governance relay |
 | P4.5 | Head close; any member may initiate join/leave | `adversarial.test.ts` (Charter B close); `governance-fixes.test.ts` (non-head join create + execute); client ungated Wave 2 | Covered | Close remains Head-only |
 | P5.1 | Sovereignty — no fiat appropriation | `adversarial.test.ts` (R2 decay, Charter C fiat expel/unfreeze) | Covered | Explicit rejection test in core |

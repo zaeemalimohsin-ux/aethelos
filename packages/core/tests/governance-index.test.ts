@@ -14,7 +14,6 @@ import {
 } from "../src/governance/index.js";
 import { createInitialState } from "../src/reducer/state.js";
 import { points, DEFAULT_PARAMETERS } from "../src/index.js";
-
 describe("governance index coverage", () => {
   it("superstructure proposal gates and head close", () => {
     const state = {
@@ -30,12 +29,10 @@ describe("governance index coverage", () => {
     expect(canCloseProposal(state, "head")).toBe(true);
     expect(canCloseProposal(state, "bob")).toBe(false);
   });
-
   it("proposalApprovalPercent handles empty and mixed votes", () => {
     expect(proposalApprovalPercent(0n, 0n)).toBe(0);
     expect(proposalApprovalPercent(75n, 25n)).toBe(75);
   });
-
   it("aggregateCellSliderForSuperstructure is share-weighted", () => {
     const state = {
       ...createInitialState("slider"),
@@ -50,23 +47,15 @@ describe("governance index coverage", () => {
     expect(resolvedGovernanceParameters(state).decay_rate).toBeGreaterThan(0);
     expect(relayGovernanceSnapshot(state).decay_rate).toBe(15);
   });
-
   it("superstructure redistribution and commons allocation", () => {
-    const a = {
-      ...createInitialState("child-a"),
-      members: ["m1", "m2"],
-    };
-    const b = {
-      ...createInitialState("child-b"),
-      members: ["m3"],
-    };
+    const a = { ...createInitialState("child-a"), members: ["m1", "m2"] };
+    const b = { ...createInitialState("child-b"), members: ["m3"] };
     const pool = points("1000");
     const allocations = computeSuperstructureRedistribution([a, b], pool);
     const childA = allocations.get("child-a") ?? 0n;
     const childB = allocations.get("child-b") ?? 0n;
     expect(childA + childB).toBe(pool);
     expect(childA).toBeGreaterThan(childB);
-
     const parent = {
       ...createInitialState("parent"),
       childCells: ["child-a", "child-b"],
@@ -77,7 +66,6 @@ describe("governance index coverage", () => {
     expect(allocated).toBe(points("900"));
     expect(state.childCellEscrow?.["child-a"]).toBeGreaterThan(0n);
   });
-
   it("member voting helpers", () => {
     const state = {
       ...createInitialState("vote"),

@@ -188,6 +188,15 @@ export async function getPoolSummary(page: Page): Promise<PoolSummary | null> {
   return res as PoolSummary | null;
 }
 
+/** Governance sliders use floating-point math; avoid exact === in E2E oracles. */
+export function governanceParamNear(
+  actual: number,
+  expected: number,
+  epsilon = 0.01,
+): boolean {
+  return Math.abs(actual - expected) < epsilon;
+}
+
 export async function waitForPool(
   page: Page,
   predicate: (p: PoolSummary) => boolean,

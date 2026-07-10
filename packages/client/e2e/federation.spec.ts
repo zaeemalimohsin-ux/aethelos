@@ -3,6 +3,7 @@ import { OmniHarness, PeerDevice } from "./harness.js";
 import {
   onboardGenesis,
   waitForPool,
+  governanceParamNear,
   getPoolSummary,
   bridgeVoteProposal,
   bridgeUpdateSlider,
@@ -90,7 +91,7 @@ test.describe("federation seam", () => {
 
     const beforeParent = (await getPoolSummary(pageParent))!.parameters.decay_rate;
     await bridgeUpdateSlider(pageChild, "decay_rate", 18);
-    await waitForPool(pageChild, (p) => p.parameters.decay_rate === 18);
+    await waitForPool(pageChild, (p) => governanceParamNear(p.parameters.decay_rate, 18));
 
     await waitForPool(
       pageParent,

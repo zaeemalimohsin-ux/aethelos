@@ -22,6 +22,7 @@ function walk(dir, predicate, out = []) {
 const files = [
   ...walk(join(root, "scripts"), (name) => name.endsWith(".mjs") || name.endsWith(".sh")),
   ...walk(join(root, "packages/client/e2e"), (name) => name.endsWith(".spec.ts")),
+  ...walk(join(root, "packages/core/tests"), (name) => name.endsWith(".test.ts")),
   ...walk(join(root, "packages/client"), (name, p) =>
     /playwright.*\.config\.ts$/.test(name),
   ),

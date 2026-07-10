@@ -90,7 +90,7 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
 
     const slider = founder.locator('input[type="range"]').first();
     for (let i = 0; i < 50; i++) {
-      await slider.fill(Math.floor(Math.random() * 20).toString());
+      await slider.fill((i % 20).toString());
       await slider.dispatchEvent("change");
     }
 

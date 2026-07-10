@@ -13,6 +13,7 @@ import {
   bridgeAdvanceCirculation,
   bridgeUpdateSlider,
   bootstrapStarCommunity,
+  governanceParamNear,
   freshContext,
   sendOnChainInvite,
   bridgeCreateProposal,
@@ -105,7 +106,7 @@ test.describe("governance sliders", () => {
       "Bob",
     ]);
     await bridgeUpdateSlider(founder, "decay_rate", 15);
-    await waitForPool(founder, (p) => p.parameters.decay_rate === 15, 60_000);
+    await waitForPool(founder, (p) => governanceParamNear(p.parameters.decay_rate, 15), 60_000);
     for (const ctx of contexts) {
       await ctx.close();
     }

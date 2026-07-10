@@ -15,9 +15,10 @@ jobs:
           version: 9.15.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @aethelos/core build
       - run: pnpm --filter @aethelos/client test -- tests/sync-mesh.test.ts
 
   mesh-chain-e2e:
@@ -29,10 +30,11 @@ jobs:
           version: 9.15.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @aethelos/client setup:e2e
+      - run: pnpm --filter @aethelos/core build
+      - run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
       - run: pnpm --filter @aethelos/client exec playwright test e2e/mesh-chain.spec.ts e2e/governance-progressive.spec.ts e2e/offline-outbox-ui.spec.ts --project=chromium
         env:
           CI: true
@@ -46,10 +48,11 @@ jobs:
           version: 9.15.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @aethelos/client setup:e2e
+      - run: pnpm --filter @aethelos/core build
+      - run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
       - run: pnpm test:e2e:pilot-off
         env:
           CI: true
