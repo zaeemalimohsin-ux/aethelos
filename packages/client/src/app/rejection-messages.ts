@@ -29,6 +29,8 @@ const USER_MESSAGES: Record<string, string> = {
   no_pending_invite: "No pending invite matches that action.",
   admission_not_approved: "The community has not approved your admission yet.",
   already_member: "You are already a member.",
+  not_bridge: "Only bridge members can move value across linked chapters.",
+  unknown_cell: "That linked chapter is not registered here.",
 };
 
 export function rejectionMessage(reason: string): string {

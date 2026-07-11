@@ -159,6 +159,9 @@ jobs:
       - name: Federation-off E2E
         run: pnpm test:e2e:federation-off
 
+      - name: Federation-on onboarding E2E
+        run: pnpm test:e2e:federation-on
+
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4

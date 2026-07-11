@@ -6,6 +6,30 @@ if (typeof globalThis.WebSocket === "undefined") {
     WebSocket as unknown as typeof WebSocket;
 }
 
+if (typeof globalThis.localStorage === "undefined") {
+  const local = new Map<string, string>();
+  globalThis.localStorage = {
+    get length() {
+      return local.size;
+    },
+    clear() {
+      local.clear();
+    },
+    getItem(key: string) {
+      return local.get(key) ?? null;
+    },
+    key(index: number) {
+      return [...local.keys()][index] ?? null;
+    },
+    removeItem(key: string) {
+      local.delete(key);
+    },
+    setItem(key: string, value: string) {
+      local.set(key, value);
+    },
+  } as Storage;
+}
+
 if (typeof globalThis.sessionStorage === "undefined") {
   const store = new Map<string, string>();
   globalThis.sessionStorage = {

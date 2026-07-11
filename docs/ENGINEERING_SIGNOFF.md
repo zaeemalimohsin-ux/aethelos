@@ -2,7 +2,7 @@
 
 Single entry point for distribution readiness and audit residuals. Supersedes [Pass 4 audit](./archive/CODEBASE_AUDIT_PASS4.md) and [Distribution scorecard](./archive/DISTRIBUTION_SCORECARD.md) for day-to-day sign-off.
 
-**Last updated:** 2026-07-11 (v0.2.1 ship; CI fix pushed in `27d19df`)
+**Last updated:** 2026-07-11 (v0.2.2: federation on in production builds; P0 test coverage closed)
 
 ---
 
@@ -10,12 +10,12 @@ Single entry point for distribution readiness and audit residuals. Supersedes [P
 
 | Pillar | Ready? | Notes |
 |--------|--------|-------|
-| Windows installer | **Yes** | [v0.2.1](https://github.com/zaeemalimohsin-ux/aethelos/releases/tag/v0.2.1) live |
+| Windows installer | **Yes** | v0.2.2 ships federation-on; [v0.2.1](https://github.com/zaeemalimohsin-ux/aethelos/releases/tag/v0.2.1) lacked linked-chapter UI |
 | Merge CI (tiers 1–3) | **Green** (after `27d19df`) | Prettier fix on `operator-hosting.mjs` |
 | Product proof (local) | **Yes** | `pnpm proof:product -SkipAndroid` passed |
 | Canonical browser URL | **No** | `app.aethelos.org` NXDOMAIN; `aethelos.fly.dev` not deployed; HF Space PAUSED |
-| Interim public demo | **Yes** | Local gateway + trycloudflare tunnel (ephemeral; not canonical) |
-| Hosting automation | **Wired** | `operator-hosting` tool + GHCR/Fly/Render/HF workflows |
+| Interim public demo | **Yes** | trycloudflare tunnel — preflight PASS (2026-07-11) |
+| Hosting automation | **Wired** | `operator-hosting` + Playwright headed browser; Fly OAuth blocked on GitHub login |
 | Nightly hosted-preflight | **Expected fail** | Targets `app.aethelos.org` until DNS + host live |
 
 **Overall:** **Desktop distribution-ready. Web canonical distribution not ready** until Fly or Render deploy completes and DNS points `app` subdomain.
@@ -42,7 +42,10 @@ Full Pass 4 detail: [archive/CODEBASE_AUDIT_PASS4.md](./archive/CODEBASE_AUDIT_P
 | SyncEngine ws errors silent | P2 documented |
 | No React error boundary | P3 |
 | Tauri updater / release CI | No signing pipeline |
-| Federation lay UX | Documented gap |
+| Federation lay UX | **Addressed in v0.2.2** — federation on in production; at-cap linked-chapter E2E |
+| Expulsion fund-flow (no-parent path) | **Addressed** — `expel-fund-flow.test.ts` |
+| Superstructure guard rails | **Addressed** — `superstructure-guards.test.ts`, `legacy-events.test.ts` |
+| Lost-device recovery UI | **Addressed** — `lost-device-recovery.spec.ts`, `recovery-import.test.ts` store wrapper |
 
 ---
 
@@ -77,7 +80,7 @@ Full scorecard history: [archive/DISTRIBUTION_SCORECARD.md](./archive/DISTRIBUTI
 
 Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (tiers 1–5). CI on every merge covers tiers 1–3; weekly product-proof and optional desktop:proof cover higher tiers on Windows.
 
-**Local verification (2026-07-11):** encoding, typecheck, lint, format, 272 unit + E2E tests (80 chromium, 20 federation-off including onboarding specs).
+**Local verification (2026-07-11):** encoding, typecheck, lint, format, unit + E2E tests (80 chromium federation-on, 20 federation-off onboarding, 20 federation-on onboarding tier 2c-bis).
 
 **Product proof (2026-07-11, Windows, -SkipAndroid):** PASS — dev + release share URL, mobile E2E.
 
@@ -85,20 +88,20 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 
 
 
-## Ship status (v0.2.1)
+## Ship status (v0.2.2)
 
 | Path | Status |
 |------|--------|
-| Windows installer (GitHub Releases) | **Live** — [v0.2.1](https://github.com/zaeemalimohsin-ux/aethelos/releases/tag/v0.2.1) |
+| Windows installer (GitHub Releases) | **v0.2.2** — federation on (`VITE_ENABLE_FEDERATION=1` in production build) |
 | Merge CI (tiers 1–3) | **Green** — [run 29147917038](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29147917038) |
 | GHCR container publish | **Green** — `ghcr.io/zaeemalimohsin-ux/aethelos:latest` (package visibility API 404; image push succeeds) |
 | Fly.io deploy automation | **Wired** — skips until `FLY_API_TOKEN` secret set → `https://aethelos.fly.dev` |
-| Browser demo (app.aethelos.org / HF Space) | **Blocked** — HF Space PAUSED (abusive flag); v0.2.1 artifact pushed via CI; unpause or email HF support (docs/operator/hf-abuse-appeal-email.txt). New Docker Spaces require HF PRO. |
+| Browser demo (app.aethelos.org / HF Space) | **Blocked** — HF Space PAUSED (abusive flag); v0.2.2 GHCR image includes federation-on client; unpause or email HF support (docs/operator/hf-abuse-appeal-email.txt). New Docker Spaces require HF PRO. |
 | Namecheap DNS (`app` subdomain) | **Not configured** — see [operator/namecheap-dns-app.md](./operator/namecheap-dns-app.md) |
 | Self-host / Render / docker compose | Ready — [PUBLISHER.md](./PUBLISHER.md), [render.yaml](../render.yaml) |
 
 ## Related
 
 - [PHILOSOPHY_TRACEABILITY.md](./PHILOSOPHY_TRACEABILITY.md) — philosophy automation matrix
-- [PRODUCT.md](./PRODUCT.md) — known limitations (50 members, federation off)
+- [PRODUCT.md](./PRODUCT.md) — known limitations (50 per chapter, federation on)
 - [OPERATIONS.md](./OPERATIONS.md) — hosted nightly preflight

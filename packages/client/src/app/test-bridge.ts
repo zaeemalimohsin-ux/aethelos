@@ -249,6 +249,20 @@ export function installTestBridge(): void {
       await useStore.getState().leaveSuperstructure(parentId);
     },
 
+    inflateMemberCountForTesting(target: number) {
+      const state = useStore.getState();
+      const pool = state.pool ?? state.controller?.state ?? null;
+      if (!pool) return false;
+      const members = [...pool.members];
+      let pad = 0;
+      while (members.length < target) {
+        members.push(pad.toString(16).padStart(64, "0"));
+        pad += 1;
+      }
+      useStore.setState({ pool: { ...pool, members } });
+      return true;
+    },
+
     async exportLog() {
       return (await useStore.getState().controller?.exportLog()) ?? "[]";
     },

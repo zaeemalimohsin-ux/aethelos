@@ -37,7 +37,7 @@ Every system built on trust has the same failure mode: over time, trust migrates
 3. **Equal voices in redistribution**: Every live, vouched soul carries equal weight when commons are shared out. Day-to-day proposals use stake-weighted voting so influence is earned through participation, not hoarded forever.
 4. **Unstoppable operation**: Even if the creators of AethelOS disappear tomorrow, your community keeps running exactly as it did yesterday.
 
-Standard builds support up to **50 members**; linked chapters are off by default — see [PRODUCT.md](docs/PRODUCT.md).
+Communities scale by **linked chapters** (50 members per chapter); federation is enabled in standard production builds. See [PRODUCT.md](docs/PRODUCT.md).
 
 Read the full [Higher-Level Philosophy](./Higher-Level-Philosophy.md).
 

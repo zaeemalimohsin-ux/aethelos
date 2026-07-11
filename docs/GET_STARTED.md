@@ -5,7 +5,7 @@
 
 **Current release:** v0.2.1 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
 
-Standard builds support up to **50 members**; linked chapters are not enabled in the default app. See [PRODUCT.md](./PRODUCT.md) for responsibilities and limitations · [Privacy](./PRIVACY.md) · [Terms](./TERMS.md) · [Support](./SUPPORT.md)
+Communities scale by **linked chapters** (50 members per chapter); federation is enabled in standard production builds. See [PRODUCT.md](./PRODUCT.md) for responsibilities and limitations · [Privacy](./PRIVACY.md) · [Terms](./TERMS.md) · [Support](./SUPPORT.md)
 
 | You are… | Do this |
 |----------|---------|

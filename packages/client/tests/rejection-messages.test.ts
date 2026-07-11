@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { rejectionMessage } from "../src/app/rejection-messages.js";
 
 const USER_MESSAGE_KEYS = [
@@ -27,9 +27,15 @@ const USER_MESSAGE_KEYS = [
   "no_pending_invite",
   "admission_not_approved",
   "already_member",
+  "not_bridge",
+  "unknown_cell",
 ] as const;
 
 describe("rejectionMessage", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("maps proposal_not_open to user-facing copy", () => {
     const msg = rejectionMessage("proposal_not_open");
     expect(msg).not.toMatch(/proposal not open/i);
@@ -37,8 +43,20 @@ describe("rejectionMessage", () => {
   });
 
   it("maps cell_cap_reached without linked-chapter promise when federation off", () => {
+    vi.stubEnv("VITE_ENABLE_FEDERATION", "");
     expect(rejectionMessage("cell_cap_reached")).toMatch(/member limit/i);
-    expect(rejectionMessage("cell_cap_reached")).not.toMatch(/sub-community/i);
+    expect(rejectionMessage("cell_cap_reached")).not.toMatch(/linked chapter/i);
+  });
+
+  it("maps cell_cap_reached to linked-chapter copy when federation on", async () => {
+    vi.stubEnv("VITE_ENABLE_FEDERATION", "1");
+    const { rejectionMessage: msg } = await import("../src/app/rejection-messages.js");
+    expect(msg("cell_cap_reached")).toMatch(/linked chapter/i);
+  });
+
+  it("maps federation bridge guard reasons", () => {
+    expect(rejectionMessage("not_bridge")).toMatch(/bridge members/i);
+    expect(rejectionMessage("unknown_cell")).toMatch(/linked chapter/i);
   });
 
   it("maps invite and vouch reasons", () => {

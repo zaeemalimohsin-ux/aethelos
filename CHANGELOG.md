@@ -12,6 +12,25 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ### Fixed
 
+## [0.2.2] - 2026-07-11
+
+### Added
+
+- **Federation on in production builds** — `VITE_ENABLE_FEDERATION=1` in `.env.production`; linked-chapter UI in desktop and container images.
+- **P0 core tests:** `expel-fund-flow.test.ts` (no-parent expulsion fund split + commons edge), `superstructure-guards.test.ts`, `legacy-events.test.ts`.
+- **P0 client tests:** `recoverCommunityFromEventLog` store wrapper coverage; `lost-device-recovery.spec.ts` UI walkthrough; `federation-cap.spec.ts` at-cap banner.
+- **Federation-on onboarding E2E tier (2c-bis):** `playwright.federation-on.config.ts`, `pnpm test:e2e:federation-on`, CI step after federation-off.
+- **Rejection copy:** `not_bridge`, `unknown_cell`; federation-on `cell_cap_reached` linked-chapter messaging.
+
+### Changed
+
+- **Scaling model docs:** 50 members per chapter (not one flat community ceiling); README, GET_STARTED, PRODUCT, ENGINEERING_SIGNOFF updated.
+- **Operator scripts:** persistent Playwright profile in `operator-browser.mjs`; hybrid Fly auth flow in `operator-hosting.mjs`.
+
+### Fixed
+
+- v0.2.1 installers shipped without federation UI despite docs — v0.2.2 rebuild required for linked chapters.
+
 ## [0.2.1] - 2026-07-11
 
 ### Added

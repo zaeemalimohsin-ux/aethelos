@@ -50,7 +50,7 @@ Developers build from source; end users should not run `Build-Release.bat`.
 Guest admission: see [GET_STARTED.md](./GET_STARTED.md) § Join a community.
 
 - Offline actions queue until a connection point is reachable
-- Standard builds limit communities to **50 members**; linked chapters (federation) are advanced and off in the default production build
+- Each chapter holds up to **50 members**; **linked chapters** (federation) are enabled in standard production builds so communities scale by depth, not one giant room
 - Desktop Windows builds may trigger SmartScreen until Authenticode signing ships
 
 ## Legal & privacy

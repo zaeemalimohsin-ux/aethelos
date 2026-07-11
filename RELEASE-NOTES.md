@@ -1,41 +1,39 @@
-# AethelOS v0.2.1 Release Notes
+# AethelOS v0.2.2 Release Notes
 
-Welcome to **AethelOS v0.2.1**.
+Welcome to **AethelOS v0.2.2**.
 
-This release ships the onboarding UX polish from Phase 2, fixes CI Hugging Face deploy gating, and refreshes Windows installers so new users get the improved first-run flow.
+This release enables **federation (linked chapters)** in production builds, closes P0 test gaps from the coverage audit, and adds a federation-on onboarding E2E tier in CI.
 
 ## Highlights
 
-### Onboarding (first-run)
+### Federation on by default
 
-- Progress pips on founder and join paths
-- Age gate on create **and** restore
-- Backup screen copy reorder; recovery phrase semantics
-- After backup, go straight to **Start a community** (no redundant chooser)
-- PWA install hint below primary actions
-- Federation-off E2E covers welcome path + edge cases (20 specs)
+- Production and desktop builds ship with `VITE_ENABLE_FEDERATION=1`
+- Community philosophy card and at-cap invite UX show **linked chapter** guidance
+- **50 members per chapter** — scale by linking chapters, not one flat ceiling
+- **Upgrade from v0.2.1** if you need linked-chapter UI in the installer
+
+### P0 test coverage
+
+- Expulsion fund-flow (no-parent split + commons edge)
+- Superstructure guard rails and legacy direct-event rejection
+- Lost-device recovery UI + `recoverCommunityFromEventLog` store branches
+- Federation-on at-cap banner E2E
+
+### CI
+
+- New tier **2c-bis:** `pnpm test:e2e:federation-on` (onboarding/philosophy under production flag)
+- Merge CI: federation-off → federation-on → chromium suite
 
 ### Distribution
 
-- **Windows installer** — primary path for founders today ([GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
-- **Browser demo** (`app.aethelos.org`) — HF Space paused (abusive flag); CI pushes deploy artifact; operator must unpause Space or use Render/self-host (see [PUBLISHER.md](./docs/PUBLISHER.md))
-- **Self-host** — docker compose / VPS path unchanged ([PUBLISHER.md](./docs/PUBLISHER.md))
-
-### Proof (Windows)
-
-`pnpm proof:product -SkipAndroid` **PASS** (2026-07-11): dev + release desktop share URLs, mobile E2E.
-
-| Step | Result |
-|------|--------|
-| Preflight, typecheck, unit, user docs | PASS |
-| Desktop dev share URL + mobile E2E | PASS |
-| Release build + share URL + mobile E2E | PASS |
-
-CI on merge: tiers 1–3 green (including docker-founder publish path).
+- **Windows installer** — primary path ([GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
+- **GHCR / docker** — client image inherits federation-on from `.env.production`
+- **Browser demo** (`app.aethelos.org`) — still blocked (HF Space paused); see [PUBLISHER.md](./docs/PUBLISHER.md)
 
 ## Known limitations
 
-See [PRODUCT.md](./docs/PRODUCT.md): SmartScreen on unsigned Windows builds, 50-member community limit, offline queueing, four-step guest admission.
+See [PRODUCT.md](./docs/PRODUCT.md): SmartScreen on unsigned Windows builds, 50 members per chapter, offline queueing, four-step guest admission.
 
 ---
 

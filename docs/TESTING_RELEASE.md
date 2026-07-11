@@ -9,6 +9,7 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 | **1 — CI core** | `pnpm typecheck`, `pnpm lint:eslint`, `pnpm test` | Kernel, relay, client units | Every merge |
 | **2 — Local product E2E** | `pnpm test:e2e --project=chromium` | Vite dev + relay dev flows (federation on) | Every merge (CI `e2e` job) |
 | **2b — Federation-off E2E** | `pnpm test:e2e:federation-off` | Vite dev, federation off: admission edge, philosophy UX, onboarding happy path + age gate | Every merge (CI `e2e` job) |
+| **2c-bis — Federation-on onboarding E2E** | `pnpm test:e2e:federation-on` | Vite dev, federation on (`VITE_ENABLE_FEDERATION=1`): same onboarding/philosophy specs as 2b under production flag | Every merge (CI `e2e` job, after 2b) |
 | **2c — Sync mesh** | `pnpm --filter @aethelos/client test -- tests/sync-mesh.test.ts` | Headless multi-engine convergence | Every merge (CI `build-and-test`) |
 | **2d — Sync partition** | `pnpm --filter @aethelos/client test -- tests/sync-partition.test.ts` | Partition recovery (Vitest) | Every merge (CI `build-and-test`) |
 | **3 — Publish path** | CI `docker-founder` → Playwright `founder-docker` | Same-origin `/ws` via nginx on port 8080 | Every merge |
@@ -36,6 +37,7 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 |------|----------------|-------|
 | `pnpm test:e2e --project=chromium` | Local vite + `dev:relay` product flows (federation on) | Local + CI `e2e` job |
 | `pnpm test:e2e:federation-off` | Vite dev, federation off (`VITE_E2E=1`, `VITE_ENABLE_FEDERATION=0`); includes `onboarding.spec.ts` and `edge-cases-onboarding.spec.ts` | Every merge (CI `e2e` job) |
+| `pnpm test:e2e:federation-on` | Vite dev, federation on (`VITE_E2E=1`, `VITE_ENABLE_FEDERATION=1`); same `testMatch` as federation-off — proves onboarding/philosophy copy under production flag | Every merge (CI `e2e` job, after federation-off) |
 | Nightly `hosted-preflight` | Canonical `https://app.aethelos.org` health + hosted admission E2E | `nightly-integration` workflow (sole nightly job) |
 | Weekly `product-proof` | Full Windows `pnpm proof:product` | `.github/workflows/product-proof.yml` |
 | CI `docker-founder` | Same-origin `/ws` publish stack (nginx) + mobile founder/joiner admission | Ubuntu CI — **required** publish-path proof |
@@ -71,6 +73,7 @@ pnpm test
 pnpm --filter @aethelos/core test:coverage
 pnpm --filter @aethelos/client exec playwright test --project=chromium
 pnpm test:e2e:federation-off
+pnpm test:e2e:federation-on
 ```
 
 Use `--project=chromium` explicitly when running E2E locally. Bare `pnpm test:e2e` also attempts `founder-docker` and `share-url-mobile` projects, which need Docker or `AETHELOS_SHARE_URL` respectively.

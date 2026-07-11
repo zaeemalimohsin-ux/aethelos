@@ -2,7 +2,7 @@
   "name": "aethelos",
   "private": true,
   "type": "module",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "AethelOS — substrate of daily community life without external authority",
   "scripts": {
     "build": "pnpm -r build",
@@ -16,6 +16,7 @@
     "dev:client": "pnpm --filter @aethelos/client dev",
     "test:e2e": "pnpm --filter @aethelos/client test:e2e",
     "test:e2e:federation-off": "pnpm --filter @aethelos/client test:e2e:federation-off",
+    "test:e2e:federation-on": "pnpm --filter @aethelos/client test:e2e:federation-on",
     "test:e2e:pilot-off": "pnpm test:e2e:federation-off",
     "setup:e2e": "pnpm --filter @aethelos/client setup:e2e",
     "playground": "pnpm --filter @aethelos/client playground",

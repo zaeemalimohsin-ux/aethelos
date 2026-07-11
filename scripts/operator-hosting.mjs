@@ -131,19 +131,30 @@ function ghWorkflowRun(workflow) {
 async function cmdFly() {
   await downloadFlyctl();
   if (!flyAuthed()) {
-    log("Fly auth via headed browser (screenshots in scripts/.operator-screenshots/)...");
+    log(
+      "Fly auth: real Edge tab (saved logins) + headed Playwright (scripts/.operator-screenshots/)...",
+    );
     const { child, url } = await captureFlyAuthUrl();
+    openEdge(url);
     try {
       await flyAuthViaBrowser(url, { timeoutMs: 1_200_000 });
-    } finally {
+    } catch (e) {
+      warn("Playwright flow:", e.message);
+      log("Complete Fly login in Edge if a tab is still open...");
+    }
+    if (!(await waitForFlyAuth())) {
       try {
         child.kill();
       } catch {
         /* ignore */
       }
+      throw new Error("Fly auth not completed within 20 minutes");
     }
-    if (!(await waitForFlyAuth(120_000)))
-      throw new Error("Fly auth not completed after browser flow");
+    try {
+      child.kill();
+    } catch {
+      /* ignore */
+    }
   }
   ghSecretSet("FLY_API_TOKEN", createDeployToken());
   ghWorkflowRun("deploy-fly.yml");
