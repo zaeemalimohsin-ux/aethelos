@@ -66,7 +66,9 @@ async function createSpace(name) {
     }),
   });
   if (res.status === 409 || res.status === 403) {
-    console.log(`create ${name}: HTTP ${res.status} (${text}) — assuming exists or pending`);
+    console.log(
+      `create ${name}: HTTP ${res.status} (${text}) — assuming exists or pending`,
+    );
     return;
   }
   if (res.status === 402) {
@@ -97,7 +99,9 @@ async function main() {
     runtime = await getRuntime(primaryRepo);
     console.log(`Primary runtime: ${JSON.stringify(runtime)}`);
     if (isBlocked(runtime)) {
-      console.log(`Primary ${primaryRepo} blocked (${runtime.stage}: ${runtime.errorMessage || "n/a"})`);
+      console.log(
+        `Primary ${primaryRepo} blocked (${runtime.stage}: ${runtime.errorMessage || "n/a"})`,
+      );
       if (!(await spaceExists(fallbackRepo))) {
         await createSpace(fallback);
       }
