@@ -33,7 +33,7 @@ Consider what happens to a currency during collapse: hyperinflation renders it w
 
 ### 3. Organisational Hierarchy & Pools
 
-> **Shipping note:** Standard builds cap communities at **50 members** and disable linked chapters (federation). This document describes design intent; see [PRODUCT.md](docs/PRODUCT.md#known-limitations) for what ships today.
+> **Shipping note:** Standard production builds cap communities at **50 members per chapter** and enable **linked chapters** (federation UI). See [PRODUCT.md](docs/PRODUCT.md#known-limitations) for what ships today.
 
 Most decentralised systems fail not because the idea is wrong, but because they try to replicate centralised structure without central authority. The result is chaos without coordination. AethelOS takes a different approach: structure that emerges bottom-up, at every scale.
 

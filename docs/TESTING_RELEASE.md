@@ -9,7 +9,7 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 | **1 — CI core** | `pnpm typecheck`, `pnpm lint:eslint`, `pnpm test` | Kernel, relay, client units | Every merge |
 | **2 — Local product E2E** | `pnpm test:e2e --project=chromium` | Vite dev + relay dev flows (federation on) | Every merge (CI `e2e` job) |
 | **2b — Federation-off E2E** | `pnpm test:e2e:federation-off` | Vite dev, federation off: admission edge, philosophy UX, onboarding happy path + age gate | Every merge (CI `e2e` job) |
-| **2c-bis — Federation-on onboarding E2E** | `pnpm test:e2e:federation-on` | Vite dev, federation on (`VITE_ENABLE_FEDERATION=1`): same onboarding/philosophy specs as 2b under production flag | Every merge (CI `e2e` job, after 2b) |
+| **2c-bis — Federation-on onboarding E2E** | `pnpm test:e2e:federation-on` | Vite dev, federation on: onboarding/philosophy specs plus `federation.spec.ts` and `federation-cap.spec.ts` | Every merge (CI `e2e` job, after 2b) |
 | **2c — Sync mesh** | `pnpm --filter @aethelos/client test -- tests/sync-mesh.test.ts` | Headless multi-engine convergence | Every merge (CI `build-and-test`) |
 | **2d — Sync partition** | `pnpm --filter @aethelos/client test -- tests/sync-partition.test.ts` | Partition recovery (Vitest) | Every merge (CI `build-and-test`) |
 | **3 — Publish path** | CI `docker-founder` → Playwright `founder-docker` | Same-origin `/ws` via nginx on port 8080 | Every merge |

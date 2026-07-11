@@ -16,7 +16,7 @@ export default defineConfig({
     {
       name: "federation-on",
       testMatch:
-        /(admission-edge|ux-philosophy|onboarding|edge-cases-onboarding)\.spec\.ts$/,
+        /(admission-edge|ux-philosophy|onboarding|edge-cases-onboarding|federation|federation-cap)\.spec\.ts$/,
       use: { ...devices["Desktop Chrome"] },
     },
   ],

@@ -42,7 +42,7 @@ import {
   verifyInviteSignature,
   type InvitePayload,
 } from "./invite.js";
-import { saveSubCellParentContext } from "./subcell-context.js";
+import { saveSubCellParentContext, loadSubCellParentContext } from "./subcell-context.js";
 import {
   isDesktopApp,
   startLocalNode,
@@ -67,6 +67,30 @@ import {
 } from "./active-relays.js";
 import { sameOriginRelayUrl, isPublishableRelayUrl } from "./bootstrap-relays.js";
 import { ensureOnline } from "./connectivity.js";
+
+const OUTBOX_FULL_TOAST =
+  "Queue full — wait for your relay connection to catch up before sending more actions.";
+
+function isOutboxFullError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.includes("Outbox full") || msg.includes("Queue full");
+}
+
+async function runPublishAction(
+  get: () => AppStore,
+  action: () => Promise<void>,
+): Promise<boolean> {
+  try {
+    await action();
+    return true;
+  } catch (err) {
+    if (isOutboxFullError(err)) {
+      get().toast(OUTBOX_FULL_TOAST, "error");
+      return false;
+    }
+    throw err;
+  }
+}
 
 export type Phase = "loading" | "onboarding" | "locked" | "ready";
 export type View = "cell" | "governance" | "proposals" | "connection" | "identity";
@@ -142,6 +166,7 @@ interface AppStore {
   joinSuperstructure(id: string): Promise<void>;
   leaveSuperstructure(id: string): Promise<void>;
   spawnSubCell(name: string): Promise<void>;
+  returnToParentChapter(): Promise<void>;
   linkSubcell(childNamespaceId: string, bridgeKey?: string): Promise<void>;
   bridgeEscrow(remoteId: string, to: string, amount: string): Promise<void>;
   addRelay(url: string): void;
@@ -510,7 +535,10 @@ export const useStore = create<AppStore>((set, get) => ({
       get().toast("Waiting for community approval before you can join", "info");
       return;
     }
-    await controller.acceptInvite(invite.inviter);
+    const published = await runPublishAction(get, () =>
+      controller.acceptInvite(invite.inviter),
+    );
+    if (!published) return;
     const ok = await controller.waitForConfirmedState((p) => p.members.includes(myKey));
     if (ok) {
       get().toast("Invite accepted", "success");
@@ -546,7 +574,10 @@ export const useStore = create<AppStore>((set, get) => ({
       );
       return;
     }
-    await controller.invite(trimmed, parameters);
+    const published = await runPublishAction(get, () =>
+      controller.invite(trimmed, parameters),
+    );
+    if (!published) return;
     const ok = await controller.waitForConfirmedState((p) => !!p.pendingInvites[trimmed]);
     if (!ok) {
       get().toast("Didn't sync yet — check your connection", "error");
@@ -565,7 +596,8 @@ export const useStore = create<AppStore>((set, get) => ({
     const trimmed = pubkey.trim();
     const controller = get().controller;
     if (!controller) return;
-    await controller.cancelInvite(trimmed);
+    const published = await runPublishAction(get, () => controller.cancelInvite(trimmed));
+    if (!published) return;
     const ok = await controller.waitForConfirmedState((p) => !p.pendingInvites[trimmed]);
     if (ok) {
       get().toast("Invite cancelled — lien released", "success");
@@ -593,7 +625,10 @@ export const useStore = create<AppStore>((set, get) => ({
       return;
     }
     const beforeRecipient = getBalance(pool, recipient);
-    await controller.transfer(recipient, formatPointsAmount(transferAmount), memo);
+    const published = await runPublishAction(get, () =>
+      controller.transfer(recipient, formatPointsAmount(transferAmount), memo),
+    );
+    if (!published) return;
     const ok = await controller.waitForConfirmedState(
       (p) => getBalance(p, recipient) > beforeRecipient,
     );
@@ -604,16 +639,23 @@ export const useStore = create<AppStore>((set, get) => ({
     }
   },
   async updateSlider(p, v, target) {
-    await get().controller?.updateSlider(p, v, target);
+    const controller = get().controller;
+    if (!controller) return;
+    await runPublishAction(get, () => controller.updateSlider(p, v, target));
   },
   async updateVouch(target, weight) {
-    await get().controller?.updateVouch(target, weight);
+    const controller = get().controller;
+    if (!controller) return;
+    await runPublishAction(get, () => controller.updateVouch(target, weight));
   },
   async createProposal(kind, data) {
     const controller = get().controller;
     if (!controller) return;
     const id = crypto.randomUUID();
-    await controller.createProposal(id, kind, data);
+    const published = await runPublishAction(get, () =>
+      controller.createProposal(id, kind, data),
+    );
+    if (!published) return;
     const ok = await controller.waitForConfirmedState((p) => !!p.proposals[id]);
     if (ok) {
       get().toast("Proposal created", "success");
@@ -622,7 +664,12 @@ export const useStore = create<AppStore>((set, get) => ({
     }
   },
   async voteProposal(id, approve) {
-    await get().controller?.voteProposal(id, approve);
+    const controller = get().controller;
+    if (!controller) return;
+    const published = await runPublishAction(get, () =>
+      controller.voteProposal(id, approve),
+    );
+    if (!published) return;
     if (get().highlightProposalId === id) {
       get().clearProposalHighlight();
     }
@@ -640,7 +687,10 @@ export const useStore = create<AppStore>((set, get) => ({
       data["parameters"] = JSON.stringify(resolvedGovernanceParameters(parentPool));
     }
     const proposalId = crypto.randomUUID();
-    await controller?.createProposal(proposalId, "join_superstructure", data);
+    const published = await runPublishAction(get, () =>
+      controller!.createProposal(proposalId, "join_superstructure", data),
+    );
+    if (!published) return;
     const ok = await controller?.waitForConfirmedState((p) => !!p.proposals[proposalId]);
     if (ok) {
       get().toast("Link to parent group proposed — vote in Proposals", "success");
@@ -652,9 +702,12 @@ export const useStore = create<AppStore>((set, get) => ({
     const controller = get().controller;
     const parentId = id.trim();
     const proposalId = crypto.randomUUID();
-    await controller?.createProposal(proposalId, "leave_superstructure", {
-      target: parentId,
-    });
+    const published = await runPublishAction(get, () =>
+      controller!.createProposal(proposalId, "leave_superstructure", {
+        target: parentId,
+      }),
+    );
+    if (!published) return;
     const ok = await controller?.waitForConfirmedState((p) => !!p.proposals[proposalId]);
     if (ok) {
       get().toast("Leave parent group proposed — vote in Proposals", "success");
@@ -673,20 +726,34 @@ export const useStore = create<AppStore>((set, get) => ({
     }
     const trimmed = name.trim();
     if (!trimmed) return;
+    const parentCellName = pool.cellName;
     saveSubCellParentContext({
       parentNamespaceId: pool.namespaceId,
-      parentCellName: pool.cellName,
+      parentCellName,
       parentRelayUrls: controller.getRelayUrls(),
     });
     const namespaceId = generateNamespaceId();
     const relays = controller.getRelayUrls();
     await startNode(set, get, namespaceId, relays);
-    await get().controller?.genesis(trimmed);
+    const genesisOk = await runPublishAction(get, () =>
+      get().controller!.genesis(trimmed),
+    );
+    if (!genesisOk) return;
     persistSession(get);
     get().toast(
-      `Linked chapter "${trimmed}" created. Link it to "${pool.cellName}" from Proposals.`,
+      `Linked chapter "${trimmed}" created. Link it to "${parentCellName}" from Proposals.`,
       "success",
     );
+  },
+  async returnToParentChapter() {
+    if (!keyPair) return;
+    const parent = loadSubCellParentContext();
+    if (!parent) return;
+    const pool = get().pool;
+    if (pool?.namespaceId === parent.parentNamespaceId) return;
+    await startNode(set, get, parent.parentNamespaceId, parent.parentRelayUrls);
+    persistSession(get);
+    get().toast(`Returned to ${parent.parentCellName}`, "success");
   },
   async linkSubcell(childNamespaceId, bridgeKey) {
     const id = childNamespaceId.trim();
@@ -701,7 +768,10 @@ export const useStore = create<AppStore>((set, get) => ({
       data["bridge"] = bridge;
     }
     const proposalId = crypto.randomUUID();
-    await get().controller?.createProposal(proposalId, "link_subcell", data);
+    const published = await runPublishAction(get, () =>
+      get().controller!.createProposal(proposalId, "link_subcell", data),
+    );
+    if (!published) return;
     const ok = await get().controller?.waitForConfirmedState(
       (p) => !!p.proposals[proposalId],
     );
@@ -713,11 +783,14 @@ export const useStore = create<AppStore>((set, get) => ({
   },
   async bridgeEscrow(remoteId, to, amount) {
     const proposalId = crypto.randomUUID();
-    await get().controller?.createProposal(proposalId, "bridge_transfer", {
-      target: remoteId.trim(),
-      to: to.trim(),
-      amount: amount.trim(),
-    });
+    const published = await runPublishAction(get, () =>
+      get().controller!.createProposal(proposalId, "bridge_transfer", {
+        target: remoteId.trim(),
+        to: to.trim(),
+        amount: amount.trim(),
+      }),
+    );
+    if (!published) return;
     const ok = await get().controller?.waitForConfirmedState(
       (p) => !!p.proposals[proposalId],
     );

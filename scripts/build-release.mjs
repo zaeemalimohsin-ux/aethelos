@@ -55,6 +55,29 @@ function verifyStaticSidecarGate() {
   console.log("Release static sidecar verified (no E2E test bridge)");
 }
 
+const FEDERATION_ON_MARKER = "New people join through linked";
+
+function verifyFederationEnabledInSidecar() {
+  if (proofBuild) return;
+  const staticAssets = join(resourceSrc, "static", "assets");
+  if (!existsSync(staticAssets)) {
+    console.error("Static sidecar assets missing:", staticAssets);
+    process.exit(1);
+  }
+  const hasFederationUi = readdirSync(staticAssets)
+    .filter((name) => name.endsWith(".js"))
+    .some((name) =>
+      readFileSync(join(staticAssets, name), "utf8").includes(FEDERATION_ON_MARKER),
+    );
+  if (!hasFederationUi) {
+    console.error(
+      "Release bundle missing federation-on UI copy — rebuild with VITE_ENABLE_FEDERATION=1 in .env.production",
+    );
+    process.exit(1);
+  }
+  console.log("Release static sidecar includes federation-on UI");
+}
+
 console.log("== bundle relay sidecar ==");
 execSync("node scripts/bundle-relay-sidecar.mjs", { cwd: root, stdio: "inherit" });
 
@@ -97,6 +120,7 @@ execSync("pnpm --filter @aethelos/client-tauri desktop:build:release", {
 
 console.log("== verify static sidecar ==");
 verifyStaticSidecarGate();
+verifyFederationEnabledInSidecar();
 
 console.log("== stage release resources beside runtime exe ==");
 const releaseDir = join(root, "packages/client-tauri/src-tauri/target/release");

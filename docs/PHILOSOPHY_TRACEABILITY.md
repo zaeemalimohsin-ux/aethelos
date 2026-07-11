@@ -18,7 +18,7 @@ Statuses: **Covered** (automated proof exists), **Partial** (happy path / subset
 | P2.4 | Commons holds undistributed decay | `circulation.test.ts` (P2.4 zero-eligible), `adversarial.test.ts` (R2) | Covered | — |
 | P2.5 | Integer conservation | All core suites, E2E conservation tests | Covered | `simulation.test.ts` fuzz |
 | P3.1 | Cell / Pool / Node model | E2E onboarding, genesis | Covered | — |
-| P3.2 | Expulsion → highest Pool escrow + slider prune | `core.test.ts` (expel slider prune), `governance-fixes.test.ts` (direct expel rejected) | Covered | Hop-by-hop escalation via bridge release when parent unknown |
+| P3.2 | Expulsion → highest Pool escrow + slider prune | `expel-fund-flow.test.ts` (no-parent split + commons), `governance-fixes.test.ts` (direct expel rejected) | Partial | Direct-parent `superstructureEscrow` on expel is covered; multi-hop bridge release to root is design-only (not separately tested) |
 | P3.3 | Linked chapters / superstructure pools | `federation.spec.ts`, `superstructure.test.ts` | Partial | Production builds ship federation on (`VITE_ENABLE_FEDERATION=1`); federation-on E2E still limited in CI (see [TESTING_RELEASE.md](./TESTING_RELEASE.md)). |
 | P3.4 | Bridge via proposal + dual-registered bridge | `superstructure.test.ts` (paired inbound), `client/tests/bridge-mirror.test.ts` | Covered | Unpaired linked inbound mint rejected |
 | P3.5 | Join conformity to parent parameters | `superstructure.test.ts` | Covered | — |

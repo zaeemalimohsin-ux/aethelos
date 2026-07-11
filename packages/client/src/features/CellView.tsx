@@ -717,6 +717,7 @@ function SubCellCapBanner({ pool, isHead }: { pool: PoolState; isHead: boolean }
 
 function SubCellLinkageBanner({ pool }: { pool: PoolState }) {
   const joinSuperstructure = useStore((s) => s.joinSuperstructure);
+  const returnToParentChapter = useStore((s) => s.returnToParentChapter);
   const toast = useStore((s) => s.toast);
   const parent = loadSubCellParentContext();
   if (!parent) return null;
@@ -737,6 +738,9 @@ function SubCellLinkageBanner({ pool }: { pool: PoolState }) {
         {pool.namespaceId}
       </div>
       <div className="row">
+        <Button size="sm" variant="secondary" onClick={() => void returnToParentChapter()}>
+          Return to parent chapter
+        </Button>
         <Button
           size="sm"
           variant="secondary"
