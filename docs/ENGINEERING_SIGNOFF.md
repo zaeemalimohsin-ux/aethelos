@@ -2,9 +2,23 @@
 
 Single entry point for distribution readiness and audit residuals. Supersedes [Pass 4 audit](./archive/CODEBASE_AUDIT_PASS4.md) and [Distribution scorecard](./archive/DISTRIBUTION_SCORECARD.md) for day-to-day sign-off.
 
-**Last updated:** 2026-07-11 (v0.2.1 ship; CI green on main)
+**Last updated:** 2026-07-11 (v0.2.1 ship; CI green except operator-hosting Prettier fix pending push)
 
 ---
+
+## Distribution readiness verdict (2026-07-11)
+
+| Pillar | Ready? | Notes |
+|--------|--------|-------|
+| Windows installer | **Yes** | [v0.2.1](https://github.com/zaeemalimohsin-ux/aethelos/releases/tag/v0.2.1) live |
+| Merge CI (tiers 1–3) | **Fixing** | Prettier on `operator-hosting.mjs` — commit pending |
+| Product proof (local) | **Yes** | `pnpm proof:product -SkipAndroid` passed |
+| Canonical browser URL | **No** | `app.aethelos.org` NXDOMAIN; `aethelos.fly.dev` not deployed; HF Space PAUSED |
+| Interim public demo | **Yes** | Local gateway + trycloudflare tunnel (ephemeral; not canonical) |
+| Hosting automation | **Wired** | `operator-hosting` tool + GHCR/Fly/Render/HF workflows |
+| Nightly hosted-preflight | **Expected fail** | Targets `app.aethelos.org` until DNS + host live |
+
+**Overall:** **Desktop distribution-ready. Web canonical distribution not ready** until Fly or Render deploy completes and DNS points `app` subdomain.
 
 ## Executive summary (Pass 4)
 
