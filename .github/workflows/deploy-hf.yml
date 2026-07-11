@@ -95,9 +95,14 @@ jobs:
       - name: Wait for Space health and run preflight
         env:
           AETHELOS_URL: ${{ steps.space.outputs.aethelos_url }}
+          HF_SPACE_BLOCKED: ${{ steps.space.outputs.hf_space_blocked }}
         run: |
           set -euo pipefail
           echo "Preflight target: ${AETHELOS_URL}"
+          if [ "${HF_SPACE_BLOCKED:-}" = "true" ]; then
+            echo "::warning::Space is blocked (abuse pause). Artifact pushed; preflight skipped until HF unpauses."
+            exit 0
+          fi
           for i in $(seq 1 45); do
             if node scripts/charter-a-preflight.mjs; then
               echo "Space passed preflight after attempt $i"
