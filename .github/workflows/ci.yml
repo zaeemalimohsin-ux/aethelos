@@ -272,5 +272,6 @@ jobs:
   deploy-hf:
     needs: [build-and-test, e2e, docker-founder, tauri-check, changes]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.app == 'true'
+    continue-on-error: true
     uses: ./.github/workflows/deploy-hf.yml
     secrets: inherit
