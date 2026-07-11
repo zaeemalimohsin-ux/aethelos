@@ -100,6 +100,12 @@ jobs:
       - name: Build Windows desktop release
         run: node scripts/build-release.mjs
 
+      - name: Sign Windows installer
+        env:
+          WINDOWS_CERT_PFX_BASE64: ${{ secrets.WINDOWS_CERT_PFX_BASE64 }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: node scripts/sign-windows-installer.mjs
+
       - name: Generate checksums
         shell: bash
         run: |

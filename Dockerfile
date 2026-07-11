@@ -27,6 +27,9 @@ RUN pnpm install --frozen-lockfile
 COPY packages/core packages/core
 COPY packages/relay packages/relay
 COPY packages/client packages/client
+# Build all packages (optional public invite shell for hosted deploys)
+ARG VITE_INVITE_BASE_URL=
+ENV VITE_INVITE_BASE_URL=$VITE_INVITE_BASE_URL
 RUN pnpm --filter @aethelos/core build \
   && pnpm --filter @aethelos/relay build \
   && pnpm --filter @aethelos/client build

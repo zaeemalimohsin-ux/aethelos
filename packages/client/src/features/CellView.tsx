@@ -17,6 +17,7 @@ import { Field } from "../design/components/Field.js";
 import { Modal } from "../design/components/Modal.js";
 import { QRCode } from "../components/QRCode.js";
 import { buildInviteLink } from "../app/invite.js";
+import { isDesktopApp } from "../app/local-node.js";
 import { shortKey, formatPts, isValidPublicKeyHex } from "../app/format.js";
 import {
   clearSubCellParentContext,
@@ -447,6 +448,7 @@ function InviteCard({
   const myKey = useStore((s) => s.myKey);
   const displayName = useStore((s) => s.displayName);
   const shareUrl = useStore((s) => s.shareUrl);
+  const ensureDesktopShare = useStore((s) => s.ensureDesktopShare);
   const toast = useStore((s) => s.toast);
   const [pubkey, setPubkey] = useState("");
   const lienAmount = requiredVouchLien(pool, myKey);
@@ -466,29 +468,33 @@ function InviteCard({
     if (!showLink) return;
     setInviteLink("");
     setInviteSignError(false);
-    const relays = controller.getInviteRelayUrls();
-    if (relays.length === 0) {
-      setInviteSignError(true);
-      return;
-    }
     let cancelled = false;
-    void controller
-      .buildSignedInvitePayload(pool.cellName, relays)
-      .then((payload) => {
-        if (!cancelled) {
-          setInviteLink(buildInviteLink(payload, shareUrl ?? undefined));
-        }
-      })
-      .catch(() => {
+    void (async () => {
+      if (isDesktopApp()) {
+        await ensureDesktopShare();
+      }
+      if (cancelled) return;
+      const relays = controller.getInviteRelayUrls();
+      if (relays.length === 0) {
+        setInviteSignError(true);
+        return;
+      }
+      try {
+        const payload = await controller.buildSignedInvitePayload(pool.cellName, relays);
+        if (cancelled) return;
+        const linkBase = useStore.getState().shareUrl ?? shareUrl ?? undefined;
+        setInviteLink(buildInviteLink(payload, linkBase));
+      } catch {
         if (!cancelled) {
           setInviteSignError(true);
           toast("Could not sign invite link", "error");
         }
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
-  }, [showLink, controller, pool.cellName, toast, shareUrl]);
+  }, [showLink, controller, pool.cellName, toast, shareUrl, ensureDesktopShare]);
 
   const statusLine = connectionStatusMessage(
     sync?.overall,

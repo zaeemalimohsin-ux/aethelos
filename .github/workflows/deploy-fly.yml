@@ -8,6 +8,9 @@ on:
       - Dockerfile
       - fly.toml
       - deploy/**
+      - packages/client/**
+      - packages/core/**
+      - packages/relay/**
 
 jobs:
   deploy:

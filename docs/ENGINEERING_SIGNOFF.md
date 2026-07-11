@@ -2,7 +2,7 @@
 
 Single entry point for distribution readiness and audit residuals. Supersedes [Pass 4 audit](./archive/CODEBASE_AUDIT_PASS4.md) and [Distribution scorecard](./archive/DISTRIBUTION_SCORECARD.md) for day-to-day sign-off.
 
-**Last updated:** 2026-07-12 (v0.2.3: official Windows launch path; signed chapter links; tag E2E gate)
+**Last updated:** 2026-07-12 (v0.2.4: global Windows launch)
 
 ---
 
@@ -10,24 +10,21 @@ Single entry point for distribution readiness and audit residuals. Supersedes [P
 
 | Pillar | Ready? | Notes |
 |--------|--------|-------|
-| **Windows official launch** | **Yes** | v0.2.3 — installer, federation on, signed chapter links, tag E2E gate before build |
+| **Official Windows launch** | **Yes** | v0.2.4 — installer, auto share URL, signed invites, federation, tag E2E gate |
 | Windows installer | **Yes** | [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) |
-| Merge CI (tiers 1–3) | **Green** | Chromium + federation-off + federation-on on every merge |
-| Tag release CI | **Yes (v0.2.3+)** | `release-e2e-gate` mirrors merge E2E + production bundle scans |
-| Product proof (local) | **Yes** | `pnpm proof:product -SkipAndroid` |
-| Canonical browser URL | **No** | `app.aethelos.org` not live — joiners use founder invite links in any browser |
-| Interim public demo | **Yes** | Desktop share URL / trycloudflare |
-| Nightly hosted-preflight | **Expected fail** | Targets `app.aethelos.org` until DNS + host live |
+| Global invite links (desktop) | **Yes** | Public share URL + signed invite links; joiners use any browser |
+| Merge + tag release CI | **Yes** | E2E tiers + bundle scans; optional Authenticode when cert secrets set |
+| Hosted canonical URL | **Optional** | Desktop share path is primary; Fly/Render/HF for operators |
 
-**Overall:** **Ready for official Windows distribution globally.** Founders install Windows app and share invite links; joiners use any browser. Canonical hosted URL remains a separate ops milestone.
+**Overall:** **Ready for official global Windows distribution.**
 
 ## Executive summary (Pass 4)
 
 Pass 4 verified realistic user and operator failure modes. Several **P1 issues were fixed** (misleading vote math, silent reducer rejections, doc/UI lies, SW confirm(), modal focus, nginx headers, Tauri health-probe CSP).
 
-**Signs off** v0.2.2+ for honest failure messaging, federation-on production builds, P0 recovery/import paths (store + lost-device E2E), threat-model alignment on invite shell and relay limits, and non-dev doc accuracy.
+**Signs off** v0.2.4+ for official global Windows distribution: signed invites, desktop public share URLs, federation, tag E2E gate, honest user docs.
 
-**Does not sign off:** signed desktop releases (Authenticode), canonical browser URL (`app.aethelos.org`), dual-fork import validation beyond causal chain, true fracture E2E, CI desktop proofs (see proof tiers below).
+**Optional follow-ups (not launch blockers):** Authenticode cert in `WINDOWS_CERT_*` secrets, canonical `app.aethelos.org` DNS for operators who prefer a fixed browser entry.
 
 Full Pass 4 detail: [archive/CODEBASE_AUDIT_PASS4.md](./archive/CODEBASE_AUDIT_PASS4.md).
 

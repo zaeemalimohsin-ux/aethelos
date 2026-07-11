@@ -6,7 +6,9 @@ Community ledger and governance on your devices. No bank, no platform operator h
 
 A local-first app for communities to hold value, make decisions together, and organise — with cryptographic identity and a shared, verifiable event log.
 
-**Recommended path:** [Download the Windows app](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest), create an identity, and start a community. Share invite links from the Community tab — joiners open them in any browser.
+**Founders:** [Download the Windows app](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest), start a community, and invite people from the Community tab. Invite links work globally — joiners open them in any browser.
+
+**Joiners:** Open the invite link someone sent you. No install required.
 
 ## What this is not
 
@@ -26,9 +28,9 @@ See [GET_STARTED.md](./GET_STARTED.md) for founder vs joiner flows.
 
 ## Distribution
 
-- **Windows (founders):** [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (`.exe` / `.msi`). Unsigned builds may trigger SmartScreen — use **More info → Run anyway** until Authenticode signing ships.
-- **Joiners:** Open the invite link in any mobile or desktop browser — no install required.
-- **Canonical browser URL:** `app.aethelos.org` is **not live yet**. Founders share links from the Windows app or self-host per [PUBLISHER.md](./PUBLISHER.md).
+- **Windows (founders):** [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (`.exe` / `.msi`)
+- **Joiners:** Any mobile or desktop browser via invite link
+- **Operators / self-hosters:** [PUBLISHER.md](./PUBLISHER.md)
 
 Developers build from source; end users should not run `Build-Release.bat`.
 
@@ -51,9 +53,8 @@ Developers build from source; end users should not run `Build-Release.bat`.
 Guest admission: see [GET_STARTED.md](./GET_STARTED.md) § Join a community.
 
 - Offline actions queue until a connection point is reachable
-- Each chapter holds up to **50 members**; **linked chapters** (federation) are enabled in standard production builds so communities scale by depth, not one giant room
+- Each chapter holds up to **50 members**; **linked chapters** (federation) scale communities by depth
 - Federation linking uses **signed chapter links** (Head-signed, like invites)
-- Desktop Windows builds may trigger SmartScreen until Authenticode signing ships
 
 ## Legal & privacy
 

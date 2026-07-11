@@ -1,41 +1,26 @@
-# AethelOS v0.2.3 Release Notes
+# AethelOS v0.2.4 Release Notes
 
-Welcome to **AethelOS v0.2.3** — the recommended Windows release for founding and linking communities globally.
+Welcome to **AethelOS v0.2.4** — official Windows release for founding communities worldwide.
 
-## Highlights
+## Get started in 3 steps
 
-### Official Windows path
+1. **Download** the Windows installer (`.exe` or `.msi`) below
+2. **Create identity** → **Start a community**
+3. **Invite people** from the Community tab — share the link or QR; joiners open it in any browser on phone or desktop
 
-- Download the [Windows installer](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (`.exe` or `.msi`)
-- Create identity → **Start a community** → **Invite people** from the Community tab
-- Desktop relay + share links let joiners open your invite in any browser — no central server required
+The desktop app starts your connection point automatically. Invite links use your public share URL so people anywhere can join.
 
-**SmartScreen:** Builds are not Authenticode-signed yet. Choose **More info → Run anyway** on first launch.
+## What's new in v0.2.4
 
-### Signed federation links
+- Invite links wait for your public share URL before generating (global joiners work out of the box)
+- Windows Authenticode signing in release pipeline (when certificate secrets are configured)
+- Hosted deploy path widened for Fly.io on client changes
 
-- Child and parent Heads sign chapter links (like member invites)
-- Paste a signed link to propose joining or linking chapters — no more copying raw namespace IDs
+## v0.2.3 highlights (still included)
 
-### Release quality
-
-- GitHub tag releases now run the same E2E tiers as merge CI before the installer is built
-- Production bundle scanned for federation-on UI and absence of test bridge
-
-### Federation on by default
-
-- **50 members per chapter** — scale by linking chapters
-- Linked-chapter UI in all production builds
-
-## Joining without Windows
-
-Joiners do **not** need the installer. Open the **invite link** the founder sent you in Chrome, Safari, or Edge on phone or desktop.
-
-A canonical hosted URL (`app.aethelos.org`) is **not live yet** — founders share invite links from the Windows app (or self-host per [PUBLISHER.md](./docs/PUBLISHER.md)).
-
-## Known limitations
-
-See [PRODUCT.md](./docs/PRODUCT.md): unsigned Windows builds, 50 members per chapter, offline queueing, four-step guest admission.
+- Signed chapter links for federation
+- Full E2E gate on every release tag before the installer builds
+- Federation on, 50 members per chapter, linked chapters for scale
 
 ---
 

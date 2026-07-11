@@ -12,6 +12,22 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ### Fixed
 
+## [0.2.4] - 2026-07-12
+
+### Added
+
+- **Authenticode signing hook** — `scripts/sign-windows-installer.mjs` signs `.exe`/`.msi` when `WINDOWS_CERT_PFX_BASE64` is configured in release CI.
+
+### Changed
+
+- **Global invite links** — desktop Invite people waits for public share URL before generating links.
+- **Launch docs** — removed contradictory "not ready" caveats; Windows + invite-link path is the official distribution model.
+- **Fly deploy** — workflow triggers on client/core/relay changes.
+
+### Fixed
+
+- **Dockerfile** — optional `VITE_INVITE_BASE_URL` build arg for hosted operator deploys.
+
 ## [0.2.3] - 2026-07-12
 
 ### Added
