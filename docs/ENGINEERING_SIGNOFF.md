@@ -2,7 +2,7 @@
 
 Single entry point for distribution readiness and audit residuals. Supersedes [Pass 4 audit](./archive/CODEBASE_AUDIT_PASS4.md) and [Distribution scorecard](./archive/DISTRIBUTION_SCORECARD.md) for day-to-day sign-off.
 
-**Last updated:** 2026-07-11 (v0.2.1 ship)
+**Last updated:** 2026-07-11 (v0.2.1 ship; CI green on main)
 
 ---
 
@@ -76,6 +76,9 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 | Path | Status |
 |------|--------|
 | Windows installer (GitHub Releases) | **Live** — [v0.2.1](https://github.com/zaeemalimohsin-ux/aethelos/releases/tag/v0.2.1) |
+| Merge CI (tiers 1–3) | **Green** — [run 29147917038](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29147917038) |
+| GHCR container publish | **Green** — `ghcr.io/zaeemalimohsin-ux/aethelos:latest` (package visibility API 404; image push succeeds) |
+| Fly.io deploy automation | **Wired** — skips until `FLY_API_TOKEN` secret set → `https://aethelos.fly.dev` |
 | Browser demo (app.aethelos.org / HF Space) | **Blocked** — HF Space PAUSED (abusive flag); v0.2.1 artifact pushed via CI; unpause or email HF support (docs/operator/hf-abuse-appeal-email.txt). New Docker Spaces require HF PRO. |
 | Namecheap DNS (`app` subdomain) | **Not configured** — see [operator/namecheap-dns-app.md](./operator/namecheap-dns-app.md) |
 | Self-host / Render / docker compose | Ready — [PUBLISHER.md](./PUBLISHER.md), [render.yaml](../render.yaml) |
