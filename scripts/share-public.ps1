@@ -30,7 +30,7 @@ function Start-PublicTunnel {
 
     $proc = Start-Process -FilePath $exe -ArgumentList @(
         "tunnel", "--url", "http://127.0.0.1:8080", "--no-autoupdate"
-    ) -RedirectStandardOutput $logFile -RedirectStandardError $logFile -PassThru -WindowStyle Hidden
+    ) -RedirectStandardError $logFile -PassThru -WindowStyle Hidden
 
     $deadline = (Get-Date).AddSeconds(120)
     $publicUrl = $null
