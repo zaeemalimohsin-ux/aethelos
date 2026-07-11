@@ -51,6 +51,7 @@ jobs:
         with:
           name: product-proof-playwright-report
           path: packages/client/playwright-report/
+          retention-days: 7
 
       - name: Upload share URL artifact
         if: always()
@@ -59,6 +60,7 @@ jobs:
           name: product-proof-share-url
           path: .share-url
           if-no-files-found: ignore
+          retention-days: 7
 
   windows-android-proof:
     if: github.event_name == 'workflow_dispatch' && inputs.include_android == true
@@ -110,6 +112,7 @@ jobs:
         with:
           name: product-proof-android-playwright-report
           path: packages/client/playwright-report/
+          retention-days: 7
 
       - name: Upload Android smoke screenshot on failure
         if: failure()
@@ -118,3 +121,4 @@ jobs:
           name: product-proof-android-smoke
           path: test-results/android-smoke*.png
           if-no-files-found: ignore
+          retention-days: 7
