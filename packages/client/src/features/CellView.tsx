@@ -170,7 +170,8 @@ function PhilosophyCard({ federationUi }: { federationUi: boolean }) {
           </p>
         ) : (
           <p className="hint">
-            Federation scaling (linked chapters) is off in this pilot build.
+            Linked chapters are not available in this build — communities are limited to{" "}
+            {SOFT_CELL_CAP} members.
           </p>
         )}
       </div>
@@ -511,8 +512,8 @@ function InviteCard({
             </>
           ) : (
             <>
-              Pilot cap reached ({SOFT_CELL_CAP} members). Ask the Head to manage
-              membership.
+              Member limit reached ({SOFT_CELL_CAP} members). No new invites until
+              membership is reduced.
             </>
           )}
         </div>
@@ -525,7 +526,7 @@ function InviteCard({
             </>
           ) : (
             <>
-              {pool.members.length} / {SOFT_CELL_CAP} members — pilot cap is{" "}
+              {pool.members.length} / {SOFT_CELL_CAP} members — member limit is{" "}
               {SOFT_CELL_CAP}.
             </>
           )}

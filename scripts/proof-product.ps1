@@ -3,6 +3,7 @@ param(
     [switch]$SkipRelease,
     [switch]$ForceRelease,
     [switch]$SkipAndroid,
+    [switch]$SkipDevDesktop,
     [switch]$SkipPreflight,
     [switch]$SkipStaticGates
 )
@@ -363,11 +364,13 @@ if (-not $SkipStaticGates) {
 }
 
 # --- Desktop dev path ---
-Stop-ProofProcesses
-Start-Sleep -Seconds 3
-if (-not (Test-CommandExists "rustc")) {
+if ($SkipDevDesktop) {
+    Write-StepResult "Desktop dev path" "SKIP" "-SkipDevDesktop (CI release-path gate)"
+} elseif (-not (Test-CommandExists "rustc")) {
     Write-StepResult "Desktop dev path" "SKIP" "rustc not installed"
 } else {
+    Stop-ProofProcesses
+    Start-Sleep -Seconds 3
     for ($attempt = 1; $attempt -le 2; $attempt++) {
         if ($attempt -gt 1) {
             Write-Host "Retrying desktop dev path (attempt $attempt)..." -ForegroundColor Yellow

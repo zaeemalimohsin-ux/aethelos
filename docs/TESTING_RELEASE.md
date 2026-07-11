@@ -14,6 +14,8 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 | **3 — Publish path** | CI `docker-founder` → Playwright `founder-docker` | Same-origin `/ws` via nginx on port 8080 | Every merge |
 | **4 — Windows product proof** | `pnpm proof:product` | Desktop installer, live tunnel share URL, `share-url-mobile` Playwright | Release sign-off (Windows) |
 
+**GHA tier 4 (default):** `product-proof.yml` runs `-SkipAndroid -SkipDevDesktop` — release build + share URL + mobile E2E. Full dev desktop path remains local maintainer sign-off.
+
 ### Tier 4 Android prerequisites (Windows)
 
 | Prerequisite | Notes |

@@ -90,7 +90,8 @@ pnpm test:e2e     # E2E test suite
 *Note on Windows E2E: Run setup and test separately to avoid hanging.*
 
 ### Documentation
-- [Beta pilot notes](docs/BETA_README.md) — responsibilities and limitations for trusted pilots
+- [Product overview](docs/PRODUCT.md) — responsibilities and limitations
+- [Support](docs/SUPPORT.md) · [Contributing](CONTRIBUTING.md)
 - [Get Started](docs/GET_STARTED.md) · [User Guide](docs/USER_GUIDE.md)
 - [Publisher Guide](docs/PUBLISHER.md) — Deploying AethelOS online
 - [Genesis & operators](docs/GENESIS.md) · [Operations runbook](docs/OPERATIONS.md)

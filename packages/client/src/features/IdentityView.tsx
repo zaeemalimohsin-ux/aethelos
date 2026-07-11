@@ -9,6 +9,13 @@ import {
 } from "../storage/keystore.js";
 import { collectDiagnostics } from "../app/diagnostics.js";
 import { WIRE_VERSION } from "@aethelos/core";
+import {
+  DOCS_PRIVACY,
+  DOCS_PRODUCT,
+  DOCS_SUPPORT,
+  DOCS_TERMS,
+  ISSUES_URL,
+} from "../app/docs-links.js";
 
 function download(filename: string, content: string): void {
   const blob = new Blob([content], { type: "application/json" });
@@ -158,13 +165,17 @@ export function IdentityView() {
           <span>Theme</span>
           <div className="row">
             <button
+              type="button"
               className={`tab ${theme === "dark" ? "active" : ""}`}
+              aria-pressed={theme === "dark"}
               onClick={() => setTheme("dark")}
             >
               Dark
             </button>
             <button
+              type="button"
               className={`tab ${theme === "light" ? "active" : ""}`}
+              aria-pressed={theme === "light"}
               onClick={() => setTheme("light")}
             >
               Light
@@ -183,6 +194,10 @@ export function IdentityView() {
           New here? The User Guide walks through identities, invites, governance, and
           staying resilient.
         </p>
+        <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+          Diagnostics: a small local-only event buffer helps troubleshooting. Nothing is
+          sent to a server unless you export diagnostics below.
+        </p>
         <ul className="list">
           <li>
             <span className="muted">User guide</span>
@@ -191,6 +206,36 @@ export function IdentityView() {
               target="_blank"
               rel="noreferrer"
             >
+              Open
+            </a>
+          </li>
+          <li>
+            <span className="muted">Report issue</span>
+            <a href={ISSUES_URL} target="_blank" rel="noreferrer">
+              GitHub
+            </a>
+          </li>
+          <li>
+            <span className="muted">Product limits</span>
+            <a href={DOCS_PRODUCT} target="_blank" rel="noreferrer">
+              Open
+            </a>
+          </li>
+          <li>
+            <span className="muted">Privacy</span>
+            <a href={DOCS_PRIVACY} target="_blank" rel="noreferrer">
+              Open
+            </a>
+          </li>
+          <li>
+            <span className="muted">Terms</span>
+            <a href={DOCS_TERMS} target="_blank" rel="noreferrer">
+              Open
+            </a>
+          </li>
+          <li>
+            <span className="muted">Support</span>
+            <a href={DOCS_SUPPORT} target="_blank" rel="noreferrer">
               Open
             </a>
           </li>

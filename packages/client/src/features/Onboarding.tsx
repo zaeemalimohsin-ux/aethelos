@@ -12,6 +12,7 @@ import { Disclosure } from "../design/components/Disclosure.js";
 import { parseInviteInput, type InvitePayload } from "../app/invite.js";
 import { PwaInstallHint } from "../components/PwaInstallHint.js";
 import { trackEvent } from "../app/analytics.js";
+import { DOCS_PRIVACY, DOCS_TERMS } from "../app/docs-links.js";
 
 import { loadBootstrapRelay, saveBootstrapRelay } from "../app/session-storage.js";
 
@@ -54,7 +55,14 @@ function Shell({ children }: { children: React.ReactNode }) {
         </div>
         <p className="muted">Community life, owned by its people.</p>
         <p className="hint" style={{ marginTop: "var(--sp-2)" }}>
-          Beta software — back up your recovery phrase. We cannot reset lost keys.
+          Back up your recovery phrase — we cannot reset lost keys.{" "}
+          <a href={DOCS_PRIVACY} target="_blank" rel="noreferrer">
+            Privacy
+          </a>
+          {" · "}
+          <a href={DOCS_TERMS} target="_blank" rel="noreferrer">
+            Terms
+          </a>
         </p>
       </div>
       {children}
@@ -245,10 +253,11 @@ function CreateIdentity({
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [busy, setBusy] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
 
   const pwError = pw && pw.length < 8 ? "Use at least 8 characters" : "";
   const matchError = pw2 && pw !== pw2 ? "Passphrases do not match" : "";
-  const valid = name.trim() && pw.length >= 8 && pw === pw2;
+  const valid = name.trim() && pw.length >= 8 && pw === pw2 && ageConfirmed;
 
   return (
     <Card title="Create your identity">
@@ -278,6 +287,21 @@ function CreateIdentity({
         value={pw2}
         onChange={(e) => setPw2(e.target.value)}
       />
+      <label
+        className="hint"
+        style={{ display: "flex", gap: "var(--sp-2)", marginTop: "var(--sp-3)" }}
+      >
+        <input
+          type="checkbox"
+          checked={ageConfirmed}
+          onChange={(e) => setAgeConfirmed(e.target.checked)}
+        />
+        I am at least 13 years old and agree to the{" "}
+        <a href={DOCS_TERMS} target="_blank" rel="noreferrer">
+          Terms of use
+        </a>
+        .
+      </label>
       <div className="row" style={{ marginTop: "var(--sp-3)" }}>
         <Button
           disabled={!valid || busy}

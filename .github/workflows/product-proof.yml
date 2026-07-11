@@ -43,7 +43,7 @@ jobs:
         run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
 
       - name: Run product proof (skip Android)
-        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/proof-product.ps1 -SkipAndroid
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/proof-product.ps1 -SkipAndroid -SkipDevDesktop
 
       - name: Upload Playwright report on failure
         if: failure()

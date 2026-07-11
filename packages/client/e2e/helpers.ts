@@ -112,6 +112,7 @@ export async function createIdentity(
   await page.getByLabel("Display name").fill(displayName);
   await page.getByLabel("Passphrase", { exact: true }).fill(PASSWORD);
   await page.getByLabel("Confirm passphrase").fill(PASSWORD);
+  await page.getByRole("checkbox", { name: /at least 13 years old/i }).check();
   await page.getByRole("button", { name: "Create identity" }).click();
   await expect(page.getByText("Save your recovery phrase")).toBeVisible({
     timeout: 10_000,

@@ -36,7 +36,12 @@ describe("rejectionMessage", () => {
     expect(msg).toMatch(/closed or still syncing/i);
   });
 
-  it("maps pilot-critical invite and vouch reasons", () => {
+  it("maps cell_cap_reached without linked-chapter promise when federation off", () => {
+    expect(rejectionMessage("cell_cap_reached")).toMatch(/member limit/i);
+    expect(rejectionMessage("cell_cap_reached")).not.toMatch(/sub-community/i);
+  });
+
+  it("maps invite and vouch reasons", () => {
     expect(rejectionMessage("invite_pending")).toMatch(/pending invite/i);
     expect(rejectionMessage("lien_exceeds_self")).toMatch(/stake/i);
     expect(rejectionMessage("self_vouch_forbidden")).toMatch(/yourself/i);

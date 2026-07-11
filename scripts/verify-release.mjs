@@ -16,6 +16,8 @@ function run(cmd) {
 run("node scripts/check-version-sync.mjs");
 
 run("pnpm typecheck");
+run("pnpm lint:eslint");
+run("pnpm format:check");
 run("pnpm test");
 run("node scripts/check-user-docs.mjs");
 run("pnpm test:e2e");
@@ -34,6 +36,9 @@ if (process.platform === "win32") {
   );
 } else {
   console.log("\n>> proof-product.ps1 skipped (Windows-only desktop/Android proof)");
+  console.log(
+    ">> Reminder: run tier-4 proof on Windows before tag (pnpm proof:product or product-proof CI).",
+  );
 }
 
 console.log("\nRelease verification passed.");

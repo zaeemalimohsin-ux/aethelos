@@ -1,8 +1,6 @@
-# Publisher guide (internal)
+# Publisher guide
 
-Technical deploy, CI, and permanent URLs. **Not for regular users** — see [GET_STARTED.md](./GET_STARTED.md).
-
-Formerly split across DEPLOY.md; this is the single operator entry point.
+Deploy AethelOS for operators: same-origin PWA + relay, TLS, and preflight. End users start at [GET_STARTED.md](./GET_STARTED.md).
 
 ## Architecture (same-origin relay)
 
@@ -30,7 +28,7 @@ Starts the Docker stack on port 8080 (CI/publisher path only). Regular users use
 
 1. Provision a small Linux VPS with Docker installed.
 2. Clone the repo and copy [`docker-compose.env.example`](../docker-compose.env.example) to `.env.docker`.
-3. Put TLS in front of port 8080 (Caddy or Traefik).
+3. Put TLS in front of port 8080 — copy [`deploy/Caddyfile.example`](../deploy/Caddyfile.example) and replace `your-domain.example`, or use Traefik with WebSocket upgrade to `/ws`.
 4. Run:
 
 ```bash
@@ -83,7 +81,7 @@ Optional public demo — **not** the canonical publisher path. Use `docker compo
 
 1. Root [`Dockerfile`](../Dockerfile) builds PWA + relay in one container (same-origin `/ws`).
 2. Hugging Face injects `PORT=7860` at runtime; Render and other hosts use `PORT=10000` (see [`render.yaml`](../render.yaml)).
-3. [`deploy-hf.yml`](../.github/workflows/deploy-hf.yml) syncs a trimmed tree (no website binaries, build artifacts, or android remnants) to the Space on each `main` push.
+3. [`deploy-hf.yml`](../.github/workflows/deploy-hf.yml) syncs to the Space **after green CI on `main`**, then runs post-deploy preflight on `app.aethelos.org`.
 4. Space README front matter should set `app_port: 7860` (see root [`README.md`](../README.md)).
 
 For a permanent URL you control, prefer **Option A** (VPS + compose) or **Option B** (named Cloudflare Tunnel) below.
@@ -153,7 +151,7 @@ pnpm verify:release
 
 Runs typecheck, unit tests, user-doc grep, and local E2E. CI also runs `docker-founder` (same-origin publish stack). On Windows, `pnpm proof:product` exercises desktop share URL + mobile tunnel E2E + release installer.
 
-Tag **v0.2.0** (or the current root `package.json` version) before pilot distribution. Run [publisher preflight](#publisher-preflight-before-sharing-your-url) on the public URL.
+Tag **v0.2.0** (or the current root `package.json` version) before distribution. Run [publisher preflight](#publisher-preflight-before-sharing-your-url) on the public URL.
 
 Full sign-off on Windows: `pnpm proof:product`.
 ## Two-person genesis (test)

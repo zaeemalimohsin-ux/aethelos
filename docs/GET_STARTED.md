@@ -3,7 +3,9 @@
 **Open the app → start a community → invite people.**  
 **Or open an invite link someone sent you.**
 
-**Pilot build:** v0.2.0 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
+**Current release:** v0.2.0 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
+
+See [PRODUCT.md](./PRODUCT.md) for responsibilities and limitations · [Privacy](./PRIVACY.md) · [Terms](./TERMS.md) · [Support](./SUPPORT.md)
 
 | You are… | Do this |
 |----------|---------|
@@ -46,4 +48,4 @@ See [USER_GUIDE.md](./USER_GUIDE.md) for everyday use.
 | Stuck offline | Wait a moment; actions queue and send when back online |
 | Invite link doesn't open | Ask the sender for a fresh link from **Invite people** |
 
-For developers and operators: [`Start-AethelOS.bat`](../Start-AethelOS.bat) runs from source with a local relay.
+For developers: [CONTRIBUTING.md](../CONTRIBUTING.md). Operators: [PUBLISHER.md](./PUBLISHER.md).

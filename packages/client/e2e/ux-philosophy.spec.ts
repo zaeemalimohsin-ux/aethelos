@@ -69,12 +69,12 @@ test.describe("philosophy UX", () => {
     ).toBeVisible({ timeout: 15_000 });
   });
 
-  test("philosophy card reflects federation pilot gate", async ({ page }) => {
-    await onboardGenesis(page, "Founder", "Pilot Copy Cell");
+  test("philosophy card reflects federation-off member limit", async ({ page }) => {
+    await onboardGenesis(page, "Founder", "Limit Copy Cell");
     await page.getByRole("button", { name: "Community" }).click();
     await page.getByText("How your community works").click();
     const federationOff = await page
-      .getByText(/Federation scaling.*off in this pilot build/i)
+      .getByText(/Linked chapters are not available in this build/i)
       .isVisible();
     if (federationOff) {
       await expect(page.getByText(/Scaling up/)).toHaveCount(0);

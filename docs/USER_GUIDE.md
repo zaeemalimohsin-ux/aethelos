@@ -69,6 +69,10 @@ After vouching, the app opens Proposals and highlights the admission vote. Use *
 ## A note on privacy
 
 Your community's history is shared so everyone can verify it. Don't put secrets in
-memos. AethelOS is transparent by design.
+memos. AethelOS is transparent by design. See [PRIVACY.md](./PRIVACY.md) for details.
 
-**Build:** v0.2.0 — cite this when reporting issues.
+**Points and stake** are social coordination inside your community — not regulated money or insured deposits.
+
+**Diagnostics:** The app keeps a small local-only event buffer for troubleshooting. Nothing is sent to a server unless you export diagnostics from the Identity tab.
+
+**Build:** v0.2.0 — cite this when [reporting issues](./SUPPORT.md).

@@ -10,6 +10,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const userDocPaths = [
   join(root, "docs/GET_STARTED.md"),
   join(root, "docs/USER_GUIDE.md"),
+  join(root, "docs/PRODUCT.md"),
   join(root, "docs/BETA_README.md"),
   join(root, "Start-AethelOS.bat"),
   join(root, "README.md"),

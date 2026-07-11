@@ -69,7 +69,11 @@ Otherwise label the finding **out-of-context** or **v2** - do not adjust the v1 
 | **Target** | **≥ 75** |
 | **Verdict** | **PASS** |
 | **Prior baseline** | ~73 (placeholder); uplift partly from `48e9b7f` test/CI and P2P fixes |
-| **Next review** | After hosted deploy or tier-4 proof changes |
+| **Next review** | After GA content phase + hosted deploy gate |
+
+## GA content phase (2026-07-11)
+
+Pilot/beta framing retired in user docs and app copy. Added PRODUCT, PRIVACY, TERMS, SUPPORT; CONTRIBUTING; deploy gate on HF after CI. Federation remains off in standard production builds; 50-member limit copy is honest. Re-score external GA readiness after counsel review of legal skeleton.
 
 ## v2 roadmap (out-of-context for v1 composite)
 
