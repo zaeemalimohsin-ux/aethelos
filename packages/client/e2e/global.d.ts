@@ -34,6 +34,9 @@ declare global {
       spawnSubCell: (name: string) => Promise<void>;
       linkSubcell: (childId: string, bridgeKey?: string) => Promise<void>;
       joinSuperstructure: (parentId: string) => Promise<void>;
+      createChildChapterLink: () => Promise<string | null>;
+      createParentChapterLink: () => Promise<string | null>;
+      applyChapterLink: (raw: string) => Promise<void>;
       invite: (invitee: string) => Promise<void>;
       acceptPendingInvite: () => Promise<void>;
       updateVouch: (target: string, weight: number) => Promise<void>;

@@ -9,7 +9,73 @@ permissions:
   contents: write
 
 jobs:
+  release-e2e-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Version sync check
+        run: node scripts/check-version-sync.mjs
+
+      - name: Tag version check
+        run: node scripts/check-tag-version.mjs
+
+      - name: Changelog check
+        run: node scripts/check-changelog-release.mjs
+
+      - name: Build core and run unit tests
+        run: |
+          pnpm --filter @aethelos/core build
+          pnpm typecheck
+          pnpm lint:eslint
+          node scripts/check-script-encoding.mjs
+          pnpm test
+          node scripts/check-user-docs.mjs
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: pnpm --filter @aethelos/client exec playwright test --project=chromium
+
+      - name: Federation-off E2E
+        run: pnpm test:e2e:federation-off
+
+      - name: Federation-on E2E
+        run: pnpm test:e2e:federation-on
+
+      - name: Build production client bundle
+        run: pnpm --filter @aethelos/client build
+
+      - name: Scan release bundle gates
+        run: |
+          node scripts/scan-no-test-bridge.mjs packages/client/dist
+          node scripts/scan-federation-production.mjs packages/client/dist
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-playwright-report
+          path: packages/client/playwright-report/
+          retention-days: 7
+
   build-and-publish-windows:
+    needs: release-e2e-gate
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,24 +96,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Version sync check
-        run: node scripts/check-version-sync.mjs
-
-      - name: Tag version check
-        run: node scripts/check-tag-version.mjs
-
-      - name: Changelog check
-        run: node scripts/check-changelog-release.mjs
-
-      - name: Build core and run tests
-        run: |
-          pnpm --filter @aethelos/core build
-          pnpm typecheck
-          pnpm lint:eslint
-          node scripts/check-script-encoding.mjs
-          pnpm test
-          node scripts/check-user-docs.mjs
 
       - name: Build Windows desktop release
         run: node scripts/build-release.mjs

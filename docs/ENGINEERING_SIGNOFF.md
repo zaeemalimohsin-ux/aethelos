@@ -2,23 +2,24 @@
 
 Single entry point for distribution readiness and audit residuals. Supersedes [Pass 4 audit](./archive/CODEBASE_AUDIT_PASS4.md) and [Distribution scorecard](./archive/DISTRIBUTION_SCORECARD.md) for day-to-day sign-off.
 
-**Last updated:** 2026-07-11 (v0.2.2: federation on in production builds; P0 test coverage closed)
+**Last updated:** 2026-07-12 (v0.2.3: official Windows launch path; signed chapter links; tag E2E gate)
 
 ---
 
-## Distribution readiness verdict (2026-07-11)
+## Distribution readiness verdict (2026-07-12)
 
 | Pillar | Ready? | Notes |
 |--------|--------|-------|
-| Windows installer | **Yes** | v0.2.2 ships federation-on; [v0.2.1](https://github.com/zaeemalimohsin-ux/aethelos/releases/tag/v0.2.1) lacked linked-chapter UI |
-| Merge CI (tiers 1–3) | **Green** (after `27d19df`) | Prettier fix on `operator-hosting.mjs` |
-| Product proof (local) | **Yes** | `pnpm proof:product -SkipAndroid` passed |
-| Canonical browser URL | **No** | `app.aethelos.org` NXDOMAIN; `aethelos.fly.dev` not deployed; HF Space PAUSED |
-| Interim public demo | **Yes** | trycloudflare tunnel — preflight PASS (2026-07-11) |
-| Hosting automation | **Wired** | `operator-hosting` + Playwright headed browser; Fly OAuth blocked on GitHub login |
+| **Windows official launch** | **Yes** | v0.2.3 — installer, federation on, signed chapter links, tag E2E gate before build |
+| Windows installer | **Yes** | [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) |
+| Merge CI (tiers 1–3) | **Green** | Chromium + federation-off + federation-on on every merge |
+| Tag release CI | **Yes (v0.2.3+)** | `release-e2e-gate` mirrors merge E2E + production bundle scans |
+| Product proof (local) | **Yes** | `pnpm proof:product -SkipAndroid` |
+| Canonical browser URL | **No** | `app.aethelos.org` not live — joiners use founder invite links in any browser |
+| Interim public demo | **Yes** | Desktop share URL / trycloudflare |
 | Nightly hosted-preflight | **Expected fail** | Targets `app.aethelos.org` until DNS + host live |
 
-**Overall:** **Desktop distribution-ready. Web canonical distribution not ready** until Fly or Render deploy completes and DNS points `app` subdomain.
+**Overall:** **Ready for official Windows distribution globally.** Founders install Windows app and share invite links; joiners use any browser. Canonical hosted URL remains a separate ops milestone.
 
 ## Executive summary (Pass 4)
 
@@ -42,7 +43,7 @@ Full Pass 4 detail: [archive/CODEBASE_AUDIT_PASS4.md](./archive/CODEBASE_AUDIT_P
 | SyncEngine ws errors silent | P2 documented |
 | No React error boundary | P3 |
 | Tauri updater / release CI | No signing pipeline |
-| Federation lay UX | **Addressed in v0.2.2** — federation on in production; at-cap linked-chapter E2E |
+| Federation lay UX | **Addressed in v0.2.3** — signed chapter links; federation on; at-cap E2E |
 | Expulsion fund-flow (no-parent path) | **Addressed** — `expel-fund-flow.test.ts` |
 | Superstructure guard rails | **Addressed** — `superstructure-guards.test.ts`, `legacy-events.test.ts` |
 | Lost-device recovery UI | **Addressed** — happy path + invalid/empty/orphan import toasts in `lost-device-recovery.spec.ts`; store wrapper in `recovery-import.test.ts` |
@@ -60,7 +61,7 @@ Full Pass 4 detail: [archive/CODEBASE_AUDIT_PASS4.md](./archive/CODEBASE_AUDIT_P
 | P2P / sync | 84 | Tier 2c/2d + mesh tests |
 | Test / CI | 84 | Tiers 1–3 on merge; product-proof weekly |
 | Docs | 74 | Runbooks consolidated |
-| Release gates | 69 | verify:release + docker-founder |
+| Release gates | **82** | Tag E2E gate + bundle scans (v0.2.3) |
 | Governance traceability | 86 | 0 Partial in philosophy matrix |
 | Ops runbooks | 74 | Relay + hosted smoke documented |
 
@@ -88,11 +89,12 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 
 
 
-## Ship status (v0.2.2)
+## Ship status (v0.2.3)
 
 | Path | Status |
 |------|--------|
-| Windows installer (GitHub Releases) | **v0.2.2** — federation on (`VITE_ENABLE_FEDERATION=1` in production build) |
+| **Official Windows launch** | **Ready** — v0.2.3 recommended for all founders worldwide |
+| Windows installer (GitHub Releases) | **v0.2.3** — federation on, signed chapter links, tag E2E before build |
 | Merge CI (tiers 1–3) | **Green** — [run 29147917038](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29147917038) |
 | GHCR container publish | **Green** — `ghcr.io/zaeemalimohsin-ux/aethelos:latest` (package visibility API 404; image push succeeds) |
 | Fly.io deploy automation | **Wired** — skips until `FLY_API_TOKEN` secret set → `https://aethelos.fly.dev` |

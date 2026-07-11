@@ -203,6 +203,18 @@ export function installTestBridge(): void {
       await useStore.getState().joinSuperstructure(parentId);
     },
 
+    async createChildChapterLink() {
+      return useStore.getState().createChildChapterLink();
+    },
+
+    async createParentChapterLink() {
+      return useStore.getState().createParentChapterLink();
+    },
+
+    async applyChapterLink(raw: string) {
+      await useStore.getState().applyChapterLink(raw);
+    },
+
     setForceJoinProbe(enabled: boolean) {
       setForceJoinProbeForTests(enabled);
     },

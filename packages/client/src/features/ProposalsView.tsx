@@ -288,9 +288,9 @@ function ProposalRow({
 }
 
 function SuperstructureCard({ pool }: { pool: PoolState }) {
-  const join = useStore((s) => s.joinSuperstructure);
+  const applyChapterLink = useStore((s) => s.applyChapterLink);
   const leave = useStore((s) => s.leaveSuperstructure);
-  const [id, setId] = useState("");
+  const [link, setLink] = useState("");
   return (
     <>
       {pool.parentSuperstructures.length > 0 ? (
@@ -306,26 +306,27 @@ function SuperstructureCard({ pool }: { pool: PoolState }) {
         </ul>
       ) : (
         <p className="muted" style={{ marginBottom: "var(--sp-3)" }}>
-          Link upward to a parent community, or register sub-communities you spawn. Linked
-          pools sync in the background when connected.
+          Paste a signed parent join link from the parent Head. Linked pools sync in the
+          background when connected.
         </p>
       )}
       <Field
-        label="Parent community ID"
+        label="Signed parent join link"
         hint="Any member can propose joining; the community votes."
-        value={id}
-        onChange={(e) => setId(e.target.value)}
+        placeholder="Paste #/chapter?d=… link"
+        value={link}
+        onChange={(e) => setLink(e.target.value)}
         className="mono"
       />
       <Button
         variant="secondary"
-        disabled={!id.trim()}
+        disabled={!link.trim()}
         onClick={() => {
-          void join(id.trim());
-          setId("");
+          void applyChapterLink(link.trim());
+          setLink("");
         }}
       >
-        Propose join to parent
+        Propose join from signed link
       </Button>
     </>
   );

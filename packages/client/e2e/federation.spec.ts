@@ -148,8 +148,12 @@ test.describe("federation seam", () => {
 
     await bobPage.getByRole("button", { name: "Proposals" }).click();
     await bobPage.getByText("Link chapters").click();
-    await bobPage.getByLabel("Parent community ID").fill(parentNs);
-    await bobPage.getByRole("button", { name: "Propose join to parent" }).click();
+    const parentJoinLink = await parentPage.evaluate(() =>
+      window.__aethelosTest!.createParentChapterLink(),
+    );
+    expect(parentJoinLink).toBeTruthy();
+    await bobPage.getByLabel("Signed parent join link").fill(parentJoinLink!);
+    await bobPage.getByRole("button", { name: "Propose join from signed link" }).click();
     await expect(bobPage.getByText("Link to parent group proposed")).toBeVisible({
       timeout: 15_000,
     });
@@ -169,6 +173,48 @@ test.describe("federation seam", () => {
 
     await parentPeer.close();
     await closeContexts(contexts);
+  });
+
+  test("signed chapter links link parent and child", async ({ browser }) => {
+    const parentPeer = await OmniHarness.launchPeer(browser);
+    const childPeer = await OmniHarness.launchPeer(browser);
+    const pageParent = parentPeer.page;
+    const pageChild = childPeer.page;
+
+    await onboardGenesis(pageParent, "Parent Head", "Parent Signed");
+    await waitForPool(pageParent, (p) => p.memberCount === 1);
+    await onboardGenesis(pageChild, "Child Head", "Child Signed");
+    await waitForPool(pageChild, (p) => p.memberCount === 1);
+
+    const parentJoinLink = await pageParent.evaluate(() =>
+      window.__aethelosTest!.createParentChapterLink(),
+    );
+    const childAttachLink = await pageChild.evaluate(() =>
+      window.__aethelosTest!.createChildChapterLink(),
+    );
+    expect(parentJoinLink).toBeTruthy();
+    expect(childAttachLink).toBeTruthy();
+
+    await pageChild.getByRole("button", { name: "Proposals" }).click();
+    await pageChild.getByText("Link chapters").click();
+    await pageChild.getByLabel("Signed parent join link").fill(parentJoinLink!);
+    await pageChild.getByRole("button", { name: "Propose join from signed link" }).click();
+    await waitForPool(pageChild, (p) => p.proposalCount >= 1);
+    await pageChild.getByRole("button", { name: "Approve" }).first().click();
+    const parentNs = (await getPoolSummary(pageParent))!.namespaceId;
+    await waitForPool(pageChild, (p) => p.parentSuperstructures.includes(parentNs));
+
+    await pageParent.getByRole("button", { name: "Community" }).click();
+    await pageParent.getByText("Linked chapters & bridges").click();
+    await pageParent.getByLabel("Signed child chapter link").fill(childAttachLink!);
+    await pageParent.getByRole("button", { name: "Propose link" }).click();
+    await pageParent.getByRole("button", { name: "Proposals" }).click();
+    await pageParent.getByRole("button", { name: "Approve" }).first().click();
+    const childNs = (await getPoolSummary(pageChild))!.namespaceId;
+    await waitForPool(pageParent, (p) => (p.childCells ?? []).includes(childNs));
+
+    await parentPeer.close();
+    await childPeer.close();
   });
 
   test("event log export and import conserve pool summary", async ({ browser }) => {

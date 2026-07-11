@@ -3,7 +3,7 @@
 **Open the app → start a community → invite people.**  
 **Or open an invite link someone sent you.**
 
-**Current release:** v0.2.2 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
+**Current release:** v0.2.3 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
 
 Communities scale by **linked chapters** (50 members per chapter); federation is enabled in standard production builds. See [PRODUCT.md](./PRODUCT.md) for responsibilities and limitations · [Privacy](./PRIVACY.md) · [Terms](./TERMS.md) · [Support](./SUPPORT.md)
 

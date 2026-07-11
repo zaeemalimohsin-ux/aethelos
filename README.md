@@ -21,8 +21,8 @@ app_port: 7860
   <br />
   <br />
   <a href="https://aethelos.org"><strong>Website</strong></a> ·
-  <a href="https://app.aethelos.org"><strong>Open in browser</strong></a> ·
   <a href="https://github.com/zaeemalimohsin-ux/aethelos/releases/latest"><strong>Windows download</strong></a> ·
+  <a href="./docs/GET_STARTED.md"><strong>Get started</strong></a> ·
   <a href="./docs/USER_GUIDE.md"><strong>User Guide</strong></a>
 </p>
 
@@ -45,9 +45,11 @@ Read the full [Higher-Level Philosophy](./Higher-Level-Philosophy.md).
 
 AethelOS is completely free and open source.
 
-**Fastest path:** open the hosted app in your browser at [app.aethelos.org](https://app.aethelos.org) (or your operator's URL), create an identity, and start or join a community. Friends can join from any phone or desktop browser — no install required.
+**Recommended path:** [Download the Windows app](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest), create an identity, and **Start a community**. Share invite links from the Community tab — joiners open them in any browser (phone or desktop). No install required for people joining.
 
-**Optional — Windows desktop:** [Download the latest installer](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (`.exe` or `.msi`) for local relay + share-link hosting from your PC.
+**Joining:** Open the invite link someone sent you. You do not need Windows.
+
+**Self-hosters / operators:** See [PUBLISHER.md](docs/PUBLISHER.md). A canonical public browser URL (`app.aethelos.org`) is not live yet.
 
 See [Get Started guide](./docs/GET_STARTED.md) for step-by-step admission (vouch → vote → accept).
 

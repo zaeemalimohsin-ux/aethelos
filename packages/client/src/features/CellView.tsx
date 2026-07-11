@@ -119,13 +119,9 @@ export function CellView({ pool }: { pool: PoolState }) {
 
       <Members pool={pool} />
 
-      {federationUi &&
-      ((pool.childCells?.length ?? 0) > 0 ||
-        (pool.parentSuperstructures?.length ?? 0) > 0 ||
-        Object.values(pool.superstructureEscrow ?? {}).some((v) => v > 0n) ||
-        Object.values(pool.childCellEscrow ?? {}).some((v) => v > 0n)) ? (
+      {federationUi ? (
         <Disclosure summary="Linked chapters & bridges">
-          {(pool.childCells?.length ?? 0) > 0 && <ChildCellsCard pool={pool} />}
+          <ChildCellsCard pool={pool} />
           <FederationCard pool={pool} />
           <BridgeEscrowCard pool={pool} myKey={myKey} />
         </Disclosure>
@@ -718,7 +714,11 @@ function SubCellCapBanner({ pool, isHead }: { pool: PoolState; isHead: boolean }
 function SubCellLinkageBanner({ pool }: { pool: PoolState }) {
   const joinSuperstructure = useStore((s) => s.joinSuperstructure);
   const returnToParentChapter = useStore((s) => s.returnToParentChapter);
+  const createChildChapterLink = useStore((s) => s.createChildChapterLink);
+  const applyChapterLink = useStore((s) => s.applyChapterLink);
   const toast = useStore((s) => s.toast);
+  const myKey = useStore((s) => s.myKey);
+  const [parentLink, setParentLink] = useState("");
   const parent = loadSubCellParentContext();
   if (!parent) return null;
   if (pool.parentSuperstructures.includes(parent.parentNamespaceId)) {
@@ -728,34 +728,52 @@ function SubCellLinkageBanner({ pool }: { pool: PoolState }) {
 
   return (
     <div className="alert info">
-      <strong>Link to parent:</strong> {parent.parentCellName}. In this sub-Cell, any
-      member can propose joining the parent namespace. In the parent Cell, create a{" "}
-      <em>Link a chapter</em> proposal with this community ID:
-      <div
-        className="mono faint"
-        style={{ margin: "var(--sp-2) 0", wordBreak: "break-all" }}
-      >
-        {pool.namespaceId}
-      </div>
-      <div className="row">
+      <strong>Link to parent:</strong> {parent.parentCellName}. Share a signed chapter
+      link with the parent Head, or paste the parent&apos;s signed join link below.
+      <div className="row" style={{ marginTop: "var(--sp-2)" }}>
         <Button size="sm" variant="secondary" onClick={() => void returnToParentChapter()}>
           Return to parent chapter
+        </Button>
+        {pool.head === myKey ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={async () => {
+              const link = await createChildChapterLink();
+              if (!link) return;
+              await navigator.clipboard.writeText(link);
+              toast("Signed chapter link copied", "success");
+            }}
+          >
+            Copy signed chapter link
+          </Button>
+        ) : null}
+      </div>
+      <Field
+        label="Paste parent signed join link"
+        hint="Signed by the parent Head — verifies namespace and relays."
+        value={parentLink}
+        onChange={(e) => setParentLink(e.target.value)}
+        className="mono"
+        style={{ marginTop: "var(--sp-2)" }}
+      />
+      <div className="row">
+        <Button
+          size="sm"
+          disabled={!parentLink.trim()}
+          onClick={() => {
+            void applyChapterLink(parentLink.trim());
+            setParentLink("");
+          }}
+        >
+          Propose join from signed link
         </Button>
         <Button
           size="sm"
           variant="secondary"
-          onClick={async () => {
-            await navigator.clipboard.writeText(pool.namespaceId);
-            toast("Community ID copied", "success");
-          }}
-        >
-          Copy this Community ID
-        </Button>
-        <Button
-          size="sm"
           onClick={() => void joinSuperstructure(parent.parentNamespaceId)}
         >
-          Propose join to parent
+          Propose join (saved parent)
         </Button>
         <button className="btn ghost sm" onClick={() => clearSubCellParentContext()}>
           Dismiss
@@ -768,8 +786,10 @@ function SubCellLinkageBanner({ pool }: { pool: PoolState }) {
 function ChildCellsCard({ pool }: { pool: PoolState }) {
   const myKey = useStore((s) => s.myKey);
   const displayName = useStore((s) => s.displayName);
-  const linkSubcell = useStore((s) => s.linkSubcell);
-  const [childId, setChildId] = useState("");
+  const applyChapterLink = useStore((s) => s.applyChapterLink);
+  const createParentChapterLink = useStore((s) => s.createParentChapterLink);
+  const toast = useStore((s) => s.toast);
+  const [childLink, setChildLink] = useState("");
   const children = pool.childCells ?? [];
   return (
     <Card eyebrow="Sub-Cells">
@@ -782,23 +802,38 @@ function ChildCellsCard({ pool }: { pool: PoolState }) {
           </li>
         ))}
       </ul>
+      {pool.head === myKey ? (
+        <div className="row" style={{ margin: "var(--sp-3) 0" }}>
+          <Button
+            variant="secondary"
+            onClick={async () => {
+              const link = await createParentChapterLink();
+              if (!link) return;
+              await navigator.clipboard.writeText(link);
+              toast("Signed parent join link copied", "success");
+            }}
+          >
+            Copy signed parent join link
+          </Button>
+        </div>
+      ) : null}
       <p className="hint" style={{ margin: "var(--sp-3) 0" }}>
-        Register a child community after its Head has genesis'd it:
+        Paste a signed chapter link from the child Head to propose linking:
       </p>
       <div className="row">
         <Field
-          label="Propose linking a chapter"
-          placeholder="Child community ID"
-          value={childId}
-          onChange={(e) => setChildId(e.target.value)}
+          label="Signed child chapter link"
+          placeholder="Paste #/chapter?d=… link"
+          value={childLink}
+          onChange={(e) => setChildLink(e.target.value)}
           style={{ flex: 1 }}
         />
         <Button
           variant="secondary"
-          disabled={!childId.trim()}
+          disabled={!childLink.trim()}
           onClick={() => {
-            void linkSubcell(childId.trim());
-            setChildId("");
+            void applyChapterLink(childLink.trim());
+            setChildLink("");
           }}
         >
           Propose link

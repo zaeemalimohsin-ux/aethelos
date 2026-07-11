@@ -42,6 +42,13 @@ import {
   verifyInviteSignature,
   type InvitePayload,
 } from "./invite.js";
+import {
+  signChildChapterAttach,
+  signParentChapterJoin,
+  verifyChapterLinkSignature,
+  parseChapterLinkInput,
+  buildChapterLinkUrl,
+} from "./chapter-link.js";
 import { saveSubCellParentContext, loadSubCellParentContext } from "./subcell-context.js";
 import {
   isDesktopApp,
@@ -168,6 +175,9 @@ interface AppStore {
   spawnSubCell(name: string): Promise<void>;
   returnToParentChapter(): Promise<void>;
   linkSubcell(childNamespaceId: string, bridgeKey?: string): Promise<void>;
+  createChildChapterLink(): Promise<string | null>;
+  createParentChapterLink(): Promise<string | null>;
+  applyChapterLink(raw: string): Promise<void>;
   bridgeEscrow(remoteId: string, to: string, amount: string): Promise<void>;
   addRelay(url: string): void;
   removeRelay(url: string): void;
@@ -780,6 +790,61 @@ export const useStore = create<AppStore>((set, get) => ({
     } else {
       get().toast("Didn't sync yet — check your connection", "error");
     }
+  },
+  async createChildChapterLink() {
+    if (!keyPair) return null;
+    const pool = get().pool;
+    const controller = get().controller;
+    if (!pool || !controller) return null;
+    if (pool.head !== get().myKey) {
+      get().toast("Only the Head can sign a chapter link", "error");
+      return null;
+    }
+    const signed = await signChildChapterAttach(
+      {
+        childNs: pool.namespaceId,
+        childCell: pool.cellName,
+        bridge: pool.head,
+        relays: controller.getRelayUrls(),
+      },
+      keyPair,
+    );
+    return buildChapterLinkUrl(signed);
+  },
+  async createParentChapterLink() {
+    if (!keyPair) return null;
+    const pool = get().pool;
+    const controller = get().controller;
+    if (!pool || !controller) return null;
+    if (pool.head !== get().myKey) {
+      get().toast("Only the Head can sign a parent chapter link", "error");
+      return null;
+    }
+    const signed = await signParentChapterJoin(
+      {
+        parentNs: pool.namespaceId,
+        parentCell: pool.cellName,
+        relays: controller.getRelayUrls(),
+      },
+      keyPair,
+    );
+    return buildChapterLinkUrl(signed);
+  },
+  async applyChapterLink(raw) {
+    const payload = parseChapterLinkInput(raw);
+    if (!payload) {
+      get().toast("Invalid chapter link", "error");
+      return;
+    }
+    if (!verifyChapterLinkSignature(payload)) {
+      get().toast("Chapter link signature invalid or missing", "error");
+      return;
+    }
+    if (payload.kind === "child_attach") {
+      await get().linkSubcell(payload.childNs, payload.bridge);
+      return;
+    }
+    await get().joinSuperstructure(payload.parentNs);
   },
   async bridgeEscrow(remoteId, to, amount) {
     const proposalId = crypto.randomUUID();

@@ -12,6 +12,23 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ### Fixed
 
+## [0.2.3] - 2026-07-12
+
+### Added
+
+- **Signed chapter links** — Ed25519-signed `child_attach` and `parent_join` payloads (same trust model as member invites); paste links instead of raw namespace hex.
+- **Release E2E gate** — Tag builds run chromium + federation-off + federation-on + production bundle scans before the Windows installer job.
+- **Chapter link tests** — `chapter-link.test.ts` and federation E2E for signed parent/child linking.
+
+### Changed
+
+- **Windows-first distribution docs** — README, PRODUCT, and GET_STARTED lead with the GitHub installer; canonical browser URL marked unavailable until hosting is live.
+- **Linked chapters UI** — Federation link paste/copy always visible when federation is on (first-child linking no longer hidden).
+
+### Fixed
+
+- **Sub-cell return path** and outbox-full toasts (carried from audit hardening on main).
+
 ## [0.2.2] - 2026-07-11
 
 ### Added

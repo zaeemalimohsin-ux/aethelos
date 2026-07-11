@@ -1,39 +1,41 @@
-# AethelOS v0.2.2 Release Notes
+# AethelOS v0.2.3 Release Notes
 
-Welcome to **AethelOS v0.2.2**.
-
-This release enables **federation (linked chapters)** in production builds, closes P0 test gaps from the coverage audit, and adds a federation-on onboarding E2E tier in CI.
+Welcome to **AethelOS v0.2.3** — the recommended Windows release for founding and linking communities globally.
 
 ## Highlights
 
+### Official Windows path
+
+- Download the [Windows installer](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (`.exe` or `.msi`)
+- Create identity → **Start a community** → **Invite people** from the Community tab
+- Desktop relay + share links let joiners open your invite in any browser — no central server required
+
+**SmartScreen:** Builds are not Authenticode-signed yet. Choose **More info → Run anyway** on first launch.
+
+### Signed federation links
+
+- Child and parent Heads sign chapter links (like member invites)
+- Paste a signed link to propose joining or linking chapters — no more copying raw namespace IDs
+
+### Release quality
+
+- GitHub tag releases now run the same E2E tiers as merge CI before the installer is built
+- Production bundle scanned for federation-on UI and absence of test bridge
+
 ### Federation on by default
 
-- Production and desktop builds ship with `VITE_ENABLE_FEDERATION=1`
-- Community philosophy card and at-cap invite UX show **linked chapter** guidance
-- **50 members per chapter** — scale by linking chapters, not one flat ceiling
-- **Upgrade from v0.2.1** if you need linked-chapter UI in the installer
+- **50 members per chapter** — scale by linking chapters
+- Linked-chapter UI in all production builds
 
-### P0 test coverage
+## Joining without Windows
 
-- Expulsion fund-flow (no-parent split + commons edge)
-- Superstructure guard rails and legacy direct-event rejection
-- Lost-device recovery UI + `recoverCommunityFromEventLog` store branches
-- Federation-on at-cap banner E2E
+Joiners do **not** need the installer. Open the **invite link** the founder sent you in Chrome, Safari, or Edge on phone or desktop.
 
-### CI
-
-- New tier **2c-bis:** `pnpm test:e2e:federation-on` (onboarding/philosophy under production flag)
-- Merge CI: federation-off → federation-on → chromium suite
-
-### Distribution
-
-- **Windows installer** — primary path ([GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
-- **GHCR / docker** — client image inherits federation-on from `.env.production`
-- **Browser demo** (`app.aethelos.org`) — still blocked (HF Space paused); see [PUBLISHER.md](./docs/PUBLISHER.md)
+A canonical hosted URL (`app.aethelos.org`) is **not live yet** — founders share invite links from the Windows app (or self-host per [PUBLISHER.md](./docs/PUBLISHER.md)).
 
 ## Known limitations
 
-See [PRODUCT.md](./docs/PRODUCT.md): SmartScreen on unsigned Windows builds, 50 members per chapter, offline queueing, four-step guest admission.
+See [PRODUCT.md](./docs/PRODUCT.md): unsigned Windows builds, 50 members per chapter, offline queueing, four-step guest admission.
 
 ---
 
