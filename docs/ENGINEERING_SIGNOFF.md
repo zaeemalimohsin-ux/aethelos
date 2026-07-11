@@ -76,8 +76,9 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 | Path | Status |
 |------|--------|
 | Windows installer (GitHub Releases) | **Live** — [v0.2.1](https://github.com/zaeemalimohsin-ux/aethelos/releases/tag/v0.2.1) |
-| Browser demo (app.aethelos.org / HF Space) | **Blocked** — HF Space PAUSED (flagged abusive); operator must unpause |
-| Self-host / docker compose | Ready — see [PUBLISHER.md](./PUBLISHER.md) |
+| Browser demo (app.aethelos.org / HF Space) | **Blocked** — HF Space PAUSED (abusive flag); v0.2.1 artifact pushed via CI; unpause or email HF support (docs/operator/hf-abuse-appeal-email.txt). New Docker Spaces require HF PRO. |
+| Namecheap DNS (`app` subdomain) | **Not configured** — see [operator/namecheap-dns-app.md](./operator/namecheap-dns-app.md) |
+| Self-host / Render / docker compose | Ready — [PUBLISHER.md](./PUBLISHER.md), [render.yaml](../render.yaml) |
 
 ## Related
 

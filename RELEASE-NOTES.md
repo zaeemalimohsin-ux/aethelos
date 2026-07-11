@@ -18,7 +18,7 @@ This release ships the onboarding UX polish from Phase 2, fixes CI Hugging Face 
 ### Distribution
 
 - **Windows installer** — primary path for founders today ([GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
-- **Browser demo** (`app.aethelos.org`) — depends on Hugging Face Space; currently **paused** (operator must unpause; see [PUBLISHER.md](./docs/PUBLISHER.md))
+- **Browser demo** (`app.aethelos.org`) — HF Space paused (abusive flag); CI pushes deploy artifact; operator must unpause Space or use Render/self-host (see [PUBLISHER.md](./docs/PUBLISHER.md))
 - **Self-host** — docker compose / VPS path unchanged ([PUBLISHER.md](./docs/PUBLISHER.md))
 
 ### Proof (Windows)
