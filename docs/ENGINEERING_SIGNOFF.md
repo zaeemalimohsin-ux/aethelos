@@ -2,7 +2,7 @@
 
 Single entry point for distribution readiness and audit residuals. Supersedes [Pass 4 audit](./archive/CODEBASE_AUDIT_PASS4.md) and [Distribution scorecard](./archive/DISTRIBUTION_SCORECARD.md) for day-to-day sign-off.
 
-**Last updated:** 2026-07-11
+**Last updated:** 2026-07-11 (v0.2.1 ship)
 
 ---
 
@@ -65,8 +65,19 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 
 **Local verification (2026-07-11):** encoding, typecheck, lint, format, 272 unit + E2E tests (80 chromium, 20 federation-off including onboarding specs).
 
+**Product proof (2026-07-11, Windows, -SkipAndroid):** PASS — dev + release share URL, mobile E2E.
+
 ---
 
+
+
+## Ship status (v0.2.1)
+
+| Path | Status |
+|------|--------|
+| Windows installer (GitHub Releases) | **Ready** after 0.2.1 tag build |
+| Browser demo (pp.aethelos.org / HF Space) | **Blocked** — HF Space PAUSED (flagged abusive); operator must unpause |
+| Self-host / docker compose | Ready — see [PUBLISHER.md](./PUBLISHER.md) |
 ## Related
 
 - [PHILOSOPHY_TRACEABILITY.md](./PHILOSOPHY_TRACEABILITY.md) — philosophy automation matrix

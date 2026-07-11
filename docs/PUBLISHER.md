@@ -84,6 +84,9 @@ Optional public demo — **not** the canonical publisher path. Use `docker compo
 3. [`deploy-hf.yml`](../.github/workflows/deploy-hf.yml) syncs to the Space **after green CI on `main`**, restarts the Space if paused, then polls preflight on `https://thegritz-aethelos.hf.space` (custom `app.aethelos.org` needs DNS — see [`deploy/Caddyfile.example`](../deploy/Caddyfile.example)).
 4. Space README front matter should set `app_port: 7860` (see root [`README.md`](../README.md)).
 
+
+
+**HF Space paused (operator):** If deploy fails with PAUSED / flagged abusive, unpause [TheGritz/aethelos](https://huggingface.co/spaces/TheGritz/aethelos) in Space settings or contact Hugging Face support. Until then, distribute via [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) or self-host with docker compose.
 For a permanent URL you control, prefer **Option A** (VPS + compose) or **Option B** (named Cloudflare Tunnel) below.
 
 ## Publisher preflight (before sharing your URL)
@@ -132,6 +135,6 @@ pnpm verify:release
 
 Runs typecheck, unit tests, user-doc grep, and local E2E. CI also runs `docker-founder` (same-origin publish stack). On Windows, `pnpm proof:product` exercises desktop share URL + mobile tunnel E2E + release installer.
 
-Tag **v0.2.0** (or the current root `package.json` version) before distribution. Run [publisher preflight](#publisher-preflight-before-sharing-your-url) on the public URL.
+Tag **v0.2.1** (or the current root `package.json` version) before distribution. Run [publisher preflight](#publisher-preflight-before-sharing-your-url) on the public URL.
 
 Full sign-off on Windows: `pnpm proof:product`.

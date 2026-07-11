@@ -6,7 +6,6 @@ on:
 
 jobs:
   sync-to-hub:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code

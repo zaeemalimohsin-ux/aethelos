@@ -8,6 +8,14 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.2.1] - 2026-07-11
+
+### Added
+
 - **Test Wave C:** Admission-edge E2E, pilot-off Playwright project, crypto/rejection oracle unit suites, governance progressive disclosure E2E, mesh-chain 3-peer E2E, store `waitForConfirmedState`, head-election and governance-threshold unit tests.
 - **Charter A E2E:** Automated happy-path admission, transfer, redistribution, and post-unfreeze transfer in `community.spec.ts`.
 - **charter-a-preflight:** `node scripts/charter-a-preflight.mjs` for optional hosted `AETHELOS_URL` smoke.
@@ -29,6 +37,7 @@ All notable changes to AethelOS are documented here. The format is based on
 ### Fixed
 
 - **Docs:** BETA operator checklist; Charter A mapped to automated E2E; traceability P2.2 Covered.
+- **CI deploy-hf:** Reusable workflow job no longer skips on push (removed incorrect `workflow_call` event guard).
 
 ## [0.2.0] - 2026-07-10
 

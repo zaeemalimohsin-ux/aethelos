@@ -1,6 +1,6 @@
 {
   "name": "@aethelos/client-tauri",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Signed desktop shell wrapping the AethelOS PWA via Tauri (same core, on-device files)",
   "scripts": {

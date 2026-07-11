@@ -3,7 +3,7 @@
 **Open the app → start a community → invite people.**  
 **Or open an invite link someone sent you.**
 
-**Current release:** v0.2.0 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
+**Current release:** v0.2.1 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
 
 Standard builds support up to **50 members**; linked chapters are not enabled in the default app. See [PRODUCT.md](./PRODUCT.md) for responsibilities and limitations · [Privacy](./PRIVACY.md) · [Terms](./TERMS.md) · [Support](./SUPPORT.md)
 
@@ -16,7 +16,7 @@ Standard builds support up to **50 members**; linked chapters are not enabled in
 
 ## Start a community
 
-1. Open [app.aethelos.org](https://app.aethelos.org) in your browser (recommended), or install the Windows app from [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) if you want desktop relay + tunnel share links.
+1. Install the [Windows app](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) for the full founder path (desktop relay + share links), or open [app.aethelos.org](https://app.aethelos.org) in your browser when the hosted demo is available from [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) if you want desktop relay + tunnel share links.
 2. **Create a new identity** (confirm age + Terms) → save your recovery phrase → **Start a community**.
 3. On the **Community** tab, tap **Invite people** and send the link or QR to anyone.
 

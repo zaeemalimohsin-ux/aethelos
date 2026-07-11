@@ -1,51 +1,42 @@
-# AethelOS v0.2.0 Release Notes
+# AethelOS v0.2.1 Release Notes
 
-Welcome to **AethelOS v0.2.0**.
+Welcome to **AethelOS v0.2.1**.
 
-This release hardens the desktop + mobile product path, aligns user-facing language for general availability, and documents what is proven in CI.
+This release ships the onboarding UX polish from Phase 2, fixes CI Hugging Face deploy gating, and refreshes Windows installers so new users get the improved first-run flow.
 
 ## Highlights
 
-### 1. Deterministic core (Charters A–C)
+### Onboarding (first-run)
 
-The reducer engine is covered by adversarial unit tests for fracture isolation, head-only closures, and head non-dictatorship. **Fracture recovery UI** is covered in `community.spec.ts` E2E (overspend, sibling fork, Charter A blocked/unfreeze paths).
+- Progress pips on founder and join paths
+- Age gate on create **and** restore
+- Backup screen copy reorder; recovery phrase semantics
+- After backup, go straight to **Start a community** (no redundant chooser)
+- PWA install hint below primary actions
+- Federation-off E2E covers welcome path + edge cases (20 specs)
 
-### 2. Network resilience (relay)
+### Distribution
 
-The stateless WebSocket relay has chaos/load tests: broadcast buffering, rate limits, and connection caps. Production traffic still depends on reachable connection points — relays cannot invent consensus.
+- **Windows installer** — primary path for founders today ([GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
+- **Browser demo** (`app.aethelos.org`) — depends on Hugging Face Space; currently **paused** (operator must unpause; see [PUBLISHER.md](./docs/PUBLISHER.md))
+- **Self-host** — docker compose / VPS path unchanged ([PUBLISHER.md](./docs/PUBLISHER.md))
 
-### 3. Data portability
+### Proof (Windows)
 
-Event log export/import is tested (unit + E2E). **Dual-fork causal validation on import is still open.** Recovery phrase restores identity only; community history needs an invite link or event log from another device.
+`pnpm proof:product -SkipAndroid` **PASS** (2026-07-11): dev + release desktop share URLs, mobile E2E.
 
-### 4. Product UX
+| Step | Result |
+|------|--------|
+| Preflight, typecheck, unit, user docs | PASS |
+| Desktop dev share URL + mobile E2E | PASS |
+| Release build + share URL + mobile E2E | PASS |
 
-- **Connection** tab for network/share settings (no relay UI on Community).
-- Plain-language toasts: Points, connection point, stake.
-- Admission: vouch → vote Approve in Proposals → Accept invitation.
-- **Onboarding:** progress pips, age gate on create/restore, backup → Start a community (no extra chooser), federation-off E2E covers welcome path.
-
-### 5. Product proof (Windows)
-
-`pnpm proof:product` exercises dev + release desktop paths, live tunnel share URLs, mobile E2E, and Android emulator smoke. See [TESTING_RELEASE.md](./docs/TESTING_RELEASE.md).
-
-**Sign-off log (local):**
-
-| Run | Date (UTC) | Result |
-|-----|------------|--------|
-| 1 | 2026-07-10 | PASS |
-| 2 | 2026-07-10 | PASS |
-| 3 | 2026-07-10 | PASS (release Android smoke retried once) |
-
-CI automation: `.github/workflows/product-proof.yml` (weekly + manual dispatch).
-
-- Distribution scorecard composite **77.5/100** (Charter A v1, 2026-07-11). See [ENGINEERING_SIGNOFF.md](./docs/ENGINEERING_SIGNOFF.md).
-- **GA content phase (2026-07-11):** PRODUCT, PRIVACY, TERMS, SUPPORT docs; pilot copy retired in app and user docs.
+CI on merge: tiers 1–3 green (including docker-founder publish path).
 
 ## Known limitations
 
-See [PRODUCT.md](./docs/PRODUCT.md): SmartScreen on unsigned Windows builds, 50-member community limit in standard builds, offline queueing, four-step guest admission.
+See [PRODUCT.md](./docs/PRODUCT.md): SmartScreen on unsigned Windows builds, 50-member community limit, offline queueing, four-step guest admission.
 
 ---
 
-*Thank you to contributors helping shape AethelOS.*
+[Full changelog](./CHANGELOG.md) · [Get started](./docs/GET_STARTED.md)
