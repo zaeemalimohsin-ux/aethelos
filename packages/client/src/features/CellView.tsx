@@ -7,7 +7,6 @@ import {
   availableToPledge,
   admissionProposalId,
   totalPoolPoints,
-  votingWeight,
   MIN_EPOCH_INTERVAL_MINUTES,
   resolveGovernanceParameter,
 } from "@aethelos/core";
