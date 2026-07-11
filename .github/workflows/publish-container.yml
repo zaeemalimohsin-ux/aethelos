@@ -35,6 +35,7 @@ jobs:
             ghcr.io/${{ github.repository }}:${{ github.sha }}
           build-args: DEFAULT_PORT=10000
       - name: Make GHCR package public
-        run: gh api --method PATCH "/user/packages/container/aethelos/visibility" -f visibility=public
+        continue-on-error: true
+        run: gh api --method PATCH "/users/${{ github.repository_owner }}/packages/container/aethelos/visibility" -f visibility=public
         env:
           GH_TOKEN: ${{ github.token }}
