@@ -6,8 +6,6 @@ const hostedUrl = process.env.AETHELOS_URL?.trim().replace(/\/$/, "");
 const shareUrlSpecs = /(?:founder|joiner)-share-url\.spec\.ts$/;
 const dockerMobileSpecs = /(?:founder|joiner)-mobile\.spec\.ts$/;
 const hostedAdmissionSpecs = /hosted-admission\.spec\.ts$/;
-const pilotGateSpecs = /pilot-cap\.spec\.ts$/;
-
 export default defineConfig({
   timeout: 120000,
   testDir: "./e2e",
@@ -22,12 +20,7 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      testIgnore: [
-        dockerMobileSpecs,
-        shareUrlSpecs,
-        pilotGateSpecs,
-        hostedAdmissionSpecs,
-      ],
+      testIgnore: [dockerMobileSpecs, shareUrlSpecs, hostedAdmissionSpecs],
       use: { ...devices["Desktop Chrome"] },
     },
     {

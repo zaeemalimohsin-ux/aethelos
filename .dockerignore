@@ -11,3 +11,16 @@ packages/client/node_modules
 packages/client/dist
 packages/client/test-results
 packages/client/playwright-report
+docs
+scripts
+.cursor
+packages/client/e2e
+packages/client/tests
+packages/core/tests
+packages/relay/tests
+coverage
+test-results
+*.bat
+render.yaml
+docker-compose.yml
+packages/client/Dockerfile

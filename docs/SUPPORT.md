@@ -27,7 +27,7 @@ Do **not** file public issues for security bugs. See [SECURITY.md](../SECURITY.m
 
 ## Service status
 
-There is no public status page yet. Maintainers monitor nightly **hosted-preflight** in GitHub Actions for `https://app.aethelos.org`.
+There is no public status page yet. Maintainers monitor nightly **hosted-preflight** in GitHub Actions. The managed browser demo is [thegritz-aethelos.hf.space](https://thegritz-aethelos.hf.space); app.aethelos.org requires operator DNS (see [PUBLISHER.md](./PUBLISHER.md)).
 
 ## Product overview & limitations
 

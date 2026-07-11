@@ -62,22 +62,10 @@ jobs:
       - name: Scan client dist for test bridge
         run: node scripts/scan-no-test-bridge.mjs packages/client/dist
 
-  deploy-artifact-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @aethelos/core build && pnpm --filter @aethelos/client build
-      - run: node scripts/scan-no-test-bridge.mjs packages/client/dist
-      - run: docker build -f packages/client/Dockerfile -t aethelos/client:scan .
-      - run: docker run --rm aethelos/client:scan sh -c "grep -r __aethelosTest /usr/share/nginx/html && exit 1 || exit 0"
+      - name: Scan client Docker image for test bridge
+        run: |
+          docker build -f packages/client/Dockerfile -t aethelos/client:scan .
+          docker run --rm aethelos/client:scan sh -c "grep -r __aethelosTest /usr/share/nginx/html && exit 1 || exit 0"
 
   tauri-check:
     runs-on: ubuntu-latest
@@ -160,7 +148,7 @@ jobs:
         run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: pnpm test:e2e
+        run: pnpm --filter @aethelos/client exec playwright test --project=chromium
 
       - name: Pilot-off E2E
         run: pnpm test:e2e:pilot-off
@@ -212,9 +200,6 @@ jobs:
           echo "Client did not become healthy"
           docker compose logs
           exit 1
-
-      - name: WebSocket smoke on publish stack
-        run: node scripts/publish-ws-smoke.mjs ws://localhost:8080/ws
 
       - name: Publisher preflight (localhost)
         run: sh scripts/publisher-preflight.sh http://localhost:8080

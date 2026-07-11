@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { OmniHarness } from "./harness.js";
 import {
   bootstrapStarCommunity,
   closeContexts,
@@ -99,6 +98,21 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
     await expect(founder.getByText("Governance").first()).toBeVisible({ timeout: 5000 });
     const isClosed = await founder.evaluate(() => !!document.hidden);
     expect(isClosed).toBe(false);
+
+    await closeContexts(contexts);
+  });
+
+  test("rejects malformed negative transfer amounts", async ({ browser }) => {
+    const { founder, contexts } = await bootstrapStarCommunity(
+      browser,
+      "Chaos Transact",
+      ["Target"],
+    );
+
+    await founder.getByRole("button", { name: "Community", exact: true }).click();
+    await founder.waitForSelector("text=Send Points");
+    await founder.getByLabel("Amount (Points)").fill("-500");
+    await expect(founder.locator('button:has-text("Send transaction")')).toBeDisabled();
 
     await closeContexts(contexts);
   });

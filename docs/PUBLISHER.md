@@ -154,10 +154,3 @@ Runs typecheck, unit tests, user-doc grep, and local E2E. CI also runs `docker-f
 Tag **v0.2.0** (or the current root `package.json` version) before distribution. Run [publisher preflight](#publisher-preflight-before-sharing-your-url) on the public URL.
 
 Full sign-off on Windows: `pnpm proof:product`.
-## Two-person genesis (test)
-
-See [GENESIS.md](./GENESIS.md).
-
-## Scaling, boundaries, failover
-
-See [GENESIS.md](./GENESIS.md) for sub-Cells, honest boundaries, and relay failover.

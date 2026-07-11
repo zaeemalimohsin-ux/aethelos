@@ -15,7 +15,7 @@ export default defineConfig({
   projects: [
     {
       name: "pilot-off",
-      testMatch: /(admission-edge|pilot-cap|ux-philosophy)\.spec\.ts$/,
+      testMatch: /(admission-edge|ux-philosophy)\.spec\.ts$/,
       use: { ...devices["Desktop Chrome"] },
     },
   ],

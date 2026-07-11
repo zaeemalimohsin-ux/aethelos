@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { OmniHarness, PeerDevice } from "./harness.js";
+import { acceptAgeAndTerms } from "./helpers.js";
 import * as os from "os";
 import * as path from "path";
 import { rmSync } from "fs";
@@ -72,6 +73,7 @@ test.describe("Tauri E2E", () => {
     await pwInputs[0].fill("password123");
     await pwInputs[1].fill("password123");
 
+    await acceptAgeAndTerms(page);
     await page.click('button:has-text("Create identity")');
 
     // 2. Backup screen

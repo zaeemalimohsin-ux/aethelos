@@ -29,6 +29,8 @@ const files = [
   ),
   ...walk(join(root, ".github/workflows"), (name) => name.endsWith(".yml")),
   join(root, "packages/client/src/app/pilot-features.ts"),
+  join(root, "CONTRIBUTING.md"),
+  ...walk(join(root, "docs"), (name) => name.endsWith(".md")),
 ].filter((p) => existsSync(p));
 
 let failed = false;

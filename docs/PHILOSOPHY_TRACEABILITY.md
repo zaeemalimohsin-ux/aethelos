@@ -19,7 +19,7 @@ Statuses: **Covered** (automated proof exists), **Partial** (happy path / subset
 | P2.5 | Integer conservation | All core suites, E2E conservation tests | Covered | `simulation.test.ts` fuzz |
 | P3.1 | Cell / Pool / Node model | E2E onboarding, genesis | Covered | — |
 | P3.2 | Expulsion → highest Pool escrow + slider prune | `core.test.ts` (expel slider prune), `governance-fixes.test.ts` (direct expel rejected) | Covered | Hop-by-hop escalation via bridge release when parent unknown |
-| P3.3 | Superstructure pools + population routing | `superstructure.test.ts` (population routing, `relay_cell_governance`), `federation.spec.ts`, `pilot-cap.spec.ts` (`pilot-features.ts`) | Covered | Population self-reported via `relay_cell_governance` (see residuals) |
+| P3.3 | Superstructure pools + population routing | `superstructure.test.ts` (population routing, `relay_cell_governance`), `federation.spec.ts`, `ux-philosophy.spec.ts` (`pilot-features.ts`) | Covered | Population self-reported via `relay_cell_governance` (see residuals) |
 | P3.4 | Bridge via proposal + dual-registered bridge | `superstructure.test.ts` (paired inbound), `client/tests/bridge-mirror.test.ts` | Covered | Unpaired linked inbound mint rejected |
 | P3.5 | Join conformity to parent parameters | `superstructure.test.ts` | Covered | — |
 | P3.6 | Leave superstructure (exit) | `superstructure.test.ts` / `federation.test.ts` | Covered | E2E: `federation.spec.ts` |

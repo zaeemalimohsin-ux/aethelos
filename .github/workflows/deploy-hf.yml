@@ -16,7 +16,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          lfs: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check Hugging Face Space runtime
+        run: |
+          set -euo pipefail
+          runtime=$(curl -sS "https://huggingface.co/api/spaces/TheGritz/aethelos/runtime")
+          echo "Space runtime: ${runtime}"
+          stage=$(node -e "const r=JSON.parse(process.argv[1]); process.stdout.write(r.stage||'');" "$runtime")
+          err=$(node -e "const r=JSON.parse(process.argv[1]); process.stdout.write(r.errorMessage||'');" "$runtime")
+          if [ "$stage" = "PAUSED" ]; then
+            echo "::error::HF Space is PAUSED (${err:-no detail}). Unpause in the Space settings or contact Hugging Face support if flagged abusive."
+            exit 1
+          fi
 
       - name: Wake Hugging Face Space
         env:
@@ -47,15 +63,29 @@ jobs:
           mkdir -p ../deploy_tmp
           rsync -a \
             --exclude '.git' \
+            --exclude '.github' \
+            --exclude '.cursor' \
+            --exclude 'docs' \
+            --exclude 'scripts' \
             --exclude 'website' \
-            --exclude 'archive' \
             --exclude 'dist' \
             --exclude 'packages/.temp' \
             --exclude 'packages/client/android' \
+            --exclude 'packages/client/e2e' \
+            --exclude 'packages/client/tests' \
             --exclude 'packages/client/scratch' \
             --exclude 'packages/client/playwright-report' \
             --exclude 'packages/client/test-results' \
+            --exclude 'packages/client/Dockerfile' \
+            --exclude 'packages/core/tests' \
+            --exclude 'packages/relay/tests' \
+            --exclude 'packages/client-tauri' \
             --exclude 'packages/client-tauri/src-tauri/target' \
+            --exclude 'coverage' \
+            --exclude 'test-results' \
+            --exclude 'docker-compose.yml' \
+            --exclude 'render.yaml' \
+            --exclude '*.bat' \
             --exclude '*.log' \
             --exclude 'release-build*.log' \
             --exclude 'cargo-release-quick.log' \
@@ -69,23 +99,6 @@ jobs:
           git add -A
           git commit -m "deploy: aethelos browser release"
           git push --force "https://TheGritz:${HF_TOKEN}@huggingface.co/spaces/TheGritz/aethelos" main
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Check Hugging Face Space runtime
-        run: |
-          set -euo pipefail
-          runtime=$(curl -sS "https://huggingface.co/api/spaces/TheGritz/aethelos/runtime")
-          echo "Space runtime: ${runtime}"
-          stage=$(node -e "const r=JSON.parse(process.argv[1]); process.stdout.write(r.stage||'');" "$runtime")
-          err=$(node -e "const r=JSON.parse(process.argv[1]); process.stdout.write(r.errorMessage||'');" "$runtime")
-          if [ "$stage" = "PAUSED" ]; then
-            echo "::error::HF Space is PAUSED (${err:-no detail}). Unpause in the Space settings or contact Hugging Face support if flagged abusive."
-            exit 1
-          fi
 
       - name: Wait for Space health and run preflight
         env:

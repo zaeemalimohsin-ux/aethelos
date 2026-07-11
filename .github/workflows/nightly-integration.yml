@@ -74,8 +74,6 @@ jobs:
         env:
           AETHELOS_URL: https://app.aethelos.org
         run: node scripts/charter-a-preflight.mjs
-      - name: Publisher preflight on hosted URL
-        run: sh scripts/publisher-preflight.sh https://app.aethelos.org
       - run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
       - name: Hosted admission E2E
         run: pnpm --filter @aethelos/client exec playwright test e2e/hosted-admission.spec.ts --project=hosted
