@@ -54,12 +54,18 @@ jobs:
         with:
           node-version: 22
 
-      - name: Wait for Hugging Face build
-        run: |
-          echo "Waiting 90s for Space to rebuild after push..."
-          sleep 90
-
-      - name: Post-deploy Charter A preflight
+      - name: Wait for Space health and run preflight
         env:
-          AETHELOS_URL: https://app.aethelos.org
-        run: node scripts/charter-a-preflight.mjs
+          AETHELOS_URL: https://thegritz-aethelos.hf.space
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if node scripts/charter-a-preflight.mjs; then
+              echo "Space passed preflight after attempt $i"
+              exit 0
+            fi
+            echo "Waiting for Space build... ($i/30)"
+            sleep 20
+          done
+          echo "Space did not pass preflight within ~10 minutes"
+          exit 1
