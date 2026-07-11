@@ -53,6 +53,12 @@ jobs:
       - name: Sync mesh unit test
         run: pnpm --filter @aethelos/client test -- tests/sync-mesh.test.ts
 
+      - name: Sync partition unit test
+        run: pnpm --filter @aethelos/client test -- tests/sync-partition.test.ts
+
+      - name: Audit dependencies
+        run: pnpm audit --audit-level high
+
       - name: Core coverage
         run: pnpm --filter @aethelos/core test:coverage
 
@@ -150,8 +156,8 @@ jobs:
       - name: Run E2E tests
         run: pnpm --filter @aethelos/client exec playwright test --project=chromium
 
-      - name: Pilot-off E2E
-        run: pnpm test:e2e:pilot-off
+      - name: Federation-off E2E
+        run: pnpm test:e2e:federation-off
 
       - name: Upload Playwright report on failure
         if: failure()
@@ -220,25 +226,6 @@ jobs:
           path: packages/client/playwright-report/
           retention-days: 7
 
-  docker-combined:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
       - name: Build combined image
         run: docker build -f Dockerfile -t aethelos/combined:test .
 
@@ -262,24 +249,28 @@ jobs:
       - name: WebSocket smoke on combined stack
         run: node scripts/publish-ws-smoke.mjs ws://localhost:10000/ws
 
-  security-scan:
+  changes:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    outputs:
+      app: ${{ steps.filter.outputs.app }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          version: 9.15.0
+          filters: |
+            app:
+              - 'packages/client/**'
+              - 'packages/relay/**'
+              - 'packages/core/**'
+              - 'Dockerfile'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'deploy/**'
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Audit dependencies
-        run: pnpm audit --audit-level high
+  deploy-hf:
+    needs: [build-and-test, e2e, docker-founder, tauri-check, changes]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.app == 'true'
+    uses: ./.github/workflows/deploy-hf.yml
+    secrets: inherit

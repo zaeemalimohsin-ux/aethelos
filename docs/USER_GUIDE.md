@@ -11,9 +11,9 @@ and your device keeps a full copy of your community's history.
 ## 1. Create your identity
 
 1. Open AethelOS in your browser or install the Windows app (see [GET_STARTED.md](./GET_STARTED.md)).
-2. Choose **Create a new identity**.
-3. Pick a display name and a passphrase. The passphrase encrypts your key on this
-   device.
+2. Choose **Create a new identity** (or **Restore from recovery phrase**).
+3. Confirm you are at least **13 years old** and agree to the **Terms of use**.
+4. Pick a display name and a **device passphrase**. The passphrase encrypts your key on this device.
 
 ## 2. Save your recovery phrase
 
@@ -30,10 +30,7 @@ You can re-check whether you've confirmed a backup under **Identity**.
 
 ## 3. Start or join a community
 
-See [GET_STARTED.md](./GET_STARTED.md). Summary:
-
-- **Start a community:** create identity → name your community → **Invite people** from the Community tab.
-- **Join a community:** open the invite link → join → share your **join code** with your inviter → wait for **vouch** and community **vote** in Proposals → **Accept invitation** when approved (step 4 of 4).
+See [GET_STARTED.md](./GET_STARTED.md) for start and join flows.
 
 ## 4. Everyday use
 
@@ -49,13 +46,7 @@ See [GET_STARTED.md](./GET_STARTED.md). Summary:
 
 ## 5. Inviting people
 
-| Step | Actor | Action |
-|------|-------|--------|
-| 1 | Inviter | **Invite people** → send link or QR |
-| 2 | Invitee | Opens link, joins, sends **join code** |
-| 3 | Inviter | **Vouch** (Community → paste their join code) |
-| 4 | Members (incl. inviter) | **Proposals** → vote **Approve** on **Admit member** |
-| 5 | Invitee | **Accept invitation** after approval |
+See [GET_STARTED.md](./GET_STARTED.md) for inviting and joining.
 
 After vouching, the app opens Proposals and highlights the admission vote. Use **Vote to admit** on the Community card if you return later.
 
@@ -63,7 +54,7 @@ After vouching, the app opens Proposals and highlights the admission vote. Use *
 
 - The header shows **Connected**, **Syncing…**, or **Offline**. Actions queue offline and send when you're back.
 - **App update?** When a new version is ready, use **Reload now** on the banner at the top.
-- **Lost device or new phone:** Install AethelOS elsewhere and choose **Restore from recovery phrase** (identity only). Reconnect your community by pasting your **invite link** again or importing an **event log** export from another device.
+- **Lost device or new phone:** see [GET_STARTED.md](./GET_STARTED.md) § Need help?
 - **Operators:** **Connection tab** for connection endpoints and hosting.
 
 ## A note on privacy

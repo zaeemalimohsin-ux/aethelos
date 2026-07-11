@@ -9,25 +9,12 @@ import {
   freshContext,
   waitForPool,
   sendOnChainInvite,
-  createIdentity,
+  joinViaSyntheticInviteLink,
   RELAY_URL,
   PASSWORD,
 } from "./helpers.js";
 
 const BASE = process.env.BASE_URL || "http://localhost:5173";
-
-async function joinWithCustomLink(
-  page: import("@playwright/test").Page,
-  link: string,
-  displayName = "Edge Joiner",
-): Promise<void> {
-  await page.goto(link);
-  await page.reload();
-  await expect(page.getByText("You've been invited")).toBeVisible({ timeout: 20_000 });
-  await page.getByRole("button", { name: "Create identity" }).click();
-  await createIdentity(page, displayName, { fromInvite: true });
-  await page.getByRole("button", { name: "Join this community" }).click();
-}
 
 test.describe("admission security edges", () => {
   test("unsigned invite blocks join", async ({ page }) => {
@@ -39,7 +26,7 @@ test.describe("admission security edges", () => {
       relays: [RELAY_URL],
     };
     const link = `${BASE}#/join?d=${encodeInvite(payload)}`;
-    await joinWithCustomLink(page, link);
+    await joinViaSyntheticInviteLink(page, link);
     await expect(
       page.getByRole("alert").filter({ hasText: /unsigned invite link/i }),
     ).toBeVisible({ timeout: 10_000 });
@@ -63,7 +50,7 @@ test.describe("admission security edges", () => {
     );
     const tampered = { ...signed, relays: ["ws://evil.example/ws"] };
     const link = `${BASE}#/join?d=${encodeInvite(tampered)}`;
-    await joinWithCustomLink(page, link);
+    await joinViaSyntheticInviteLink(page, link);
     await expect(
       page.getByRole("alert").filter({ hasText: /signature is invalid/i }),
     ).toBeVisible({ timeout: 10_000 });
@@ -72,6 +59,46 @@ test.describe("admission security edges", () => {
     );
     expect(pool).toBeNull();
   });
+
+  for (const [label, tamper] of [
+    [
+      "inviter pubkey",
+      (signed: Awaited<ReturnType<typeof signInvitePayload>>) => ({
+        ...signed,
+        inviter: "b".repeat(64),
+      }),
+    ],
+    [
+      "namespace",
+      (signed: Awaited<ReturnType<typeof signInvitePayload>>) => ({
+        ...signed,
+        ns: "evil-namespace",
+      }),
+    ],
+  ] as const) {
+    test(`tampered ${label} blocks join`, async ({ page }) => {
+      const kp = await generateKeyPair();
+      const signed = await signInvitePayload(
+        {
+          v: 1,
+          ns: `${label.replace(/\s/g, "-")}-ns`,
+          inviter: kp.publicKeyHex,
+          cell: `${label} Tamper Cell`,
+          relays: [RELAY_URL],
+        },
+        kp,
+      );
+      const link = `${BASE}#/join?d=${encodeInvite(tamper(signed))}`;
+      await joinViaSyntheticInviteLink(page, link, `${label} Joiner`);
+      await expect(
+        page.getByRole("alert").filter({ hasText: /signature is invalid/i }),
+      ).toBeVisible({ timeout: 10_000 });
+      const pool = await page.evaluate(
+        () => window.__aethelosTest?.getPoolSummary() ?? null,
+      );
+      expect(pool).toBeNull();
+    });
+  }
 
   test("accept before admission approved is blocked", async ({ browser }) => {
     const ctxA = await freshContext(browser);

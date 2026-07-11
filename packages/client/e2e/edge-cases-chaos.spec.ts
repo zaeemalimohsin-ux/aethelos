@@ -6,6 +6,7 @@ import {
   bridgeTransfer,
   waitForPool,
   submitCreateIdentityForm,
+  ONBOARDING,
 } from "./helpers.js";
 
 test.describe("Chaos Engineering & Extreme Limits", () => {
@@ -125,13 +126,14 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
     const page = await context.newPage();
     await page.goto("http://localhost:5173");
 
-    await page.locator("text=Create a new identity").click();
+    await page.locator(`text=${ONBOARDING.createCta}`).click();
 
-    // 50KB string — tests that large inputs don't crash the tab
     const massiveString = "X".repeat(50 * 1024);
     await page.getByLabel("Display name").fill(massiveString);
-    await page.getByLabel("Passphrase", { exact: true }).fill("password123");
-    await page.getByLabel("Confirm passphrase").fill("password123");
+    await page
+      .getByLabel(ONBOARDING.devicePassphrase, { exact: true })
+      .fill("password123");
+    await page.getByLabel(ONBOARDING.confirmDevicePassphrase).fill("password123");
     await submitCreateIdentityForm(page);
 
     // Must not crash the tab
@@ -205,23 +207,22 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
     const page = await context.newPage();
     await page.goto("http://localhost:5173");
 
-    await page.getByRole("button", { name: "Create a new identity" }).click();
+    await page.getByRole("button", { name: ONBOARDING.createCta }).click();
     await page.getByLabel("Display name").fill("XSS Tester");
-    await page.getByLabel("Passphrase", { exact: true }).fill("password123");
-    await page.getByLabel("Confirm passphrase").fill("password123");
+    await page
+      .getByLabel(ONBOARDING.devicePassphrase, { exact: true })
+      .fill("password123");
+    await page.getByLabel(ONBOARDING.confirmDevicePassphrase).fill("password123");
     await submitCreateIdentityForm(page);
-    await expect(page.getByText("Save your recovery phrase")).toBeVisible({
+    await expect(page.getByText(ONBOARDING.saveRecoveryPhrase)).toBeVisible({
       timeout: 10_000,
     });
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: /Continue/ }).click();
 
-    await page.getByRole("button", { name: "Start a new community" }).click();
-
-    // Inject XSS payload as community name
     const xssPayload = `<script>window.__XSS_EXECUTED=true</script><img src=x onerror="window.__XSS_EXECUTED=true">`;
     await page.getByLabel("Community name").fill(xssPayload);
-    await page.getByRole("button", { name: "Create community" }).click();
+    await page.getByRole("button", { name: ONBOARDING.createCommunityBtn }).click();
 
     await expect(page.getByRole("button", { name: "Community" })).toBeVisible({
       timeout: 30_000,

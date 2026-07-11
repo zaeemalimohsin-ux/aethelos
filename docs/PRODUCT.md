@@ -16,8 +16,8 @@ A local-first app for communities to hold value, make decisions together, and or
 
 ## Your responsibilities
 
-1. **Save your 12-word recovery phrase** — restores your identity only, not community membership by itself. Rejoin with your invite link or an event-log export from another device.
-2. **Export your event log** periodically if you need disaster recovery without an invite link.
+1. **Save your 12-word recovery phrase** — see [USER_GUIDE.md](./USER_GUIDE.md) §2 (identity only; rejoin via invite or event log per [GET_STARTED.md](./GET_STARTED.md) § Need help?).
+2. **Export your event log** periodically — see [USER_GUIDE.md](./USER_GUIDE.md) § Staying resilient.
 3. **Vouch carefully** — you pledge real stake behind people you admit. After vouching, you (and other members) must **vote Approve** on the admission proposal in Proposals before the invitee can join.
 
 ## Quick start
@@ -40,14 +40,14 @@ Developers build from source; end users should not run `Build-Release.bat`.
 ## Operator checklist
 
 1. Deploy with TLS and same-origin `/ws` ([PUBLISHER.md](./PUBLISHER.md), [`deploy/Caddyfile.example`](../deploy/Caddyfile.example)).
-2. Founder: create identity → start community → **Invite people** → share link.
-3. Run `node scripts/charter-a-preflight.mjs` against your hosted URL before go-live.
-4. Joiner: open invite on phone browser → join code → wait for vouch + admission vote → accept.
-5. Export event logs periodically from at least one device.
+2. Founder: [GET_STARTED.md](./GET_STARTED.md) (create identity → start community → invite).
+3. Preflight: [OPERATIONS.md](./OPERATIONS.md#hosted-nightly-preflight) and [PUBLISHER.md](./PUBLISHER.md#publisher-preflight-before-sharing-your-url).
+4. Joiner: [GET_STARTED.md](./GET_STARTED.md) § Join a community.
+5. Backups: [USER_GUIDE.md](./USER_GUIDE.md) § Staying resilient.
 
 ## Known limitations
 
-Guest admission is four steps: (1) invitee shares join code, (2) inviter vouches, (3) community votes Approve in Proposals, (4) invitee taps Accept invitation. Vouch alone is not enough.
+Guest admission: see [GET_STARTED.md](./GET_STARTED.md) § Join a community.
 
 - Offline actions queue until a connection point is reachable
 - Standard builds limit communities to **50 members**; linked chapters (federation) are advanced and off in the default production build

@@ -15,6 +15,10 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ### Changed
 
+- **Onboarding UX:** Progress pips on founder/join paths; welcome CTA hierarchy; device passphrase labels; backup screen copy order; skip redundant choose step after backup (goes straight to Start a community); PWA install hint below primary actions.
+- **Onboarding a11y:** Brand as `h1`, wizard in `main`, card titles as headings, 44px touch targets, recovery phrase list semantics, labelled file import, age gate on restore.
+- **Federation-off E2E:** Honest Vite-dev config comment; onboarding specs in tier 2b.
+
 - **Import recovery:** `recoverCommunityFromEventLog` uses ledger `communityRelays` via `mergeActiveRelays`, not bootstrap-only.
 - **Pilot copy:** Federation-off at-cap and philosophy card messaging; federation UI remains gated by `VITE_ENABLE_FEDERATION`.
 - **Outbox honesty:** Queue retained until `sync_batch` confirms; full-buffer catch-up after flush.
@@ -43,7 +47,7 @@ All notable changes to AethelOS are documented here. The format is based on
 - **Admission E2E:** Proposals UI Approve (no test bridge); desktop GUI walkthrough migrated to UI approve.
 - **Product proof:** Headless Play Store AVD, ADB auth skip, first-boot wipe marker, proof retry and process cleanup.
 - **Release metadata:** All workspace packages aligned to 0.2.0; Identity tab shows build-injected version.
-- **Docs honesty:** RELEASE-NOTES toned to match Pass 4 / BETA_README known limitations.
+- **Docs honesty:** RELEASE-NOTES toned to match Pass 4 / PRODUCT.md known limitations.
 - **Relay operator guide:** Connection tab wording; federation toasts use plain language (linked chapter, parent group).
 
 ### Fixed

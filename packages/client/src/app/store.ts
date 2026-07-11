@@ -94,6 +94,8 @@ interface AppStore {
   displayName: string;
   /** Set transiently after creating an identity so the UI can show the backup screen. */
   newMnemonic: string | null;
+  /** Consumed once by onboarding wizard after backup confirmation. */
+  onboardingAfterBackup: "start" | "join" | null;
   /** Desktop: local mailbox process is running on this machine. */
   relaySharing: boolean;
   /** Desktop: public tunnel readiness for remote friends. */
@@ -113,6 +115,7 @@ interface AppStore {
 
   createIdentity(displayName: string, password: string): Promise<boolean>;
   confirmBackup(): Promise<void>;
+  clearOnboardingAfterBackup(): void;
   restoreIdentity(
     mnemonic: string,
     displayName: string,
@@ -219,6 +222,7 @@ export const useStore = create<AppStore>((set, get) => ({
   myKey: "",
   displayName: "",
   newMnemonic: null,
+  onboardingAfterBackup: null,
   relaySharing: false,
   tunnelStatus: "idle",
   shareUrl: null,
@@ -330,8 +334,17 @@ export const useStore = create<AppStore>((set, get) => ({
 
   async confirmBackup() {
     const key = get().myKey;
+    const pendingInvite = get().pendingInvite;
     if (key) await markBackedUp(key);
-    set({ newMnemonic: null, identities: await listIdentities() });
+    set({
+      newMnemonic: null,
+      identities: await listIdentities(),
+      onboardingAfterBackup: pendingInvite ? "join" : "start",
+    });
+  },
+
+  clearOnboardingAfterBackup() {
+    set({ onboardingAfterBackup: null });
   },
 
   async restoreIdentity(mnemonic, displayName, password) {

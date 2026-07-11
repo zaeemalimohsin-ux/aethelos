@@ -9,7 +9,7 @@ import {
   PROPOSAL_HELP,
   PROPOSAL_LABELS,
 } from "../app/concept-help.js";
-import { isFederationEnabled } from "../app/pilot-features.js";
+import { isFederationEnabled } from "../app/federation-features.js";
 import { Card } from "../design/components/Card.js";
 import { Button } from "../design/components/Button.js";
 import { Field } from "../design/components/Field.js";

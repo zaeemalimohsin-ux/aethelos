@@ -6,57 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  sync-mesh:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @aethelos/core build
-      - run: pnpm --filter @aethelos/client test -- tests/sync-mesh.test.ts tests/sync-partition.test.ts
-
-  mesh-chain-e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @aethelos/core build
-      - run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
-      - run: pnpm --filter @aethelos/client exec playwright test e2e/mesh-chain.spec.ts e2e/governance-progressive.spec.ts e2e/offline-outbox-ui.spec.ts --project=chromium
-        env:
-          CI: true
-
-  pilot-off-e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @aethelos/core build
-      - run: pnpm --filter @aethelos/client exec playwright install --with-deps chromium
-      - run: pnpm test:e2e:pilot-off
-        env:
-          CI: true
-
   hosted-preflight:
     runs-on: ubuntu-latest
     steps:

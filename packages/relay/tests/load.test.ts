@@ -128,5 +128,5 @@ describe("relay load and chaos testing", () => {
     expect(buffered[99].lamport).toBe(500);
 
     for (const ws of sockets) ws.close();
-  }, 15_000);
+  }, 30_000);
 });

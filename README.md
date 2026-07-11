@@ -37,6 +37,8 @@ Every system built on trust has the same failure mode: over time, trust migrates
 3. **Equal voices in redistribution**: Every live, vouched soul carries equal weight when commons are shared out. Day-to-day proposals use stake-weighted voting so influence is earned through participation, not hoarded forever.
 4. **Unstoppable operation**: Even if the creators of AethelOS disappear tomorrow, your community keeps running exactly as it did yesterday.
 
+Standard builds support up to **50 members**; linked chapters are off by default — see [PRODUCT.md](docs/PRODUCT.md).
+
 Read the full [Higher-Level Philosophy](./Higher-Level-Philosophy.md).
 
 ## Get Started
@@ -46,10 +48,6 @@ AethelOS is completely free and open source.
 **Fastest path:** open the hosted app in your browser at [app.aethelos.org](https://app.aethelos.org) (or your operator's URL), create an identity, and start or join a community. Friends can join from any phone or desktop browser — no install required.
 
 **Optional — Windows desktop:** [Download the latest installer](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (`.exe` or `.msi`) for local relay + share-link hosting from your PC.
-
-1. **Open in browser** (or install the Windows app) → **Create identity**
-2. **Start a community** or open an **invite link** someone sent you
-3. **Invite people** from the Community tab; they join in their browser
 
 See [Get Started guide](./docs/GET_STARTED.md) for step-by-step admission (vouch → vote → accept).
 
@@ -96,6 +94,7 @@ pnpm test:e2e     # E2E test suite
 - [Publisher Guide](docs/PUBLISHER.md) — Deploying AethelOS online
 - [Genesis & operators](docs/GENESIS.md) · [Operations runbook](docs/OPERATIONS.md)
 - [Testing & release](docs/TESTING_RELEASE.md)
+- [Engineering sign-off](docs/ENGINEERING_SIGNOFF.md)
 - [Relay Operators](docs/RELAY_OPERATORS.md) — Running your own relay
 - [Threat Model](docs/THREAT_MODEL.md) & [Security Policy](SECURITY.md)
 - [Versioning Policy](docs/VERSIONING.md)

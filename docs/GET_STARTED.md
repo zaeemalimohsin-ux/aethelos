@@ -5,7 +5,7 @@
 
 **Current release:** v0.2.0 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
 
-See [PRODUCT.md](./PRODUCT.md) for responsibilities and limitations · [Privacy](./PRIVACY.md) · [Terms](./TERMS.md) · [Support](./SUPPORT.md)
+Standard builds support up to **50 members**; linked chapters are not enabled in the default app. See [PRODUCT.md](./PRODUCT.md) for responsibilities and limitations · [Privacy](./PRIVACY.md) · [Terms](./TERMS.md) · [Support](./SUPPORT.md)
 
 | You are… | Do this |
 |----------|---------|
@@ -17,7 +17,7 @@ See [PRODUCT.md](./PRODUCT.md) for responsibilities and limitations · [Privacy]
 ## Start a community
 
 1. Open [app.aethelos.org](https://app.aethelos.org) in your browser (recommended), or install the Windows app from [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) if you want desktop relay + tunnel share links.
-2. **Create a new identity** → save your recovery phrase → **Start a community**.
+2. **Create a new identity** (confirm age + Terms) → save your recovery phrase → **Start a community**.
 3. On the **Community** tab, tap **Invite people** and send the link or QR to anyone.
 
 The app connects in the background. Operators can tune hosting under the **Connection** tab.
@@ -33,7 +33,7 @@ The app connects in the background. Operators can tune hosting under the **Conne
 5. Wait: inviter **vouches** → community **votes** on your admission (Proposals tab; stake-weighted).
 6. When approved (step 4 of 4 in the app), tap **Accept invitation**.
 
-Works in any mobile or desktop browser. Use **Install app** on the welcome screen when offered, or add to home screen.
+Works in any mobile or desktop browser. On the welcome screen you can also tap **Join with invite link**, or use **Install app** when offered.
 
 See [USER_GUIDE.md](./USER_GUIDE.md) for everyday use.
 

@@ -1,3 +1,5 @@
+> **Superseded.** Current sign-off: [ENGINEERING_SIGNOFF.md](../ENGINEERING_SIGNOFF.md).
+
 # Distribution scorecard (v1 Charter A)
 
 **Date:** 2026-07-11  
@@ -10,8 +12,8 @@
 | **Browser PWA** | Canonical hosted entry: `https://app.aethelos.org` (health, app shell, `/ws`) |
 | **Windows desktop** | Tauri installer, sidecar relay, tunnel/share URL product proof |
 | **Docker publish** | Same-origin nginx `/ws` path (`docker-founder`, combined publish stack) |
-| **Philosophy matrix** | [PHILOSOPHY_TRACEABILITY.md](./PHILOSOPHY_TRACEABILITY.md) - **0 Partial** rows (all claims Covered or honestly listed under Known residuals) |
-| **CI / proof tiers** | [TESTING_RELEASE.md](./TESTING_RELEASE.md) tiers 1-5: CI core, local/pilot-off E2E, sync mesh, publish path, Windows `proof:product` (+ optional tier 5 desktop deep) |
+| **Philosophy matrix** | [PHILOSOPHY_TRACEABILITY.md](../PHILOSOPHY_TRACEABILITY.md) - **0 Partial** rows (all claims Covered or honestly listed under Known residuals) |
+| **CI / proof tiers** | [TESTING_RELEASE.md](../TESTING_RELEASE.md) tiers 1-5: CI core, local/federation-off E2E, sync mesh, publish path, Windows `proof:product` (+ optional tier 5 desktop deep) |
 
 ## Out of scope (v1 scorecard)
 
@@ -42,9 +44,9 @@
 
 A finding counts toward this scorecard **only** if it cites at least one of:
 
-1. A **CI proof tier** from [TESTING_RELEASE.md](./TESTING_RELEASE.md) (tier number or named job), or  
+1. A **CI proof tier** from [TESTING_RELEASE.md](../TESTING_RELEASE.md) (tier number or named job), or  
 2. A **philosophy matrix row** (P*.* ID and status), or  
-3. A bullet under **Known residuals** in [PHILOSOPHY_TRACEABILITY.md](./PHILOSOPHY_TRACEABILITY.md).
+3. A bullet under **Known residuals** in [PHILOSOPHY_TRACEABILITY.md](../PHILOSOPHY_TRACEABILITY.md).
 
 Otherwise label the finding **out-of-context** or **v2** - do not adjust the v1 composite.
 ## Results (2026-07-11 evaluation)
@@ -55,7 +57,7 @@ Otherwise label the finding **out-of-context** or **v2** - do not adjust the v1 
 | Mobile / PWA | 73 | Share-url env-gated; Android optional in CI |
 | Web hosted | 78 | Nightly `hosted-preflight` on canonical URL |
 | Security | 77 | Residuals documented; no fleet hardening score |
-| P2P / sync | 84 | Tier 2c/2d + nightly mesh; offline/outbox E2E stabilized (`48e9b7f`) |
+| P2P / sync | 84 | Tier 2c/2d on merge CI; offline/outbox E2E stabilized (`48e9b7f`) |
 | Test / CI | 84 | Tiers 1-3 on merge; product-proof workflow stabilized (`48e9b7f`) |
 | Docs | 74 | Runbooks consolidated; scorecard evaluated |
 | i18n (report-only) | 46 | English-primary; **not in composite** |

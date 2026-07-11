@@ -1,24 +1,34 @@
 import { test, expect } from "@playwright/test";
 import { generateKeyPair } from "@aethelos/core";
 import { encodeInvite, signInvitePayload } from "../src/app/invite.js";
-import { submitCreateIdentityForm } from "./helpers.js";
+import { submitCreateIdentityForm, ONBOARDING } from "./helpers.js";
+
+async function finishBackupAndOpenJoin(page: import("@playwright/test").Page) {
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: /Continue/ }).click();
+  await expect(
+    page.getByRole("heading", { name: ONBOARDING.startCommunityHeading }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Back" }).click();
+  await page.getByRole("button", { name: ONBOARDING.joinCommunityBtn }).click();
+}
 
 test("join a community after identity, not on welcome screen", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("button", { name: "Create a new identity" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Join a community" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: ONBOARDING.createCta })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: ONBOARDING.joinCommunityBtn }),
+  ).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Create a new identity" }).click();
+  await page.getByRole("button", { name: ONBOARDING.createCta }).click();
   await page.getByLabel("Display name").fill("Join Tester");
-  await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
-  await page.getByLabel("Confirm passphrase").fill("supersecret123");
+  await page
+    .getByLabel(ONBOARDING.devicePassphrase, { exact: true })
+    .fill("supersecret123");
+  await page.getByLabel(ONBOARDING.confirmDevicePassphrase).fill("supersecret123");
   await submitCreateIdentityForm(page);
-  await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: /Continue/ }).click();
-
-  await expect(page.getByRole("button", { name: "Join a community" })).toBeVisible();
-  await page.getByRole("button", { name: "Join a community" }).click();
+  await finishBackupAndOpenJoin(page);
 
   const payload = {
     v: 1 as const,
@@ -39,15 +49,14 @@ test("join a community after identity, not on welcome screen", async ({ page }) 
 test("persists pasted invite in URL across refresh", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Create a new identity" }).click();
+  await page.getByRole("button", { name: ONBOARDING.createCta }).click();
   await page.getByLabel("Display name").fill("Refresh Tester");
-  await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
-  await page.getByLabel("Confirm passphrase").fill("supersecret123");
+  await page
+    .getByLabel(ONBOARDING.devicePassphrase, { exact: true })
+    .fill("supersecret123");
+  await page.getByLabel(ONBOARDING.confirmDevicePassphrase).fill("supersecret123");
   await submitCreateIdentityForm(page);
-  await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: /Continue/ }).click();
-
-  await page.getByRole("button", { name: "Join a community" }).click();
+  await finishBackupAndOpenJoin(page);
 
   const payload = {
     v: 1 as const,
@@ -72,15 +81,14 @@ test("persists pasted invite in URL across refresh", async ({ page }) => {
 test("unlock stored identity after refresh with invite hash", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Create a new identity" }).click();
+  await page.getByRole("button", { name: ONBOARDING.createCta }).click();
   await page.getByLabel("Display name").fill("Unlock Join Tester");
-  await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
-  await page.getByLabel("Confirm passphrase").fill("supersecret123");
+  await page
+    .getByLabel(ONBOARDING.devicePassphrase, { exact: true })
+    .fill("supersecret123");
+  await page.getByLabel(ONBOARDING.confirmDevicePassphrase).fill("supersecret123");
   await submitCreateIdentityForm(page);
-  await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: /Continue/ }).click();
-
-  await page.getByRole("button", { name: "Join a community" }).click();
+  await finishBackupAndOpenJoin(page);
 
   const payload = {
     v: 1 as const,
@@ -104,15 +112,14 @@ test("unlock stored identity after refresh with invite hash", async ({ page }) =
 test("rejects join when all invite relays are unreachable", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Create a new identity" }).click();
+  await page.getByRole("button", { name: ONBOARDING.createCta }).click();
   await page.getByLabel("Display name").fill("Probe Tester");
-  await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
-  await page.getByLabel("Confirm passphrase").fill("supersecret123");
+  await page
+    .getByLabel(ONBOARDING.devicePassphrase, { exact: true })
+    .fill("supersecret123");
+  await page.getByLabel(ONBOARDING.confirmDevicePassphrase).fill("supersecret123");
   await submitCreateIdentityForm(page);
-  await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: /Continue/ }).click();
-
-  await page.getByRole("button", { name: "Join a community" }).click();
+  await finishBackupAndOpenJoin(page);
 
   const kp = await generateKeyPair();
   const payload = await signInvitePayload(

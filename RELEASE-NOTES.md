@@ -23,6 +23,7 @@ Event log export/import is tested (unit + E2E). **Dual-fork causal validation on
 - **Connection** tab for network/share settings (no relay UI on Community).
 - Plain-language toasts: Points, connection point, stake.
 - Admission: vouch → vote Approve in Proposals → Accept invitation.
+- **Onboarding:** progress pips, age gate on create/restore, backup → Start a community (no extra chooser), federation-off E2E covers welcome path.
 
 ### 5. Product proof (Windows)
 
@@ -38,7 +39,7 @@ Event log export/import is tested (unit + E2E). **Dual-fork causal validation on
 
 CI automation: `.github/workflows/product-proof.yml` (weekly + manual dispatch).
 
-- Distribution scorecard composite **77.5/100** (Charter A v1, 2026-07-11). See [DISTRIBUTION_SCORECARD.md](./docs/DISTRIBUTION_SCORECARD.md).
+- Distribution scorecard composite **77.5/100** (Charter A v1, 2026-07-11). See [ENGINEERING_SIGNOFF.md](./docs/ENGINEERING_SIGNOFF.md).
 - **GA content phase (2026-07-11):** PRODUCT, PRIVACY, TERMS, SUPPORT docs; pilot copy retired in app and user docs.
 
 ## Known limitations

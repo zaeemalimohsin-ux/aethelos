@@ -61,14 +61,6 @@ pnpm proof:product -- -SkipAndroid
 
 Full Windows sign-off with Android still requires a maintainer machine or a manual workflow run with **include_android** checked.
 
-## Hosted URL smoke
-
-```bash
-AETHELOS_URL=https://app.aethelos.org node scripts/charter-a-preflight.mjs
-```
-
-Nightly CI runs this against the canonical URL. Failure means the public browser entry point is unhealthy.
-
 ## Incident template
 
 1. Scope: relay only, hosted PWA, or desktop installer?

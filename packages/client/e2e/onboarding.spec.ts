@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { submitCreateIdentityForm } from "./helpers.js";
+import { ONBOARDING, submitCreateIdentityForm } from "./helpers.js";
 
 /**
  * End-to-end happy path through the real client stack: create an identity,
@@ -10,31 +10,36 @@ import { submitCreateIdentityForm } from "./helpers.js";
 test("create identity and start a community", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByText("Create a new identity")).toBeVisible();
-  await page.getByRole("button", { name: "Create a new identity" }).click();
+  await expect(page.getByText(ONBOARDING.createCta)).toBeVisible();
+  await page.getByRole("button", { name: ONBOARDING.createCta }).click();
 
   await page.getByLabel("Display name").fill("E2E Tester");
-  await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
-  await page.getByLabel("Confirm passphrase").fill("supersecret123");
+  await page
+    .getByLabel(ONBOARDING.devicePassphrase, { exact: true })
+    .fill("supersecret123");
+  await page.getByLabel(ONBOARDING.confirmDevicePassphrase).fill("supersecret123");
   await submitCreateIdentityForm(page);
 
-  // Recovery phrase backup screen (PBKDF2 key derivation can take a few seconds).
-  await expect(page.getByText("Save your recovery phrase")).toBeVisible({
+  await expect(page.getByText(ONBOARDING.saveRecoveryPhrase)).toBeVisible({
     timeout: 10_000,
   });
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: /Continue/ }).click();
 
-  // Choose action -> start a community.
-  await page.getByRole("button", { name: "Start a new community" }).click();
-  await expect(page.getByRole("button", { name: "Create community" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: ONBOARDING.startCommunityHeading }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: ONBOARDING.createCommunityBtn }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Back" }).click();
-  await expect(page.getByRole("button", { name: "Join a community" })).toBeVisible();
-  await page.getByRole("button", { name: "Start a new community" }).click();
+  await expect(
+    page.getByRole("button", { name: ONBOARDING.joinCommunityBtn }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: ONBOARDING.startNewCommunityBtn }).click();
   await page.getByLabel("Community name").fill("E2E Community");
-  await page.getByRole("button", { name: "Create community" }).click();
+  await page.getByRole("button", { name: ONBOARDING.createCommunityBtn }).click();
 
-  // Dashboard: founder holds 100% of the fresh pool.
   await expect(page.getByRole("button", { name: "Community" })).toBeVisible({
     timeout: 30_000,
   });

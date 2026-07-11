@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/** Pilot build E2E — federation off, matching production pilot gate. */
+/** Vite dev, federation off (VITE_E2E=1) — admission, philosophy, and onboarding UX. */
 export default defineConfig({
   timeout: 120000,
   testDir: "./e2e",
@@ -14,8 +14,9 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "pilot-off",
-      testMatch: /(admission-edge|ux-philosophy)\.spec\.ts$/,
+      name: "federation-off",
+      testMatch:
+        /(admission-edge|ux-philosophy|onboarding|edge-cases-onboarding)\.spec\.ts$/,
       use: { ...devices["Desktop Chrome"] },
     },
   ],
@@ -25,6 +26,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     env: {
       VITE_E2E: "1",
+      VITE_ENABLE_FEDERATION: "0",
     },
   },
 });

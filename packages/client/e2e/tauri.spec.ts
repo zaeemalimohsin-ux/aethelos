@@ -80,10 +80,10 @@ test.describe("Tauri E2E", () => {
     await page.check('input[type="checkbox"]');
     await page.click('button:has-text("Continue")');
 
-    // 3. Choose action
-    await page.click('button:has-text("Start a new community")');
-
-    // 4. Start Community
+    // 3. Start Community (skips choose after backup)
+    await expect(page.getByRole("heading", { name: "Start a community" })).toBeVisible({
+      timeout: 10_000,
+    });
     await page.click('button:has-text("Create community")');
 
     // 5. Verify Community view

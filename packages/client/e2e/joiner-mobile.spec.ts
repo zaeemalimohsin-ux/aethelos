@@ -5,7 +5,7 @@ import {
   getPublicKey,
   admitJoiner,
   waitForMemberCount,
-  submitCreateIdentityForm,
+  mobileFounderGenesis,
 } from "./helpers.js";
 
 test.skip(
@@ -27,22 +27,9 @@ test("mobile joiner completes admission on docker stack", async ({ browser }) =>
   const founder = await founderCtx.newPage();
   const joiner = await joinerCtx.newPage();
 
-  await founder.goto("/");
-  await founder.getByRole("button", { name: "Create a new identity" }).click();
-  await founder.getByLabel("Display name").fill("Docker Founder");
-  await founder.getByLabel("Passphrase", { exact: true }).fill("founder-pass-123");
-  await founder.getByLabel("Confirm passphrase").fill("founder-pass-123");
-  await submitCreateIdentityForm(founder);
-  await expect(founder.getByText("Save your recovery phrase")).toBeVisible({
-    timeout: 15_000,
-  });
-  await founder.getByRole("checkbox").check();
-  await founder.getByRole("button", { name: /Continue/ }).click();
-  await founder.getByRole("button", { name: "Start a new community" }).click();
-  await founder.getByLabel("Community name").fill("Docker Mobile Cell");
-  await founder.getByRole("button", { name: "Create community" }).click();
-  await expect(founder.getByRole("button", { name: "Community" })).toBeVisible({
-    timeout: 45_000,
+  await mobileFounderGenesis(founder, {
+    displayName: "Docker Founder",
+    communityName: "Docker Mobile Cell",
   });
 
   const inviteLink = await buildInviteLink(founder);

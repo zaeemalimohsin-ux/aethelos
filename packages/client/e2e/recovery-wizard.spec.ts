@@ -4,6 +4,8 @@ import {
   getPublicKey,
   startCommunity,
   submitCreateIdentityForm,
+  ONBOARDING,
+  acceptAgeAndTerms,
 } from "./helpers.js";
 
 test.describe("recovery phrase round-trip", () => {
@@ -12,12 +14,12 @@ test.describe("recovery phrase round-trip", () => {
     const page1 = await ctx1.newPage();
     await page1.goto("/");
 
-    await page1.getByRole("button", { name: "Create a new identity" }).click();
+    await page1.getByRole("button", { name: ONBOARDING.createCta }).click();
     await page1.getByLabel("Display name").fill("Round Trip");
-    await page1.getByLabel("Passphrase", { exact: true }).fill(PASSWORD);
-    await page1.getByLabel("Confirm passphrase").fill(PASSWORD);
+    await page1.getByLabel(ONBOARDING.devicePassphrase, { exact: true }).fill(PASSWORD);
+    await page1.getByLabel(ONBOARDING.confirmDevicePassphrase).fill(PASSWORD);
     await submitCreateIdentityForm(page1);
-    await expect(page1.getByText("Save your recovery phrase")).toBeVisible({
+    await expect(page1.getByText(ONBOARDING.saveRecoveryPhrase)).toBeVisible({
       timeout: 10_000,
     });
 
@@ -38,6 +40,7 @@ test.describe("recovery phrase round-trip", () => {
     await page2.getByLabel("Recovery phrase").fill(mnemonic);
     await page2.getByLabel("Display name").fill("Round Trip Restored");
     await page2.getByLabel("New passphrase (this device)").fill(PASSWORD);
+    await acceptAgeAndTerms(page2);
     await page2.getByRole("button", { name: "Restore" }).click();
     await expect(page2.getByText("Identity restored")).toBeVisible({ timeout: 10_000 });
     await page2.getByRole("button", { name: "Skip for now" }).click();

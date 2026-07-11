@@ -33,6 +33,8 @@ Consider what happens to a currency during collapse: hyperinflation renders it w
 
 ### 3. Organisational Hierarchy & Pools
 
+> **Shipping note:** Standard builds cap communities at **50 members** and disable linked chapters (federation). This document describes design intent; see [PRODUCT.md](docs/PRODUCT.md#known-limitations) for what ships today.
+
 Most decentralised systems fail not because the idea is wrong, but because they try to replicate centralised structure without central authority. The result is chaos without coordination. AethelOS takes a different approach: structure that emerges bottom-up, at every scale.
 
 * **The Individual as Cell:** Every person in AethelOS is, at their most fundamental, a Cell of one. They hold their own Node — their personal device — and their own Pool. They may choose to remain alone, or they may invite others to join under them (staking a Vouch Bond), becoming a Head in the process. A parent bringing a child into the community, a trader building a network of partners, a trusted figure drawing in neighbours — all are expressions of the same organic act. No external authority grants permission.

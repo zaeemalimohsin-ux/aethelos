@@ -10,19 +10,15 @@ This guide is for **operators and developers** standing up a new cell from scrat
 2. Open your hosted URL → **Create identity** → **Start a community**.
 3. **Invite people** → send link or QR. Joiners open the link in any browser.
 
-### Admission flow (current product)
+### Admission flow
 
-1. Joiner opens invite link → creates identity → **Join this community**
-2. Joiner copies **join code** to inviter
-3. Inviter **vouches** (Community tab)
-4. Community **votes** Approve on admission proposal (Proposals tab)
-5. Joiner taps **Accept invitation** when step 4/4 shows complete
+Joiners follow [GET_STARTED.md](./GET_STARTED.md) § Join a community (vouch → stake-weighted vote → Accept invitation).
 
 ## Desktop founder (Windows)
 
 1. Install from [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest).
 2. Create identity → start community. Local relay + optional tunnel share URL for remote joiners.
-3. Same admission steps as above.
+3. Same join flow as [GET_STARTED.md](./GET_STARTED.md).
 
 ## Relay mailboxes on the ledger
 

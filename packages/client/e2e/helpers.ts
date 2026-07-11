@@ -5,6 +5,19 @@ import { admissionProposalId } from "@aethelos/core";
 export const RELAY_URL = "ws://localhost:8787";
 export const PASSWORD = "e2e-test-pass-123";
 
+export const ONBOARDING = {
+  createCta: "Create a new identity",
+  joinWelcomeCta: "Join with invite link",
+  createIdentityBtn: "Create identity",
+  devicePassphrase: "Device passphrase",
+  confirmDevicePassphrase: "Confirm device passphrase",
+  saveRecoveryPhrase: "Save your recovery phrase",
+  startCommunityHeading: "Start a community",
+  startNewCommunityBtn: "Start a new community",
+  joinCommunityBtn: "Join a community",
+  createCommunityBtn: "Create community",
+} as const;
+
 export interface PoolSummary {
   namespaceId: string;
   cellName: string;
@@ -105,7 +118,17 @@ export async function acceptAgeAndTerms(page: Page): Promise<void> {
 
 export async function submitCreateIdentityForm(page: Page): Promise<void> {
   await acceptAgeAndTerms(page);
-  await page.getByRole("button", { name: "Create identity" }).click();
+  await page.getByRole("button", { name: ONBOARDING.createIdentityBtn }).click();
+}
+
+async function fillCreateIdentityFields(
+  page: Page,
+  displayName: string,
+  password: string,
+) {
+  await page.getByLabel("Display name").fill(displayName);
+  await page.getByLabel(ONBOARDING.devicePassphrase, { exact: true }).fill(password);
+  await page.getByLabel(ONBOARDING.confirmDevicePassphrase).fill(password);
 }
 
 export async function createIdentity(
@@ -114,27 +137,40 @@ export async function createIdentity(
   opts?: { fromInvite?: boolean },
 ): Promise<void> {
   if (!opts?.fromInvite) {
-    // We don't need to page.goto("/") here because OmniHarness already navigates to the app.
-    // If we navigate while it's initializing it might break IndexedDB
-    await page.getByRole("button", { name: "Create a new identity" }).click();
+    await page.getByRole("button", { name: ONBOARDING.createCta }).click();
   }
-  await page.getByLabel("Display name").fill(displayName);
-  await page.getByLabel("Passphrase", { exact: true }).fill(PASSWORD);
-  await page.getByLabel("Confirm passphrase").fill(PASSWORD);
+  await fillCreateIdentityFields(page, displayName, PASSWORD);
   await submitCreateIdentityForm(page);
-  await expect(page.getByText("Save your recovery phrase")).toBeVisible({
+  await expect(page.getByText(ONBOARDING.saveRecoveryPhrase)).toBeVisible({
     timeout: 10_000,
   });
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: /Continue/ }).click();
 }
 
-export async function startCommunity(page: Page, cellName: string): Promise<void> {
-  await page.getByRole("button", { name: "Start a new community" }).click();
+export async function startCommunity(
+  page: Page,
+  cellName: string,
+  timeoutMs = 30_000,
+): Promise<void> {
+  const startHeading = page.getByRole("heading", {
+    name: ONBOARDING.startCommunityHeading,
+  });
+  const chooseButton = page.getByRole("button", {
+    name: ONBOARDING.startNewCommunityBtn,
+  });
+  const onStartScreen = await startHeading
+    .waitFor({ state: "visible", timeout: 10_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!onStartScreen) {
+    await chooseButton.click();
+    await expect(startHeading).toBeVisible({ timeout: 10_000 });
+  }
   await page.getByLabel("Community name").fill(cellName);
-  await page.getByRole("button", { name: "Create community" }).click();
+  await page.getByRole("button", { name: ONBOARDING.createCommunityBtn }).click();
   await expect(page.getByRole("button", { name: "Community" })).toBeVisible({
-    timeout: 30_000,
+    timeout: timeoutMs,
   });
 }
 
@@ -148,6 +184,41 @@ export async function onboardGenesis(
   }
   await createIdentity(page, displayName);
   await startCommunity(page, cellName);
+}
+
+export async function mobileFounderGenesis(
+  page: Page,
+  opts: {
+    displayName: string;
+    passphrase?: string;
+    communityName: string;
+    communityTimeoutMs?: number;
+  },
+): Promise<void> {
+  const passphrase = opts.passphrase ?? "founder-pass-123";
+  await page.goto("/");
+  await page.getByRole("button", { name: ONBOARDING.createCta }).click();
+  await fillCreateIdentityFields(page, opts.displayName, passphrase);
+  await submitCreateIdentityForm(page);
+  await expect(page.getByText(ONBOARDING.saveRecoveryPhrase)).toBeVisible({
+    timeout: 15_000,
+  });
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: /Continue/ }).click();
+  await startCommunity(page, opts.communityName, opts.communityTimeoutMs ?? 45_000);
+}
+
+export async function joinViaSyntheticInviteLink(
+  page: Page,
+  link: string,
+  displayName = "Edge Joiner",
+): Promise<void> {
+  await page.goto(link);
+  await page.reload();
+  await expect(page.getByText("You've been invited")).toBeVisible({ timeout: 20_000 });
+  await page.getByRole("button", { name: "Create identity" }).click();
+  await createIdentity(page, displayName, { fromInvite: true });
+  await page.getByRole("button", { name: "Join this community" }).click();
 }
 
 export async function getPublicKey(page: Page): Promise<string> {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { useStore } from "../app/store.js";
 import { clearSession } from "../app/session.js";
 import { Card } from "../design/components/Card.js";
@@ -28,6 +28,73 @@ type Step =
   | "recoverMethod"
   | "importLog";
 
+type ProgressBranch = "founder" | "join";
+
+const FOUNDER_PROGRESS: Partial<Record<Step, number>> = {
+  welcome: 1,
+  create: 2,
+  start: 4,
+};
+const JOIN_PROGRESS: Partial<Record<Step, number>> = {
+  welcome: 1,
+  joinPaste: 2,
+  create: 3,
+};
+
+function OnboardingProgress({
+  branch,
+  step,
+  backup,
+}: {
+  branch: ProgressBranch;
+  step?: Step;
+  backup?: boolean;
+}) {
+  if (step === "join") return null;
+  const total = branch === "founder" ? 4 : 5;
+  let current = 0;
+  if (backup) {
+    current = branch === "founder" ? 3 : 4;
+  } else if (step) {
+    current =
+      branch === "founder" ? (FOUNDER_PROGRESS[step] ?? 0) : (JOIN_PROGRESS[step] ?? 0);
+  }
+  if (current <= 0) return null;
+  return (
+    <div className="steps" aria-label={`Step ${current} of ${total}`}>
+      {Array.from({ length: total }, (_, i) => (
+        <div key={i} className={`step-pip${i < current ? " active" : ""}`} />
+      ))}
+    </div>
+  );
+}
+
+function AgeTermsCheckbox({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label
+      className="hint"
+      style={{ display: "flex", gap: "var(--sp-2)", marginTop: "var(--sp-3)" }}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      I am at least 13 years old and agree to the{" "}
+      <a href={DOCS_TERMS} target="_blank" rel="noreferrer">
+        Terms of use
+      </a>
+      .
+    </label>
+  );
+}
+
 export function Onboarding() {
   const phase = useStore((s) => s.phase);
   const newMnemonic = useStore((s) => s.newMnemonic);
@@ -46,26 +113,33 @@ export function Onboarding() {
   return <OnboardingWizard initialStep={initialStep} />;
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({
+  children,
+  showLegalLinks = false,
+}: {
+  children: React.ReactNode;
+  showLegalLinks?: boolean;
+}) {
   return (
     <div className="app-main" style={{ maxWidth: 520, paddingTop: "var(--sp-8)" }}>
       <div className="center" style={{ marginBottom: "var(--sp-5)" }}>
-        <div className="brand" style={{ fontSize: "var(--fs-2xl)" }}>
+        <h1 className="brand" style={{ fontSize: "var(--fs-2xl)" }}>
           Aethel<span>OS</span>
-        </div>
+        </h1>
         <p className="muted">Community life, owned by its people.</p>
-        <p className="hint" style={{ marginTop: "var(--sp-2)" }}>
-          Back up your recovery phrase — we cannot reset lost keys.{" "}
-          <a href={DOCS_PRIVACY} target="_blank" rel="noreferrer">
-            Privacy
-          </a>
-          {" · "}
-          <a href={DOCS_TERMS} target="_blank" rel="noreferrer">
-            Terms
-          </a>
-        </p>
+        {showLegalLinks ? (
+          <p className="hint" style={{ marginTop: "var(--sp-2)" }}>
+            <a href={DOCS_PRIVACY} target="_blank" rel="noreferrer">
+              Privacy
+            </a>
+            {" · "}
+            <a href={DOCS_TERMS} target="_blank" rel="noreferrer">
+              Terms
+            </a>
+          </p>
+        ) : null}
       </div>
-      {children}
+      <main>{children}</main>
     </div>
   );
 }
@@ -85,13 +159,24 @@ function BackButton({
 }
 
 function OnboardingWizard({ initialStep }: { initialStep: Step }) {
-  const [step, setStep] = useState<Step>(initialStep);
+  const onboardingAfterBackup = useStore((s) => s.onboardingAfterBackup);
+  const clearOnboardingAfterBackup = useStore((s) => s.clearOnboardingAfterBackup);
+  const [step, setStep] = useState<Step>(() => {
+    if (onboardingAfterBackup === "start") return "start";
+    if (onboardingAfterBackup === "join") return "join";
+    return initialStep;
+  });
+  const [progressBranch, setProgressBranch] = useState<ProgressBranch>("founder");
   const myKey = useStore((s) => s.myKey);
   const identities = useStore((s) => s.identities);
   const pendingInvite = useStore((s) => s.pendingInvite);
   const setPendingInvite = useStore((s) => s.setPendingInvite);
   const identityReady = myKey.length > 0;
   const hasStoredIdentity = identities.length > 0;
+
+  useEffect(() => {
+    if (onboardingAfterBackup) clearOnboardingAfterBackup();
+  }, [onboardingAfterBackup, clearOnboardingAfterBackup]);
 
   useEffect(() => {
     if (import.meta.env.DEV) {
@@ -117,17 +202,28 @@ function OnboardingWizard({ initialStep }: { initialStep: Step }) {
   }, [pendingInvite, identityReady, hasStoredIdentity, step]);
 
   const goToJoinAfterPaste = (invite: InvitePayload) => {
+    setProgressBranch("join");
     setPendingInvite(invite);
     setStep(identityReady || hasStoredIdentity ? "join" : "create");
   };
 
+  const showProgress =
+    step === "welcome" || step === "create" || step === "joinPaste" || step === "start";
+
   return (
-    <Shell>
+    <Shell showLegalLinks={step === "welcome"}>
+      {showProgress ? <OnboardingProgress branch={progressBranch} step={step} /> : null}
       {step === "welcome" && (
         <Welcome
-          onCreate={() => setStep("create")}
+          onCreate={() => {
+            setProgressBranch("founder");
+            setStep("create");
+          }}
           onRestore={() => setStep("restore")}
-          onJoinLink={() => setStep("joinPaste")}
+          onJoinLink={() => {
+            setProgressBranch("join");
+            setStep("joinPaste");
+          }}
           onLostDevice={() => setStep("lostDevice")}
         />
       )}
@@ -207,7 +303,6 @@ function Welcome({
 
   return (
     <Card>
-      <PwaInstallHint />
       <p className="muted" style={{ marginBottom: "var(--sp-4)" }}>
         AethelOS runs on your device. Your identity is a key only you hold — no accounts,
         no company in the middle. Start by creating or restoring an identity.
@@ -220,7 +315,7 @@ function Welcome({
           Restore from recovery phrase
         </Button>
         <Button block variant="ghost" onClick={onJoinLink}>
-          I have an invite link
+          Join with invite link
         </Button>
         <Button block variant="ghost" onClick={onLostDevice}>
           I lost my device
@@ -237,6 +332,7 @@ function Welcome({
           </a>
         ) : null}
       </div>
+      <PwaInstallHint />
     </Card>
   );
 }
@@ -266,14 +362,18 @@ function CreateIdentity({
           Next you'll join <strong>{invite.cell || "a community"}</strong>.
         </p>
       ) : null}
+      <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+        Back up your recovery phrase — we cannot reset lost keys.
+      </p>
       <Field
         label="Display name"
         placeholder="How others see you"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
+      <AgeTermsCheckbox checked={ageConfirmed} onChange={setAgeConfirmed} />
       <Field
-        label="Passphrase"
+        label="Device passphrase"
         type="password"
         hint="Encrypts your key on this device."
         error={pwError}
@@ -281,29 +381,15 @@ function CreateIdentity({
         onChange={(e) => setPw(e.target.value)}
       />
       <Field
-        label="Confirm passphrase"
+        label="Confirm device passphrase"
         type="password"
         error={matchError}
         value={pw2}
         onChange={(e) => setPw2(e.target.value)}
       />
-      <label
-        className="hint"
-        style={{ display: "flex", gap: "var(--sp-2)", marginTop: "var(--sp-3)" }}
-      >
-        <input
-          type="checkbox"
-          checked={ageConfirmed}
-          onChange={(e) => setAgeConfirmed(e.target.checked)}
-        />
-        I am at least 13 years old and agree to the{" "}
-        <a href={DOCS_TERMS} target="_blank" rel="noreferrer">
-          Terms of use
-        </a>
-        .
-      </label>
-      <div className="row" style={{ marginTop: "var(--sp-3)" }}>
+      <div className="stack" style={{ marginTop: "var(--sp-3)" }}>
         <Button
+          block
           disabled={!valid || busy}
           onClick={async () => {
             setBusy(true);
@@ -313,9 +399,7 @@ function CreateIdentity({
         >
           {busy ? "Creating identity…" : "Create identity"}
         </Button>
-        <Button variant="ghost" onClick={onBack}>
-          Back
-        </Button>
+        <BackButton onClick={onBack} />
       </div>
     </Card>
   );
@@ -327,23 +411,30 @@ function BackupScreen({ mnemonic }: { mnemonic: string }) {
   const toast = useStore((s) => s.toast);
   const [confirmed, setConfirmed] = useState(false);
   const words = mnemonic.split(" ");
+  const progressBranch: ProgressBranch = pendingInvite ? "join" : "founder";
 
   return (
     <Shell>
+      <OnboardingProgress branch={progressBranch} backup />
       <Card title="Save your recovery phrase">
-        <div className="alert warning">
+        <div className="alert warning" role="alert">
           These 12 words restore your <strong>identity only</strong> — not your community
           membership. To get back into a community you also need an invite link or an
           event log export from another device. Write them down safely. Never share them.
         </div>
-        <div className="recovery-grid">
-          {words.map((w, i) => (
-            <div className="recovery-word" key={i}>
-              <span className="idx">{i + 1}</span>
-              <span>{w}</span>
-            </div>
-          ))}
+        <div role="region" aria-label="Recovery phrase">
+          <ol className="recovery-grid">
+            {words.map((w, i) => (
+              <li className="recovery-word" key={i}>
+                <span className="idx">{i + 1}</span>
+                <span>{w}</span>
+              </li>
+            ))}
+          </ol>
         </div>
+        <p className="hint" style={{ marginTop: "var(--sp-2)" }}>
+          Prefer writing on paper; clipboard may be visible to other apps.
+        </p>
         <div className="row">
           <Button
             variant="secondary"
@@ -356,16 +447,15 @@ function BackupScreen({ mnemonic }: { mnemonic: string }) {
             Copy
           </Button>
         </div>
-        <p className="hint" style={{ marginTop: "var(--sp-2)" }}>
-          Prefer writing on paper; clipboard may be visible to other apps.
-        </p>
         <label className="row" style={{ margin: "var(--sp-4) 0", cursor: "pointer" }}>
           <input
             type="checkbox"
             checked={confirmed}
             onChange={(e) => setConfirmed(e.target.checked)}
           />
-          <span className="muted">I have safely saved my recovery phrase.</span>
+          <span className="muted">
+            I have written down my recovery phrase and stored it safely.
+          </span>
         </label>
         <Button block disabled={!confirmed} onClick={() => void confirmBackup()}>
           {pendingInvite ? "Continue to join" : "Continue"}
@@ -377,12 +467,15 @@ function BackupScreen({ mnemonic }: { mnemonic: string }) {
 
 function RestoreIdentity({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
   const restore = useStore((s) => s.restoreIdentity);
+  const phraseId = useId();
   const [phrase, setPhrase] = useState("");
   const [name, setName] = useState("");
   const [pw, setPw] = useState("");
   const [busy, setBusy] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const phraseValid = phrase.trim().split(/\s+/).length >= 12 && isValidMnemonic(phrase);
-  const valid = phraseValid && name.trim() && pw.length >= 8;
+  const phraseError = phrase && !phraseValid ? "Not a valid 12-word phrase" : "";
+  const valid = phraseValid && name.trim() && pw.length >= 8 && ageConfirmed;
 
   return (
     <Card title="Restore identity">
@@ -392,17 +485,21 @@ function RestoreIdentity({ onDone, onBack }: { onDone: () => void; onBack: () =>
         log backup.
       </p>
       <div className="field">
-        <label htmlFor="phrase">Recovery phrase</label>
+        <label htmlFor={phraseId}>Recovery phrase</label>
         <textarea
-          id="phrase"
-          className="textarea"
+          id={phraseId}
+          className={`textarea${phraseError ? " invalid" : ""}`}
           rows={3}
           placeholder="Enter your 12-word recovery phrase"
           value={phrase}
+          aria-invalid={phraseError ? true : undefined}
+          aria-describedby={phraseError ? `${phraseId}-desc` : undefined}
           onChange={(e) => setPhrase(e.target.value)}
         />
-        {phrase && !phraseValid ? (
-          <span className="error-text">Not a valid 12-word phrase</span>
+        {phraseError ? (
+          <span id={`${phraseId}-desc`} className="error-text" role="alert">
+            {phraseError}
+          </span>
         ) : null}
       </div>
       <Field
@@ -410,14 +507,16 @@ function RestoreIdentity({ onDone, onBack }: { onDone: () => void; onBack: () =>
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
+      <AgeTermsCheckbox checked={ageConfirmed} onChange={setAgeConfirmed} />
       <Field
         label="New passphrase (this device)"
         type="password"
         value={pw}
         onChange={(e) => setPw(e.target.value)}
       />
-      <div className="row" style={{ marginTop: "var(--sp-3)" }}>
+      <div className="stack" style={{ marginTop: "var(--sp-3)" }}>
         <Button
+          block
           disabled={!valid || busy}
           onClick={async () => {
             setBusy(true);
@@ -428,9 +527,7 @@ function RestoreIdentity({ onDone, onBack }: { onDone: () => void; onBack: () =>
         >
           Restore
         </Button>
-        <Button variant="ghost" onClick={onBack}>
-          Back
-        </Button>
+        <BackButton onClick={onBack} />
       </div>
     </Card>
   );
@@ -843,6 +940,7 @@ function ImportEventLog({ onBack }: { onBack: () => void }) {
   const toast = useStore((s) => s.toast);
   const myKey = useStore((s) => s.myKey);
   const session = useStore((s) => s.session);
+  const fileId = useId();
   const [busy, setBusy] = useState(false);
   const [pw, setPw] = useState("");
   const [imported, setImported] = useState(false);
@@ -882,8 +980,17 @@ function ImportEventLog({ onBack }: { onBack: () => void }) {
         Choose an event log JSON you exported from Data &amp; diagnostics (Identity tab)
         on a device that was still in the community.
       </p>
+      <label
+        htmlFor={fileId}
+        className="btn secondary block"
+        style={{ textAlign: "center" }}
+      >
+        Choose backup file
+      </label>
       <input
+        id={fileId}
         type="file"
+        className="sr-only"
         accept="application/json,.json"
         disabled={busy}
         onChange={(e) => {

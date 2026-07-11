@@ -19,13 +19,13 @@ Statuses: **Covered** (automated proof exists), **Partial** (happy path / subset
 | P2.5 | Integer conservation | All core suites, E2E conservation tests | Covered | `simulation.test.ts` fuzz |
 | P3.1 | Cell / Pool / Node model | E2E onboarding, genesis | Covered | — |
 | P3.2 | Expulsion → highest Pool escrow + slider prune | `core.test.ts` (expel slider prune), `governance-fixes.test.ts` (direct expel rejected) | Covered | Hop-by-hop escalation via bridge release when parent unknown |
-| P3.3 | Superstructure pools + population routing | `superstructure.test.ts` (population routing, `relay_cell_governance`), `federation.spec.ts`, `ux-philosophy.spec.ts` (`pilot-features.ts`) | Covered | Population self-reported via `relay_cell_governance` (see residuals) |
+| P3.3 | Linked chapters / superstructure pools | `federation.spec.ts`, `superstructure.test.ts` | Partial | Production builds ship federation off; E2E/unit proofs require `VITE_ENABLE_FEDERATION` (see [PRODUCT.md](./PRODUCT.md)). |
 | P3.4 | Bridge via proposal + dual-registered bridge | `superstructure.test.ts` (paired inbound), `client/tests/bridge-mirror.test.ts` | Covered | Unpaired linked inbound mint rejected |
 | P3.5 | Join conformity to parent parameters | `superstructure.test.ts` | Covered | — |
 | P3.6 | Leave superstructure (exit) | `superstructure.test.ts` / `federation.test.ts` | Covered | E2E: `federation.spec.ts` |
 | P4.1 | Stake-weighted voting | `governance-fixes.test.ts`, `governance-threshold.test.ts`, E2E `community-scale.spec.ts` (multi-member expel) | Covered | — |
 | P4.2 | Liquid vouch / Head election + recall | `head-election.test.ts` (sitting head retained, challenger install), `core.test.ts`, `community-scale.spec.ts` (head shift E2E); UI threshold in `GovernanceView` | Covered | Sitting Head retained below threshold by design |
-| P4.3 | Governance sliders (share-weighted) | `governance-progressive.spec.ts`, E2E `community-scale.spec.ts`, `resolve-governance-parameter.test.ts` | Covered | Cell-level stake-weighted blend, frozen exclusion, default fallback |
+| P4.3 | Governance sliders (share-weighted) | `ux-philosophy.spec.ts`, E2E `community-scale.spec.ts`, `resolve-governance-parameter.test.ts` | Covered | Cell-level stake-weighted blend, frozen exclusion, default fallback |
 | P4.4 | Superstructure slider relay | `superstructure.test.ts` (relay_cell_governance) | Covered | E2E governance relay |
 | P4.5 | Head close; any member may initiate join/leave | `adversarial.test.ts` (Charter B close); `governance-fixes.test.ts` (non-head join create + execute); client ungated Wave 2 | Covered | Close remains Head-only |
 | P5.1 | Sovereignty — no fiat appropriation | `adversarial.test.ts` (R2 decay, Charter C fiat expel/unfreeze) | Covered | Explicit rejection test in core |
@@ -38,7 +38,7 @@ See [TESTING_RELEASE.md](./TESTING_RELEASE.md) for sign-off checklist and 90-min
 ## Known residuals (honest P0/P1 register)
 
 - **Relay censorship:** no gossip anti-censor protocol beyond multi-relay + community mailboxes (threat-model accepted).
-- **Deploy-path E2E:** CI runs localhost vite+relay (`e2e` job), `docker-founder` (2-service compose), and `docker-combined` (root single-container `Dockerfile`); share-URL specs are Windows/env-gated via `proof:product`.
+- **Deploy-path E2E:** CI runs localhost vite+relay (`e2e` job), `docker-founder` (compose publish + root `Dockerfile` combined smoke on one runner); share-URL specs are Windows/env-gated via `proof:product`.
 - **Empty bootstrap:** static PWA without same-origin `/ws` or mailbox must fail loudly (Onboarding + probe honesty).
 - **Same-origin health vs WebSocket:** `/healthz` proves relay HTTP liveness; it does not prove `/ws` upgrade path (accepted residual — CI smokes both separately).
 - **Population attestation:** self-reported child counts cross-checked in UI when federation reader disagrees; full cryptographic attestation out of scope.

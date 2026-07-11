@@ -5,7 +5,7 @@ import {
   getPublicKey,
   admitJoiner,
   waitForMemberCount,
-  submitCreateIdentityForm,
+  mobileFounderGenesis,
 } from "./helpers.js";
 
 const hostedUrl = process.env.AETHELOS_URL?.trim().replace(/\/$/, "");
@@ -31,22 +31,10 @@ test("mobile joiner completes admission on hosted stack", async ({ browser }) =>
   const founder = await founderCtx.newPage();
   const joiner = await joinerCtx.newPage();
 
-  await founder.goto("/");
-  await founder.getByRole("button", { name: "Create a new identity" }).click();
-  await founder.getByLabel("Display name").fill("Hosted Founder");
-  await founder.getByLabel("Passphrase", { exact: true }).fill("founder-pass-123");
-  await founder.getByLabel("Confirm passphrase").fill("founder-pass-123");
-  await submitCreateIdentityForm(founder);
-  await expect(founder.getByText("Save your recovery phrase")).toBeVisible({
-    timeout: 30_000,
-  });
-  await founder.getByRole("checkbox").check();
-  await founder.getByRole("button", { name: /Continue/ }).click();
-  await founder.getByRole("button", { name: "Start a new community" }).click();
-  await founder.getByLabel("Community name").fill("Hosted Mobile Cell");
-  await founder.getByRole("button", { name: "Create community" }).click();
-  await expect(founder.getByRole("button", { name: "Community" })).toBeVisible({
-    timeout: 90_000,
+  await mobileFounderGenesis(founder, {
+    displayName: "Hosted Founder",
+    communityName: "Hosted Mobile Cell",
+    communityTimeoutMs: 90_000,
   });
 
   const inviteLink = await buildInviteLink(founder);

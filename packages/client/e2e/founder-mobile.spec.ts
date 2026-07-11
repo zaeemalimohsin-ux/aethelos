@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { submitCreateIdentityForm } from "./helpers.js";
+import { mobileFounderGenesis } from "./helpers.js";
 
 /**
  * Phone-first founder path against the Docker stack (port 8080, same-origin /ws).
@@ -10,27 +10,11 @@ test.skip(
   "Requires AETHELOS_DOCKER=1 and docker compose on port 8080",
 );
 test("phone founder starts a community on docker stack", async ({ page }) => {
-  await page.goto("/");
-
-  await page.getByRole("button", { name: "Create a new identity" }).click();
-  await page.getByLabel("Display name").fill("Mobile Founder");
-  await page.getByLabel("Passphrase", { exact: true }).fill("founder-pass-123");
-  await page.getByLabel("Confirm passphrase").fill("founder-pass-123");
-  await submitCreateIdentityForm(page);
-
-  await expect(page.getByText("Save your recovery phrase")).toBeVisible({
-    timeout: 15_000,
+  await mobileFounderGenesis(page, {
+    displayName: "Mobile Founder",
+    communityName: "Phone Community",
   });
-  await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: /Continue/ }).click();
 
-  await page.getByRole("button", { name: "Start a new community" }).click();
-  await page.getByLabel("Community name").fill("Phone Community");
-  await page.getByRole("button", { name: "Create community" }).click();
-
-  await expect(page.getByRole("button", { name: "Community" })).toBeVisible({
-    timeout: 45_000,
-  });
   await expect(page.getByText("100.0%", { exact: true })).toBeVisible();
 
   const sameOriginWs = await page.evaluate(() => {

@@ -121,27 +121,8 @@ E2E: `recovery-relay-switch.spec.ts` (Charter D relay swap).
 
 `Build-Release.bat` / `pnpm release:desktop` is the **maintainer** build path, not the friend install story (use GitHub Releases).
 
-## Android emulator proof (Windows)
+Internal Android proof setup: [TESTING_RELEASE.md](./TESTING_RELEASE.md#tier-4-android-prerequisites-windows).
 
-Internal only — used by `pnpm proof:product` tier 4. Not user-facing.
-
-| Item | Detail |
-|------|--------|
-| AVD name | `AethelosProof` (Play Store system image) |
-| AVD home | Repo-local `.android-avd` (`ANDROID_AVD_HOME`) |
-| Script | `scripts/start-android-emulator.ps1` |
-| ADB keys | `ADBKEY` / `ADB_VENDOR_KEYS` from `%USERPROFILE%\.android\adbkey*` |
-| First boot | One-time `-wipe-data`; marker `.android-avd/.adb-initialized` skips later wipes |
-| Headless | `-no-window`, `-skip-adb-auth`; clears stale `*.lock` under the AVD dir |
-
-**Reset when stuck:** stop `emulator` / `qemu-system-x86_64*`, delete `.android-avd/.adb-initialized`, remove `*.lock` under the AVD folder, rerun proof.
-
-**Manual smoke:**
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-android-emulator.ps1
-pnpm android:smoke
-```
 
 ## Release verification
 

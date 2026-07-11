@@ -1,5 +1,5 @@
 /** Map reducer rejection reasons to plain-language toasts (production-safe subset). */
-import { isFederationEnabled } from "./pilot-features.js";
+import { isFederationEnabled } from "./federation-features.js";
 
 const USER_MESSAGES: Record<string, string> = {
   author_frozen:

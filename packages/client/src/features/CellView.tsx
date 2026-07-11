@@ -24,7 +24,7 @@ import {
   loadSubCellParentContext,
 } from "../app/subcell-context.js";
 import { CONCEPT } from "../app/concept-help.js";
-import { isFederationEnabled } from "../app/pilot-features.js";
+import { isFederationEnabled } from "../app/federation-features.js";
 import { HelpTip } from "../design/components/HelpTip.js";
 import { Disclosure } from "../design/components/Disclosure.js";
 import { Slider } from "../design/components/Slider.js";

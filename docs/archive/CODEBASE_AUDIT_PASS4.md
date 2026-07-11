@@ -1,6 +1,8 @@
+> **Superseded.** Current sign-off: [ENGINEERING_SIGNOFF.md](../ENGINEERING_SIGNOFF.md).
+
 # AethelOS Codebase Audit — Pass 4 (Fresh-Lens Verification)
 
-> **Supersedes operational sign-off in [Pass 3 (archive)](./archive/CODEBASE_AUDIT_PASS3.md).** Pass 4 uses orthogonal lenses: threat crosswalk, error contracts, storage drills, persona docs, a11y, release honesty.
+> **Supersedes operational sign-off in [Pass 3 (archive)](./CODEBASE_AUDIT_PASS3.md).** Pass 4 uses orthogonal lenses: threat crosswalk, error contracts, storage drills, persona docs, a11y, release honesty.
 
 **Date:** 2026-06-11  
 **Baseline commit:** Pass 3 at `31e0b05`  
@@ -19,7 +21,7 @@ Pass 4 verified **realistic user and operator failure modes** Pass 3 did not cov
 | Trust boundary | Status | Action |
 |----------------|--------|--------|
 | Signed invite payload | Covered (core + client tests) | — |
-| Invite shell URL (`VITE_INVITE_BASE_URL`) | Documented | Updated [`THREAT_MODEL.md`](./THREAT_MODEL.md) |
+| Invite shell URL (`VITE_INVITE_BASE_URL`) | Documented | Updated [`THREAT_MODEL.md`](../THREAT_MODEL.md) |
 | Ephemeral trycloudflare mailboxes | Documented | THREAT_MODEL |
 | Bridge/federation secondary sync | Documented | THREAT_MODEL |
 | Relay-only rate limits vs client outbox | Documented | THREAT_MODEL |
@@ -63,14 +65,14 @@ Pass 4 verified **realistic user and operator failure modes** Pass 3 did not cov
 
 ## Persona doc fixes (P1)
 
-Updated [`USER_GUIDE.md`](./USER_GUIDE.md):
+Updated [`USER_GUIDE.md`](../USER_GUIDE.md):
 
 - Join path with join code + vouch (not “tap Accept” immediately)
 - **Connection** tab naming (was “Relays”)
-- Desktop founder pointer to [GET_STARTED.md](./GET_STARTED.md)
+- Desktop founder pointer to [GET_STARTED.md](../GET_STARTED.md)
 - SW reload banner documented
 
-[`TESTING_RELEASE.md`](./TESTING_RELEASE.md): added Windows desktop proof checklist items.
+[`TESTING_RELEASE.md`](../TESTING_RELEASE.md): added Windows desktop proof checklist items.
 
 ---
 
@@ -140,4 +142,4 @@ Pass 4 **signs off** v0.1.x for honest failure messaging, threat-model alignment
 
 Pass 4 **does not sign off:** signed desktop releases, federation lay UX, full import causal validation, true fracture E2E, CI desktop proofs.
 
-See [PHILOSOPHY_TRACEABILITY.md](./PHILOSOPHY_TRACEABILITY.md) for philosophy automation matrix.
+See [PHILOSOPHY_TRACEABILITY.md](../PHILOSOPHY_TRACEABILITY.md) for philosophy automation matrix.

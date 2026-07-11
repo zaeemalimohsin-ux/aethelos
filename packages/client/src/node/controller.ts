@@ -25,7 +25,7 @@ import {
   relaySetsEqual,
   relayUrlsForInvite,
 } from "../app/active-relays.js";
-import { isFederationEnabled } from "../app/pilot-features.js";
+import { isFederationEnabled } from "../app/federation-features.js";
 import { BridgeMirrorCoordinator } from "./bridge-mirror.js";
 import { FederationReader, type LinkedPools } from "./federation-reader.js";
 

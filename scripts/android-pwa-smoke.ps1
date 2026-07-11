@@ -35,6 +35,7 @@ function Test-AndroidUiLoaded {
         "Unlock",
         "Share link",
         "Restore from recovery",
+        "Join with invite link",
         "I have an invite link",
         "Community"
     )

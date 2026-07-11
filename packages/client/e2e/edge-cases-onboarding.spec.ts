@@ -1,32 +1,69 @@
 import { test, expect } from "@playwright/test";
 import { OmniHarness } from "./harness.js";
-import { closeContexts, submitCreateIdentityForm } from "./helpers.js";
+import {
+  closeContexts,
+  submitCreateIdentityForm,
+  acceptAgeAndTerms,
+  ONBOARDING,
+} from "./helpers.js";
 
 test.describe("Onboarding & Authentication Edge Cases", () => {
+  test("age gate blocks create identity until accepted", async ({ browser }) => {
+    const peer = await OmniHarness.launchPeer(browser as any);
+    const page = peer.page;
+    try {
+      await page.getByRole("button", { name: ONBOARDING.createCta }).click();
+      await page.getByLabel("Display name").fill("Age Gate Tester");
+      await page
+        .getByLabel(ONBOARDING.devicePassphrase, { exact: true })
+        .fill("supersecret123");
+      await page.getByLabel(ONBOARDING.confirmDevicePassphrase).fill("supersecret123");
+      await expect(
+        page.getByRole("button", { name: ONBOARDING.createIdentityBtn }),
+      ).toBeDisabled();
+      await acceptAgeAndTerms(page);
+      await expect(
+        page.getByRole("button", { name: ONBOARDING.createIdentityBtn }),
+      ).toBeEnabled();
+    } finally {
+      await peer.close();
+    }
+  });
+
   test("passphrase validation (non-matching, empty, short)", async ({ browser }) => {
     const peer = await OmniHarness.launchPeer(browser as any);
     const page = peer.page;
     try {
-      await expect(page.getByText("Create a new identity")).toBeVisible();
-      await page.getByRole("button", { name: "Create a new identity" }).click();
+      await expect(page.getByText(ONBOARDING.createCta)).toBeVisible();
+      await page.getByRole("button", { name: ONBOARDING.createCta }).click();
 
       await page.getByLabel("Display name").first().fill("Edge Case Tester");
 
-      // Test 1: Empty passphrase
-      await expect(page.getByRole("button", { name: "Create identity" })).toBeDisabled();
+      await expect(
+        page.getByRole("button", { name: ONBOARDING.createIdentityBtn }),
+      ).toBeDisabled();
 
-      // Test 2: Non-matching passphrases
-      await page.getByLabel("Passphrase", { exact: true }).first().fill("secret123");
-      await page.getByLabel("Confirm passphrase").first().fill("secret456");
-      await expect(page.getByRole("button", { name: "Create identity" })).toBeDisabled();
+      await page
+        .getByLabel(ONBOARDING.devicePassphrase, { exact: true })
+        .first()
+        .fill("secret123");
+      await page.getByLabel(ONBOARDING.confirmDevicePassphrase).first().fill("secret456");
+      await expect(
+        page.getByRole("button", { name: ONBOARDING.createIdentityBtn }),
+      ).toBeDisabled();
       await expect(page.getByText("Passphrases do not match")).toBeVisible();
 
-      // Success case to move on
-      await page.getByLabel("Passphrase", { exact: true }).first().fill("supersecret123");
-      await page.getByLabel("Confirm passphrase").first().fill("supersecret123");
+      await page
+        .getByLabel(ONBOARDING.devicePassphrase, { exact: true })
+        .first()
+        .fill("supersecret123");
+      await page
+        .getByLabel(ONBOARDING.confirmDevicePassphrase)
+        .first()
+        .fill("supersecret123");
       await submitCreateIdentityForm(page);
 
-      await expect(page.getByText("Save your recovery phrase")).toBeVisible({
+      await expect(page.getByText(ONBOARDING.saveRecoveryPhrase)).toBeVisible({
         timeout: 10_000,
       });
     } finally {
@@ -38,21 +75,24 @@ test.describe("Onboarding & Authentication Edge Cases", () => {
     const peer = await OmniHarness.launchPeer(browser as any);
     const page = peer.page;
     try {
-      await expect(page.getByText("Create a new identity")).toBeVisible();
-      await page.getByRole("button", { name: "Create a new identity" }).click();
+      await expect(page.getByText(ONBOARDING.createCta)).toBeVisible();
+      await page.getByRole("button", { name: ONBOARDING.createCta }).click();
       await page.getByLabel("Display name").first().fill("To Be Overwritten");
-      await page.getByLabel("Passphrase", { exact: true }).first().fill("supersecret123");
-      await page.getByLabel("Confirm passphrase").first().fill("supersecret123");
+      await page
+        .getByLabel(ONBOARDING.devicePassphrase, { exact: true })
+        .first()
+        .fill("supersecret123");
+      await page
+        .getByLabel(ONBOARDING.confirmDevicePassphrase)
+        .first()
+        .fill("supersecret123");
       await submitCreateIdentityForm(page);
 
-      // Back up screen
       await page.getByRole("checkbox").check();
       await page.getByRole("button", { name: /Continue/ }).click();
 
-      // Start a community so we enter the MainApp shell
-      await page.getByRole("button", { name: "Start a new community" }).click();
       await page.getByLabel("Community name").fill("Import Test Mesh");
-      await page.getByRole("button", { name: "Create community" }).click();
+      await page.getByRole("button", { name: ONBOARDING.createCommunityBtn }).click();
 
       // Wait for community view
       await expect(page.getByRole("button", { name: "Community" })).toBeVisible();
@@ -112,6 +152,26 @@ test.describe("Onboarding & Authentication Edge Cases", () => {
         .fill("apple banana cherry dog elephant frog grape hat ice juice kite");
       await expect(page.getByText(/Not a valid 12-word phrase/i)).toBeVisible();
       await expect(page.getByRole("button", { name: "Restore" })).toBeDisabled();
+    } finally {
+      await peer.close();
+    }
+  });
+
+  test("age gate blocks restore until accepted", async ({ browser }) => {
+    const peer = await OmniHarness.launchPeer(browser as any);
+    const page = peer.page;
+    try {
+      await page.getByRole("button", { name: "Restore from recovery phrase" }).click();
+      await page
+        .getByLabel("Recovery phrase")
+        .fill(
+          "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+        );
+      await page.getByLabel("Display name").fill("Restore Age Tester");
+      await page.getByLabel("New passphrase (this device)").fill("supersecret123");
+      await expect(page.getByRole("button", { name: "Restore" })).toBeDisabled();
+      await acceptAgeAndTerms(page);
+      await expect(page.getByRole("button", { name: "Restore" })).toBeEnabled();
     } finally {
       await peer.close();
     }
