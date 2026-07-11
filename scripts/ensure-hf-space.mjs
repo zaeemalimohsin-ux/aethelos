@@ -101,17 +101,21 @@ async function main() {
       if (!(await spaceExists(fallbackRepo))) {
         await createSpace(fallback);
       }
-      runtime = await getRuntime(fallbackRepo);
-      console.log(`Fallback runtime: ${JSON.stringify(runtime)}`);
-      chosen = fallbackRepo;
+      if (await spaceExists(fallbackRepo)) {
+        runtime = await getRuntime(fallbackRepo);
+        console.log(`Fallback runtime: ${JSON.stringify(runtime)}`);
+        chosen = fallbackRepo;
+      }
     }
   } catch (err) {
     console.warn(`Primary check failed: ${err.message}`);
     if (!(await spaceExists(fallbackRepo))) {
       await createSpace(fallback);
     }
-    runtime = await getRuntime(fallbackRepo);
-    chosen = fallbackRepo;
+    if (await spaceExists(fallbackRepo)) {
+      runtime = await getRuntime(fallbackRepo);
+      chosen = fallbackRepo;
+    }
   }
 
   const slug = chosen.replace("/", "-").toLowerCase();
