@@ -11,6 +11,19 @@ const appVersion = JSON.parse(
 ).version as string;
 const proofBuild = process.env.AETHELOS_PROOF_BUILD === "1";
 
+const relayProxy = {
+  "/healthz": {
+    target: "http://127.0.0.1:8787",
+    changeOrigin: true,
+  },
+  "/ws": {
+    target: "ws://127.0.0.1:8787",
+    ws: true,
+    changeOrigin: true,
+    rewrite: () => "/",
+  },
+};
+
 export default defineConfig({
   root: ".",
   publicDir: "public",
@@ -29,14 +42,14 @@ export default defineConfig({
     host: "127.0.0.1",
     // Cloudflare quick tunnels send a non-local Host header; allow them in dev.
     allowedHosts: true,
-    proxy: {
-      "/ws": {
-        target: "ws://127.0.0.1:8787",
-        ws: true,
-        changeOrigin: true,
-        rewrite: () => "/",
-      },
-    },
+    proxy: relayProxy,
+  },
+  preview: {
+    port: 8080,
+    strictPort: true,
+    host: "127.0.0.1",
+    allowedHosts: true,
+    proxy: relayProxy,
   },
   plugins: [
     {
