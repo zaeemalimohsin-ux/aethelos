@@ -2,7 +2,7 @@
 
 Single entry point for distribution readiness and audit residuals. Supersedes [Pass 4 audit](./archive/CODEBASE_AUDIT_PASS4.md) and [Distribution scorecard](./archive/DISTRIBUTION_SCORECARD.md) for day-to-day sign-off.
 
-**Last updated:** 2026-07-11 (v0.2.1 ship; CI green except operator-hosting Prettier fix pending push)
+**Last updated:** 2026-07-11 (v0.2.1 ship; CI fix pushed in `27d19df`)
 
 ---
 
@@ -11,7 +11,7 @@ Single entry point for distribution readiness and audit residuals. Supersedes [P
 | Pillar | Ready? | Notes |
 |--------|--------|-------|
 | Windows installer | **Yes** | [v0.2.1](https://github.com/zaeemalimohsin-ux/aethelos/releases/tag/v0.2.1) live |
-| Merge CI (tiers 1–3) | **Fixing** | Prettier on `operator-hosting.mjs` — commit pending |
+| Merge CI (tiers 1–3) | **Green** (after `27d19df`) | Prettier fix on `operator-hosting.mjs` |
 | Product proof (local) | **Yes** | `pnpm proof:product -SkipAndroid` passed |
 | Canonical browser URL | **No** | `app.aethelos.org` NXDOMAIN; `aethelos.fly.dev` not deployed; HF Space PAUSED |
 | Interim public demo | **Yes** | Local gateway + trycloudflare tunnel (ephemeral; not canonical) |
