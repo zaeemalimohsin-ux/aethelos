@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { PASSWORD, getPublicKey, startCommunity, submitCreateIdentityForm } from "./helpers.js";
+import {
+  PASSWORD,
+  getPublicKey,
+  startCommunity,
+  submitCreateIdentityForm,
+} from "./helpers.js";
 
 test.describe("recovery phrase round-trip", () => {
   test("restore from scraped phrase yields the same public key", async ({ browser }) => {
