@@ -30,6 +30,7 @@
     "release:desktop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1",
     "verify:release": "node scripts/verify-release.mjs",
     "charter-a-preflight": "node scripts/charter-a-preflight.mjs",
+    "operator:hosting": "node scripts/operator-hosting.mjs",
     "check:user-docs": "node scripts/check-user-docs.mjs",
     "typecheck": "pnpm -r typecheck"
   },
