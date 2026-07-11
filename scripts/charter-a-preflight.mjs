@@ -21,6 +21,8 @@ function isRetryableNetworkError(err) {
   if (err.name === "AbortError") return true;
   const msg = err.message.toLowerCase();
   if (msg.includes("timeout")) return true;
+  if (msg.includes("still preparing")) return true;
+  if (msg.includes("not valid json")) return true;
   if (err instanceof TypeError && msg.includes("fetch")) return true;
   const cause = err.cause;
   if (cause instanceof Error) {
@@ -59,6 +61,10 @@ async function withNetworkRetry(label, fn) {
 async function fetchHealth() {
   const res = await fetch(healthUrl, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) throw new Error(`healthz HTTP ${res.status}`);
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("json")) {
+    throw new TypeError("Space still preparing (non-JSON healthz response)");
+  }
   const body = await res.json();
   if (body?.status !== "ok")
     throw new Error(`healthz unexpected body: ${JSON.stringify(body)}`);

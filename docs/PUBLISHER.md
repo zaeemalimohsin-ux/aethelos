@@ -81,7 +81,7 @@ Optional public demo — **not** the canonical publisher path. Use `docker compo
 
 1. Root [`Dockerfile`](../Dockerfile) builds PWA + relay in one container (same-origin `/ws`).
 2. Hugging Face injects `PORT=7860` at runtime; Render and other hosts use `PORT=10000` (see [`render.yaml`](../render.yaml)).
-3. [`deploy-hf.yml`](../.github/workflows/deploy-hf.yml) syncs to the Space **after green CI on `main`**, then runs post-deploy preflight on `app.aethelos.org`.
+3. [`deploy-hf.yml`](../.github/workflows/deploy-hf.yml) syncs to the Space **after green CI on `main`**, restarts the Space if paused, then polls preflight on `https://thegritz-aethelos.hf.space` (custom `app.aethelos.org` needs DNS — see [`deploy/Caddyfile.example`](../deploy/Caddyfile.example)).
 4. Space README front matter should set `app_port: 7860` (see root [`README.md`](../README.md)).
 
 For a permanent URL you control, prefer **Option A** (VPS + compose) or **Option B** (named Cloudflare Tunnel) below.

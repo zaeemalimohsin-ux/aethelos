@@ -18,6 +18,16 @@ jobs:
           fetch-depth: 1
           lfs: true
 
+      - name: Wake Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "Restarting Space (unpause / trigger rebuild)..."
+          curl -sf -X POST \
+            -H "Authorization: Bearer ${HF_TOKEN}" \
+            "https://huggingface.co/api/spaces/TheGritz/aethelos/restart"
+
       - name: Push trimmed artifact to Hugging Face
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -59,12 +69,12 @@ jobs:
           AETHELOS_URL: https://thegritz-aethelos.hf.space
         run: |
           set -euo pipefail
-          for i in $(seq 1 30); do
+          for i in $(seq 1 45); do
             if node scripts/charter-a-preflight.mjs; then
               echo "Space passed preflight after attempt $i"
               exit 0
             fi
-            echo "Waiting for Space build... ($i/30)"
+            echo "Waiting for Space build... ($i/45)"
             sleep 20
           done
           echo "Space did not pass preflight within ~10 minutes"
