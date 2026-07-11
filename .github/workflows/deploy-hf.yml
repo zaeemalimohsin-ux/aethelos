@@ -26,8 +26,9 @@ jobs:
           stage=$(node -e "const r=JSON.parse(process.argv[1]); process.stdout.write(r.stage||'');" "$runtime")
           err=$(node -e "const r=JSON.parse(process.argv[1]); process.stdout.write(r.errorMessage||'');" "$runtime")
           if [ "$stage" = "PAUSED" ]; then
-            echo "::error::HF Space is PAUSED (${err:-no detail}). Unpause in the Space settings or contact Hugging Face support if flagged abusive."
-            exit 1
+            echo "::warning::HF Space is PAUSED (${err:-no detail}). Unpause in the Space settings or contact Hugging Face support if flagged abusive."
+            echo "Skipping HF deploy until Space is unpaused."
+            exit 0
           fi
 
       - name: Wake Hugging Face Space

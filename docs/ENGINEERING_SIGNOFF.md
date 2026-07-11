@@ -75,9 +75,10 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 
 | Path | Status |
 |------|--------|
-| Windows installer (GitHub Releases) | **Ready** after 0.2.1 tag build |
-| Browser demo (pp.aethelos.org / HF Space) | **Blocked** — HF Space PAUSED (flagged abusive); operator must unpause |
+| Windows installer (GitHub Releases) | **Live** — [v0.2.1](https://github.com/zaeemalimohsin-ux/aethelos/releases/tag/v0.2.1) |
+| Browser demo (app.aethelos.org / HF Space) | **Blocked** — HF Space PAUSED (flagged abusive); operator must unpause |
 | Self-host / docker compose | Ready — see [PUBLISHER.md](./PUBLISHER.md) |
+
 ## Related
 
 - [PHILOSOPHY_TRACEABILITY.md](./PHILOSOPHY_TRACEABILITY.md) — philosophy automation matrix
