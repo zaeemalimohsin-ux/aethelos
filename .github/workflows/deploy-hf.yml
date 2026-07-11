@@ -25,11 +25,7 @@ jobs:
           echo "Space runtime: ${runtime}"
           stage=$(node -e "const r=JSON.parse(process.argv[1]); process.stdout.write(r.stage||'');" "$runtime")
           err=$(node -e "const r=JSON.parse(process.argv[1]); process.stdout.write(r.errorMessage||'');" "$runtime")
-          if [ "$stage" = "PAUSED" ]; then
-            echo "::warning::HF Space is PAUSED (${err:-no detail}). Unpause in the Space settings or contact Hugging Face support if flagged abusive."
-            echo "Skipping HF deploy until Space is unpaused."
-            exit 0
-          fi
+          echo "stage=${stage} error=${err:-none}"
 
       - name: Wake Hugging Face Space
         env:
@@ -50,6 +46,13 @@ jobs:
             if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
               echo "Warning: Space restart returned HTTP ${code}; continuing with git push"
             fi
+          fi
+          runtime=$(curl -sS "https://huggingface.co/api/spaces/TheGritz/aethelos/runtime")
+          echo "Space runtime after restart: ${runtime}"
+          stage=$(node -e "const r=JSON.parse(process.argv[1]); process.stdout.write(r.stage||'');" "$runtime")
+          err=$(node -e "const r=JSON.parse(process.argv[1]); process.stdout.write(r.errorMessage||'');" "$runtime")
+          if [ "$stage" = "PAUSED" ]; then
+            echo "::warning::HF Space still PAUSED after restart (${err:-no detail}). Will attempt git push; operator may need to unpause in HF settings."
           fi
 
       - name: Push trimmed artifact to Hugging Face
