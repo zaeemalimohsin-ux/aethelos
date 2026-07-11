@@ -21,6 +21,8 @@ playwright-report/
 .share-url
 .cloudflared.log
 scripts/.bin/
+scripts/.operator-browser-profile/
+scripts/.operator-screenshots/
 ci-*.txt
 proof-run-*.txt
 .android-avd/
