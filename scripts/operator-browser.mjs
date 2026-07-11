@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
  * Headed browser automation for operator flows (see screen, click, type).
- * Uses Playwright with a persistent profile so GitHub/Fly sessions survive runs.
+ * Prefers the real Edge profile (saved GitHub logins) on Windows.
  */
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+import { execSync } from "node:child_process";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require(
@@ -22,6 +23,36 @@ const screenshotDir = join(root, "scripts/.operator-screenshots");
 
 function log(...a) {
   console.log("[operator-browser]", ...a);
+}
+
+function closeEdgeIfNeeded() {
+  if (process.platform !== "win32") return;
+  try {
+    execSync("taskkill /IM msedge.exe /F", { stdio: "ignore" });
+    log("closed existing Edge processes so profile can load");
+  } catch {
+    /* none running */
+  }
+}
+
+function resolveProfile(options) {
+  if (options.profileDir) return { profileDir: options.profileDir, args: [] };
+  if (process.platform === "win32" && options.useSystemEdgeProfile !== false) {
+    const edgeData = join(
+      process.env.LOCALAPPDATA || "",
+      "Microsoft",
+      "Edge",
+      "User Data",
+    );
+    if (existsSync(edgeData)) {
+      closeEdgeIfNeeded();
+      return {
+        profileDir: edgeData,
+        args: ["--profile-directory=Default"],
+      };
+    }
+  }
+  return { profileDir: defaultProfile, args: [] };
 }
 
 async function snap(page, name) {
@@ -46,15 +77,9 @@ async function clickIfVisible(page, locator, label) {
   return false;
 }
 
-/**
- * Drive Fly CLI OAuth in a visible browser. User can type credentials when needed.
- */
 export async function flyAuthViaBrowser(authUrl, options = {}) {
-  const {
-    profileDir = defaultProfile,
-    timeoutMs = 600_000,
-    channel = "msedge",
-  } = options;
+  const { timeoutMs = 1_200_000, channel = "msedge" } = options;
+  const { profileDir, args } = resolveProfile(options);
 
   mkdirSync(profileDir, { recursive: true });
   log("Launching headed browser (channel:", channel + ")");
@@ -64,12 +89,15 @@ export async function flyAuthViaBrowser(authUrl, options = {}) {
   const context = await chromium.launchPersistentContext(profileDir, {
     channel,
     headless: false,
-    slowMo: 120,
+    slowMo: 80,
     viewport: { width: 1280, height: 900 },
     ignoreHTTPSErrors: true,
+    args,
   });
 
   const page = context.pages()[0] ?? (await context.newPage());
+  let lastUrl = "";
+  let pollCount = 0;
 
   try {
     await page.goto(authUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
@@ -84,13 +112,6 @@ export async function flyAuthViaBrowser(authUrl, options = {}) {
     await page.waitForTimeout(2000);
     await snap(page, "02-github-redirect");
 
-    // GitHub login form — operator can type in the visible window
-    const onGitHubLogin = page.url().includes("github.com/login");
-    if (onGitHubLogin) {
-      log("GitHub login visible — type credentials in the browser window if prompted");
-    }
-
-    // OAuth authorize button
     await clickIfVisible(
       page,
       page.getByRole("button", { name: /^authorize/i }),
@@ -100,7 +121,11 @@ export async function flyAuthViaBrowser(authUrl, options = {}) {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
       const url = page.url();
-      await snap(page, "poll");
+      pollCount += 1;
+      if (url !== lastUrl || pollCount % 10 === 0) {
+        await snap(page, `poll-${pollCount}`);
+        lastUrl = url;
+      }
 
       if (url.includes("fly.io") && !url.includes("sign-in") && !url.includes("/login")) {
         log("Fly OAuth redirect complete:", url);
@@ -115,13 +140,11 @@ export async function flyAuthViaBrowser(authUrl, options = {}) {
         break;
       }
 
-      // Retry authorize if it appears late
       await clickIfVisible(
         page,
         page.getByRole("button", { name: /^authorize/i }),
         "Authorize Fly (retry)",
       );
-
       await page.waitForTimeout(3000);
     }
 
