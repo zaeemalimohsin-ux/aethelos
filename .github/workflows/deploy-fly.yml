@@ -1,0 +1,40 @@
+name: Deploy to Fly.io
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - fly.toml
+      - deploy/**
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy app
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          if [ -z "${FLY_API_TOKEN:-}" ]; then
+            echo "FLY_API_TOKEN not set; skipping Fly deploy"
+            exit 0
+          fi
+          flyctl deploy --remote-only --ha=false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Preflight Fly URL
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          AETHELOS_URL: https://aethelos.fly.dev
+        run: |
+          if [ -z "${FLY_API_TOKEN:-}" ]; then exit 0; fi
+          for i in $(seq 1 30); do
+            node scripts/charter-a-preflight.mjs && exit 0
+            sleep 20
+          done
+          exit 1

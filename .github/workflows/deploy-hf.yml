@@ -60,6 +60,9 @@ jobs:
             --exclude 'docs' \
             --exclude 'scripts' \
             --exclude 'website' \
+            --exclude 'CHANGELOG.md' \
+            --exclude 'RELEASE-NOTES.md' \
+            --exclude 'Higher-Level-Philosophy.md' \
             --exclude 'dist' \
             --exclude 'packages/.temp' \
             --exclude 'packages/client/android' \
@@ -82,6 +85,7 @@ jobs:
             --exclude 'release-build*.log' \
             --exclude 'cargo-release-quick.log' \
             . ../deploy_tmp/
+          cp deploy/README.hf.md ../deploy_tmp/README.md
           cd ../deploy_tmp
 
           git init
