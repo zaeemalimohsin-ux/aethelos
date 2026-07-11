@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { generateKeyPair } from "@aethelos/core";
 import { encodeInvite, signInvitePayload } from "../src/app/invite.js";
+import { submitCreateIdentityForm } from "./helpers.js";
 
 test("join a community after identity, not on welcome screen", async ({ page }) => {
   await page.goto("/");
@@ -12,7 +13,7 @@ test("join a community after identity, not on welcome screen", async ({ page }) 
   await page.getByLabel("Display name").fill("Join Tester");
   await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
   await page.getByLabel("Confirm passphrase").fill("supersecret123");
-  await page.getByRole("button", { name: "Create identity" }).click();
+  await submitCreateIdentityForm(page);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: /Continue/ }).click();
 
@@ -42,7 +43,7 @@ test("persists pasted invite in URL across refresh", async ({ page }) => {
   await page.getByLabel("Display name").fill("Refresh Tester");
   await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
   await page.getByLabel("Confirm passphrase").fill("supersecret123");
-  await page.getByRole("button", { name: "Create identity" }).click();
+  await submitCreateIdentityForm(page);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: /Continue/ }).click();
 
@@ -75,7 +76,7 @@ test("unlock stored identity after refresh with invite hash", async ({ page }) =
   await page.getByLabel("Display name").fill("Unlock Join Tester");
   await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
   await page.getByLabel("Confirm passphrase").fill("supersecret123");
-  await page.getByRole("button", { name: "Create identity" }).click();
+  await submitCreateIdentityForm(page);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: /Continue/ }).click();
 
@@ -107,7 +108,7 @@ test("rejects join when all invite relays are unreachable", async ({ page }) => 
   await page.getByLabel("Display name").fill("Probe Tester");
   await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
   await page.getByLabel("Confirm passphrase").fill("supersecret123");
-  await page.getByRole("button", { name: "Create identity" }).click();
+  await submitCreateIdentityForm(page);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: /Continue/ }).click();
 

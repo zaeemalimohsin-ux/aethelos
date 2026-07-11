@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { PASSWORD, getPublicKey, startCommunity } from "./helpers.js";
+import { PASSWORD, getPublicKey, startCommunity, submitCreateIdentityForm } from "./helpers.js";
 
 test.describe("recovery phrase round-trip", () => {
   test("restore from scraped phrase yields the same public key", async ({ browser }) => {
@@ -11,7 +11,7 @@ test.describe("recovery phrase round-trip", () => {
     await page1.getByLabel("Display name").fill("Round Trip");
     await page1.getByLabel("Passphrase", { exact: true }).fill(PASSWORD);
     await page1.getByLabel("Confirm passphrase").fill(PASSWORD);
-    await page1.getByRole("button", { name: "Create identity" }).click();
+    await submitCreateIdentityForm(page1);
     await expect(page1.getByText("Save your recovery phrase")).toBeVisible({
       timeout: 10_000,
     });

@@ -5,6 +5,7 @@ import {
   getPublicKey,
   admitJoiner,
   waitForMemberCount,
+  submitCreateIdentityForm,
 } from "./helpers.js";
 
 test.skip(
@@ -31,7 +32,7 @@ test("mobile joiner completes admission on docker stack", async ({ browser }) =>
   await founder.getByLabel("Display name").fill("Docker Founder");
   await founder.getByLabel("Passphrase", { exact: true }).fill("founder-pass-123");
   await founder.getByLabel("Confirm passphrase").fill("founder-pass-123");
-  await founder.getByRole("button", { name: "Create identity" }).click();
+  await submitCreateIdentityForm(founder);
   await expect(founder.getByText("Save your recovery phrase")).toBeVisible({
     timeout: 15_000,
   });

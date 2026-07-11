@@ -99,6 +99,15 @@ export async function closeContexts(contexts: any[]): Promise<void> {
   );
 }
 
+export async function acceptAgeAndTerms(page: Page): Promise<void> {
+  await page.getByRole("checkbox", { name: /at least 13 years old/i }).check();
+}
+
+export async function submitCreateIdentityForm(page: Page): Promise<void> {
+  await acceptAgeAndTerms(page);
+  await page.getByRole("button", { name: "Create identity" }).click();
+}
+
 export async function createIdentity(
   page: Page,
   displayName: string,
@@ -112,8 +121,7 @@ export async function createIdentity(
   await page.getByLabel("Display name").fill(displayName);
   await page.getByLabel("Passphrase", { exact: true }).fill(PASSWORD);
   await page.getByLabel("Confirm passphrase").fill(PASSWORD);
-  await page.getByRole("checkbox", { name: /at least 13 years old/i }).check();
-  await page.getByRole("button", { name: "Create identity" }).click();
+  await submitCreateIdentityForm(page);
   await expect(page.getByText("Save your recovery phrase")).toBeVisible({
     timeout: 10_000,
   });

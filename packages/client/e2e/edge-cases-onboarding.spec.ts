@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { OmniHarness } from "./harness.js";
-import { closeContexts } from "./helpers.js";
+import { closeContexts, submitCreateIdentityForm } from "./helpers.js";
 
 test.describe("Onboarding & Authentication Edge Cases", () => {
   test("passphrase validation (non-matching, empty, short)", async ({ browser }) => {
@@ -24,7 +24,7 @@ test.describe("Onboarding & Authentication Edge Cases", () => {
       // Success case to move on
       await page.getByLabel("Passphrase", { exact: true }).first().fill("supersecret123");
       await page.getByLabel("Confirm passphrase").first().fill("supersecret123");
-      await page.getByRole("button", { name: "Create identity" }).click();
+      await submitCreateIdentityForm(page);
 
       await expect(page.getByText("Save your recovery phrase")).toBeVisible({
         timeout: 10_000,
@@ -43,7 +43,7 @@ test.describe("Onboarding & Authentication Edge Cases", () => {
       await page.getByLabel("Display name").first().fill("To Be Overwritten");
       await page.getByLabel("Passphrase", { exact: true }).first().fill("supersecret123");
       await page.getByLabel("Confirm passphrase").first().fill("supersecret123");
-      await page.getByRole("button", { name: "Create identity" }).click();
+      await submitCreateIdentityForm(page);
 
       // Back up screen
       await page.getByRole("checkbox").check();

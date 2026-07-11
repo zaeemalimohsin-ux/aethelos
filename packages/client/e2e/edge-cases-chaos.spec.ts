@@ -6,6 +6,7 @@ import {
   bridgeCreateProposal,
   bridgeTransfer,
   waitForPool,
+  submitCreateIdentityForm,
 } from "./helpers.js";
 
 test.describe("Chaos Engineering & Extreme Limits", () => {
@@ -117,7 +118,7 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
     await page.getByLabel("Display name").fill(massiveString);
     await page.getByLabel("Passphrase", { exact: true }).fill("password123");
     await page.getByLabel("Confirm passphrase").fill("password123");
-    await page.getByRole("button", { name: "Create identity" }).click();
+    await submitCreateIdentityForm(page);
 
     // Must not crash the tab
     await page.waitForTimeout(2000);
@@ -194,7 +195,7 @@ test.describe("Chaos Engineering & Extreme Limits", () => {
     await page.getByLabel("Display name").fill("XSS Tester");
     await page.getByLabel("Passphrase", { exact: true }).fill("password123");
     await page.getByLabel("Confirm passphrase").fill("password123");
-    await page.getByRole("button", { name: "Create identity" }).click();
+    await submitCreateIdentityForm(page);
     await expect(page.getByText("Save your recovery phrase")).toBeVisible({
       timeout: 10_000,
     });

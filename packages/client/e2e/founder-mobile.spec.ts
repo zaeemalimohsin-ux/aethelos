@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { submitCreateIdentityForm } from "./helpers.js";
 
 /**
  * Phone-first founder path against the Docker stack (port 8080, same-origin /ws).
@@ -15,7 +16,7 @@ test("phone founder starts a community on docker stack", async ({ page }) => {
   await page.getByLabel("Display name").fill("Mobile Founder");
   await page.getByLabel("Passphrase", { exact: true }).fill("founder-pass-123");
   await page.getByLabel("Confirm passphrase").fill("founder-pass-123");
-  await page.getByRole("button", { name: "Create identity" }).click();
+  await submitCreateIdentityForm(page);
 
   await expect(page.getByText("Save your recovery phrase")).toBeVisible({
     timeout: 15_000,

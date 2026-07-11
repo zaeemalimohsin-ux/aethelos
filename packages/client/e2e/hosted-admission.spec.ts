@@ -5,6 +5,7 @@ import {
   getPublicKey,
   admitJoiner,
   waitForMemberCount,
+  submitCreateIdentityForm,
 } from "./helpers.js";
 
 const hostedUrl = process.env.AETHELOS_URL?.trim().replace(/\/$/, "");
@@ -35,7 +36,7 @@ test("mobile joiner completes admission on hosted stack", async ({ browser }) =>
   await founder.getByLabel("Display name").fill("Hosted Founder");
   await founder.getByLabel("Passphrase", { exact: true }).fill("founder-pass-123");
   await founder.getByLabel("Confirm passphrase").fill("founder-pass-123");
-  await founder.getByRole("button", { name: "Create identity" }).click();
+  await submitCreateIdentityForm(founder);
   await expect(founder.getByText("Save your recovery phrase")).toBeVisible({
     timeout: 30_000,
   });

@@ -4,6 +4,7 @@ import {
   waitForAllConvergence,
   waitForMemberCount,
   closeContexts,
+  submitCreateIdentityForm,
 } from "./helpers.js";
 
 test.describe.configure({ timeout: 120_000 });
@@ -70,7 +71,7 @@ test.describe("UI Chaos Engineering", () => {
     await page.getByLabel("Display name").fill(massiveString);
     await page.getByLabel("Passphrase", { exact: true }).fill("password");
     await page.getByLabel("Confirm passphrase").fill("password");
-    await page.getByRole("button", { name: "Create identity" }).click();
+    await submitCreateIdentityForm(page);
 
     // It should either truncate, reject, or handle it without crashing the browser tab.
     // We wait 2 seconds.

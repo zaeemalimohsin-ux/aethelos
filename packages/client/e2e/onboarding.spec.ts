@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { submitCreateIdentityForm } from "./helpers.js";
 
 /**
  * End-to-end happy path through the real client stack: create an identity,
@@ -15,7 +16,7 @@ test("create identity and start a community", async ({ page }) => {
   await page.getByLabel("Display name").fill("E2E Tester");
   await page.getByLabel("Passphrase", { exact: true }).fill("supersecret123");
   await page.getByLabel("Confirm passphrase").fill("supersecret123");
-  await page.getByRole("button", { name: "Create identity" }).click();
+  await submitCreateIdentityForm(page);
 
   // Recovery phrase backup screen (PBKDF2 key derivation can take a few seconds).
   await expect(page.getByText("Save your recovery phrase")).toBeVisible({
