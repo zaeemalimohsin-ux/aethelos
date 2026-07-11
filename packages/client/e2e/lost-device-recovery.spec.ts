@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import {
   PASSWORD,
   ONBOARDING,
@@ -11,6 +11,69 @@ import {
 import { writeFileSync, unlinkSync, mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { DEFAULT_PARAMETERS, generateKeyPair, signEvent } from "@aethelos/core";
+
+const RESTORE_PHRASE =
+  "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+
+async function reachImportEventLog(page: Page): Promise<void> {
+  await page.goto("/");
+  await page.getByRole("button", { name: "I lost my device" }).click();
+  await page.getByRole("button", { name: "Continue with recovery phrase" }).click();
+  await page.getByLabel("Recovery phrase").fill(RESTORE_PHRASE);
+  await page.getByLabel("Display name").fill("Bad Import");
+  await page.getByLabel("New passphrase (this device)").fill(PASSWORD);
+  await acceptAgeAndTerms(page);
+  await page.getByRole("button", { name: "Restore" }).click();
+  await expect(page.getByText("Reconnect to your community")).toBeVisible({
+    timeout: 15_000,
+  });
+  await page.getByRole("button", { name: /event log export/i }).click();
+}
+
+function writeTempJson(name: string, contents: string): string {
+  const dir = mkdtempSync(join(tmpdir(), "aethelos-import-"));
+  const filePath = join(dir, name);
+  writeFileSync(filePath, contents, "utf8");
+  return filePath;
+}
+
+async function orphanOnlyLogJson(): Promise<string> {
+  const kp = await generateKeyPair();
+  const ns = "e2e-orphan-import";
+  const genesis = await signEvent(
+    {
+      namespaceId: ns,
+      prevHash: null,
+      lamport: 1,
+      author: kp.publicKeyHex,
+      timestamp: 1,
+      payload: {
+        type: "genesis",
+        cellName: "Orphan",
+        initialPoints: "100",
+        parameters: DEFAULT_PARAMETERS,
+      },
+    },
+    kp.privateKey,
+  );
+  const child = await signEvent(
+    {
+      namespaceId: ns,
+      prevHash: genesis.id,
+      lamport: 2,
+      author: kp.publicKeyHex,
+      timestamp: 2,
+      payload: {
+        type: "transaction",
+        to: kp.publicKeyHex,
+        amount: "1",
+      },
+    },
+    kp.privateKey,
+  );
+  return JSON.stringify([child]);
+}
 
 test.describe("lost device recovery UI", () => {
   test("imports event log through onboarding UI after phrase restore", async ({
@@ -70,30 +133,35 @@ test.describe("lost device recovery UI", () => {
   });
 
   test("shows error toast for invalid backup JSON", async ({ page }) => {
-    await page.goto("/");
-    await page.getByRole("button", { name: "I lost my device" }).click();
-    await page.getByRole("button", { name: "Continue with recovery phrase" }).click();
-    await page
-      .getByLabel("Recovery phrase")
-      .fill(
-        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
-      );
-    await page.getByLabel("Display name").fill("Bad Import");
-    await page.getByLabel("New passphrase (this device)").fill(PASSWORD);
-    await acceptAgeAndTerms(page);
-    await page.getByRole("button", { name: "Restore" }).click();
-    await expect(page.getByText("Reconnect to your community")).toBeVisible({
-      timeout: 15_000,
-    });
-    await page.getByRole("button", { name: /event log export/i }).click();
+    await reachImportEventLog(page);
 
-    const dir = mkdtempSync(join(tmpdir(), "aethelos-bad-"));
-    const badPath = join(dir, "bad.json");
-    writeFileSync(badPath, "not-json", "utf8");
+    const badPath = writeTempJson("bad.json", "not-json");
     await page.locator('input[type="file"]').setInputFiles(badPath);
     await expect(page.getByText("That file isn't valid JSON.")).toBeVisible({
       timeout: 10_000,
     });
     unlinkSync(badPath);
+  });
+
+  test("shows error toast for empty event log", async ({ page }) => {
+    await reachImportEventLog(page);
+
+    const emptyPath = writeTempJson("empty.json", "[]");
+    await page.locator('input[type="file"]').setInputFiles(emptyPath);
+    await expect(page.getByText("No community events found in that file.")).toBeVisible({
+      timeout: 10_000,
+    });
+    unlinkSync(emptyPath);
+  });
+
+  test("shows error toast for orphan event log", async ({ page }) => {
+    await reachImportEventLog(page);
+
+    const orphanPath = writeTempJson("orphan.json", await orphanOnlyLogJson());
+    await page.locator('input[type="file"]').setInputFiles(orphanPath);
+    await expect(
+      page.getByText("That backup is missing required history — try a newer export."),
+    ).toBeVisible({ timeout: 10_000 });
+    unlinkSync(orphanPath);
   });
 });

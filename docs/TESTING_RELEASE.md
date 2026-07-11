@@ -50,7 +50,7 @@ Empty operator bootstrap (`DEFAULT_BOOTSTRAP_RELAYS: []`) is intentional: genesi
 
 Before tagging a release candidate, confirm:
 
-- [ ] `pnpm verify:release` — full automated gate
+- [ ] `pnpm verify:release` — full automated gate (chromium + federation-off + federation-on tiers)
 - [ ] `pnpm typecheck` passes on all packages
 - [ ] `pnpm lint:eslint` and `pnpm format:check` pass
 - [ ] `pnpm --filter @aethelos/core build && pnpm test` — all core + relay + client unit tests green

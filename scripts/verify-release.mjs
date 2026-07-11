@@ -8,6 +8,9 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+// Hosted-URL env disables the local vite+relay webServer and breaks chromium E2E.
+delete process.env.AETHELOS_URL;
+
 function run(cmd) {
   console.log("\n>>", cmd);
   execSync(cmd, { cwd: root, stdio: "inherit" });
@@ -21,6 +24,8 @@ run("pnpm format:check");
 run("pnpm test");
 run("node scripts/check-user-docs.mjs");
 run("pnpm test:e2e");
+run("pnpm test:e2e:federation-off");
+run("pnpm test:e2e:federation-on");
 
 console.log("\n>> Deploy-path note: default E2E is localhost vite+relay.");
 console.log(

@@ -22,11 +22,11 @@ Single entry point for distribution readiness and audit residuals. Supersedes [P
 
 ## Executive summary (Pass 4)
 
-Pass 4 verified realistic user and operator failure modes. Several **P1 issues were fixed** (misleading vote math, silent reducer rejections, doc/UI lies, SW confirm(), modal focus, nginx headers, Tauri health-probe CSP). **Release pipeline and federation wizard UX** remain documented gaps — not hidden.
+Pass 4 verified realistic user and operator failure modes. Several **P1 issues were fixed** (misleading vote math, silent reducer rejections, doc/UI lies, SW confirm(), modal focus, nginx headers, Tauri health-probe CSP).
 
-**Signs off** v0.1.x+ for honest failure messaging, threat-model alignment on invite shell and relay limits, and non-dev doc accuracy.
+**Signs off** v0.2.2+ for honest failure messaging, federation-on production builds, P0 recovery/import paths (store + lost-device E2E), threat-model alignment on invite shell and relay limits, and non-dev doc accuracy.
 
-**Does not sign off:** signed desktop releases, federation lay UX, full import causal validation, true fracture E2E, CI desktop proofs (see proof tiers below).
+**Does not sign off:** signed desktop releases (Authenticode), canonical browser URL (`app.aethelos.org`), dual-fork import validation beyond causal chain, true fracture E2E, CI desktop proofs (see proof tiers below).
 
 Full Pass 4 detail: [archive/CODEBASE_AUDIT_PASS4.md](./archive/CODEBASE_AUDIT_PASS4.md).
 
@@ -45,7 +45,7 @@ Full Pass 4 detail: [archive/CODEBASE_AUDIT_PASS4.md](./archive/CODEBASE_AUDIT_P
 | Federation lay UX | **Addressed in v0.2.2** — federation on in production; at-cap linked-chapter E2E |
 | Expulsion fund-flow (no-parent path) | **Addressed** — `expel-fund-flow.test.ts` |
 | Superstructure guard rails | **Addressed** — `superstructure-guards.test.ts`, `legacy-events.test.ts` |
-| Lost-device recovery UI | **Addressed** — `lost-device-recovery.spec.ts`, `recovery-import.test.ts` store wrapper |
+| Lost-device recovery UI | **Addressed** — happy path + invalid/empty/orphan import toasts in `lost-device-recovery.spec.ts`; store wrapper in `recovery-import.test.ts` |
 
 ---
 
