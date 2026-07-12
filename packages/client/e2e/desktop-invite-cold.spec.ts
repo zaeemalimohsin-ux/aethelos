@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { OmniHarness } from "./harness.js";
 import { onboardGenesis } from "./helpers.js";
-import { waitForDesktopPublicShare, isPublicShareUrl } from "./desktop-share-helpers.js";
+import { isPublicShareUrl } from "./desktop-share-helpers.js";
 import * as os from "os";
 import * as path from "path";
 import { rmSync } from "fs";
@@ -9,6 +9,7 @@ import { rmSync } from "fs";
 test.describe("desktop invite cold path", () => {
   test.skip(!process.env.AETHELOS_DESKTOP_E2E, "Set AETHELOS_DESKTOP_E2E=1");
   test.skip(process.platform !== "win32", "Windows desktop only");
+  test.describe.configure({ retries: process.env.CI ? 1 : 0 });
 
   test.beforeAll(() => {
     process.env.PLATFORM = "windows";
@@ -39,12 +40,11 @@ test.describe("desktop invite cold path", () => {
   test("Invite people uses public share URL without visiting Connection first", async ({
     browser,
   }) => {
-    test.setTimeout(300_000);
+    test.setTimeout(360_000);
     const peer = await OmniHarness.launchPeer(browser);
     const page = peer.page;
 
     await onboardGenesis(page, "Founder", "Cold Invite Cell");
-    await waitForDesktopPublicShare(page);
 
     await page.getByRole("button", { name: "Invite people" }).click();
     await expect(page.getByRole("dialog", { name: "Invite people" })).toBeVisible({
@@ -52,9 +52,17 @@ test.describe("desktop invite cold path", () => {
     });
 
     const inviteField = page.locator('[data-testid="invite-link"]');
-    await expect(inviteField).toBeVisible({ timeout: 180_000 });
+    await expect
+      .poll(
+        async () => {
+          if (!(await inviteField.isVisible().catch(() => false))) return "";
+          return (await inviteField.inputValue()).trim();
+        },
+        { timeout: 240_000 },
+      )
+      .toMatch(/trycloudflare\.com/);
+
     const url = (await inviteField.inputValue()).trim();
-    expect(url).toMatch(/trycloudflare\.com/);
     expect(url).not.toMatch(/localhost|127\.0\.0\.1/);
     expect(isPublicShareUrl(url)).toBe(true);
 

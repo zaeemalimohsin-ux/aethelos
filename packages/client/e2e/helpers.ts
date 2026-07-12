@@ -181,7 +181,12 @@ export async function onboardGenesis(
   cellName: string,
 ): Promise<void> {
   if (page.url() === "about:blank") {
-    await page.goto(process.env.BASE_URL || "http://localhost:5173");
+    const inDesktop = await page
+      .evaluate(() => "__TAURI_INTERNALS__" in window)
+      .catch(() => false);
+    if (!inDesktop) {
+      await page.goto(process.env.BASE_URL || "http://localhost:5173");
+    }
   }
   await createIdentity(page, displayName);
   await startCommunity(page, cellName);

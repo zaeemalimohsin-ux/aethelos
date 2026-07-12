@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const dockerStack = process.env.AETHELOS_DOCKER === "1";
+const desktopColdE2e = process.env.AETHELOS_DESKTOP_E2E === "1";
 const shareUrlProof = Boolean(process.env.AETHELOS_SHARE_URL?.trim());
 const hostedUrl = process.env.AETHELOS_URL?.trim().replace(/\/$/, "");
 const shareUrlSpecs = /(?:founder|joiner)-share-url\.spec\.ts$/;
@@ -46,7 +47,7 @@ export default defineConfig({
     },
   ],
   webServer:
-    dockerStack || shareUrlProof || hostedUrl
+    dockerStack || desktopColdE2e || shareUrlProof || hostedUrl
       ? undefined
       : {
           command: "node ../../scripts/start-e2e-stack.mjs",

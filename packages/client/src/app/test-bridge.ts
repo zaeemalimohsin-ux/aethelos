@@ -139,6 +139,10 @@ export function installTestBridge(): void {
       await useStore.getState().setRelaySharing(on);
     },
 
+    async ensureDesktopShare() {
+      await useStore.getState().ensureDesktopShare();
+    },
+
     async getLocalNodeStatus() {
       const { localNodeStatus } = await import("./local-node.js");
       return localNodeStatus();

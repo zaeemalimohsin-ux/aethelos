@@ -20,6 +20,7 @@ declare global {
       } | null;
       disconnectSyncForTests: () => void;
       setRelaySharing: (on: boolean) => Promise<void>;
+      ensureDesktopShare: () => Promise<void>;
       getLocalNodeStatus: () => Promise<{
         localUrl: string;
         publicUrl?: string;

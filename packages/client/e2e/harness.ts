@@ -76,9 +76,12 @@ export class OmniHarness {
 
     const tauriTarget = path.resolve(process.cwd(), "../client-tauri/src-tauri/target");
     const releaseExe = path.join(tauriTarget, "release/aethelos-desktop.exe");
+    const releaseRelay = path.join(tauriTarget, "release/relay/server.cjs");
     const debugExe = path.join(tauriTarget, "debug/aethelos-desktop.exe");
     const preferRelease =
-      process.env.AETHELOS_DESKTOP_E2E === "1" && fs.existsSync(releaseExe);
+      process.env.AETHELOS_DESKTOP_E2E === "1" &&
+      fs.existsSync(releaseExe) &&
+      fs.existsSync(releaseRelay);
     const exePath = preferRelease ? releaseExe : debugExe;
     if (!fs.existsSync(exePath)) {
       throw new Error(
