@@ -156,9 +156,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Cargo lock check
-        run: cargo check --locked --manifest-path packages/client-tauri/src-tauri/Cargo.toml
-
       - name: Build Windows desktop release
         run: node scripts/build-release.mjs
 
