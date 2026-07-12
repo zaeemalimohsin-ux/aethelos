@@ -157,7 +157,7 @@ export function installTestBridge(): void {
       useStore.setState({ shareUrl: newHttpsUrl });
       const { writeShareUrlFile } = await import("./local-node.js");
       await writeShareUrlFile(newHttpsUrl);
-      await useStore.getState().ensureDesktopShare();
+      await useStore.getState().syncDesktopRelayContribution(newHttpsUrl);
     },
 
     decodeInviteFromLink(link: string) {

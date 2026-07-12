@@ -59,11 +59,17 @@ describe("ensureOnline", () => {
       publicUrl: "https://abc.trycloudflare.com",
       cloudflaredAvailable: true,
     });
+    waitForPublicTunnel.mockResolvedValue({
+      localUrl: "ws://127.0.0.1:8787",
+      publicUrl: "https://abc.trycloudflare.com",
+      cloudflaredAvailable: true,
+    });
 
     const { ensureOnline } = await import("../src/app/connectivity.js");
     const result = await ensureOnline({ desktopOnly: true });
 
     expect(startLocalNode).toHaveBeenCalled();
+    expect(waitForPublicTunnel).toHaveBeenCalledWith(120_000);
     expect(resolveRelaysForCommunity).not.toHaveBeenCalled();
     expect(result.ok).toBe(true);
     expect(result.relays).toEqual(["ws://127.0.0.1:8787"]);

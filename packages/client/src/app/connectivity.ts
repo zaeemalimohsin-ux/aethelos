@@ -27,7 +27,7 @@ export async function ensureOnline(options?: {
     const node = await startLocalNode();
     if (node?.localUrl) {
       relays = [node.localUrl];
-      const withTunnel = node.publicUrl ? node : await waitForPublicTunnel(120_000);
+      const withTunnel = await waitForPublicTunnel(120_000);
       publicUrl = withTunnel?.publicUrl;
       tunnelStatus = tunnelStatusFromLocalNode(
         true,
