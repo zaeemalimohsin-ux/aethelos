@@ -90,7 +90,7 @@ Re-run after tag CI on commit `66b63a0` (Cargo semver fix retagged `v0.2.6.1`). 
 | Agent | Verdict | Notes |
 |-------|---------|-------|
 | Security review | **SHIP** | Sidecar SHA-256 verify on fetch; `pnpm audit --audit-level high` on tag gate; no new attack surface in patch diff |
-| Product proof | **PENDING** | Weekly dispatch [29185344312](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29185344312); tag desktop proof follows release CI |
+| Product proof | **PASS** | Tag desktop proof + cold invite E2E green on [29186528258](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29186528258); weekly dispatch [29185344312](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29185344312) |
 | Tauri / desktop | **READY** | `cargo check --locked` + `tauri build -- --locked`; npm `0.2.6.1` / bundle `0.2.6` split documented in `check-version-sync.mjs` |
 | Governance | **ADEQUATE+** | P3.2 lists `expel-escrow-chain` + `event-log-fork-reducer`; dual-fork addressed; P3.2 partial on root-A receipt / federation-on E2E |
 | Supply chain | **ACCEPTABLE** | `sidecar-checksums.json` + verify scripts; tag audit + manifest gate; residual: skip-verify when sidecar cached locally |
