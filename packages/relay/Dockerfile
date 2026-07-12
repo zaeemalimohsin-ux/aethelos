@@ -10,6 +10,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/core/package.json packages/core/
 COPY packages/relay/package.json packages/relay/
 COPY packages/client/package.json packages/client/
+COPY packages/client-tauri/package.json packages/client-tauri/
 RUN pnpm install --frozen-lockfile --filter @aethelos/relay... --filter @aethelos/core...
 
 # Copy sources and build.

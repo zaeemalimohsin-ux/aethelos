@@ -12,6 +12,23 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ### Fixed
 
+## [0.2.6.3] - 2026-07-12
+
+### Added
+
+- **Tag gate** — `desktop-restart-relay.spec.ts` in `release-desktop-gate` (Windows tag CI).
+- **At-cap invite E2E** — federation-cap spec asserts disabled `Member limit reached` button at 50 members.
+
+### Changed
+
+- **Docker publish** — relay `pnpm deploy` output under `/app/relay-out`; `injectWorkspacePackages` for monorepo deploy.
+- **`ensureOnline`** — desktop public URL always resolved via `localNodeStatus()` (respects tunnel rotation / E2E override).
+
+### Fixed
+
+- **Stale relay in signed invites** — `revokeRelay` drops URLs from `sessionRelays` so rotated tunnels no longer appear in invite payloads.
+- **docker-founder CI** — combined and relay Dockerfiles deploy workspace dependencies correctly.
+
 ## [0.2.6.2] - 2026-07-12
 
 ### Added

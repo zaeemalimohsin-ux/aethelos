@@ -7,6 +7,7 @@ node_modules
 .github
 *.log
 packages/client-tauri
+!packages/client-tauri/package.json
 packages/client/node_modules
 packages/client/dist
 packages/client/test-results
