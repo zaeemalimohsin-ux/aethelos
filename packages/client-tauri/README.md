@@ -7,7 +7,8 @@ Rust toolchain.
 
 ## Why a desktop build at all?
 
-The PWA already runs on any browser, including mobile — that is the primary path.
+The **Windows installer** is the recommended path for founders (global invite links, on-device relay). The same client also runs in any browser for joiners and operators.
+
 The desktop shell adds:
 
 - On-device Event Log files and an always-available local node.
@@ -18,7 +19,7 @@ It introduces no new gatekeeper — it is distributed directly, not via an app s
 
 ## Quick install (Windows)
 
-1. **Everyday users:** download the Windows installer from [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (v0.2.5).
+1. **Everyday users:** download the Windows installer from [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) (v0.2.6).
 2. **Developers:** [`Start-AethelOS.bat`](../../Start-AethelOS.bat) at repo root.
 3. **Maintainers:** [`Build-Release.bat`](../../Build-Release.bat) to produce `dist/releases/*.exe`.
 
@@ -81,4 +82,4 @@ Artifacts land in `dist/releases/` (and `src-tauri/target/release/bundle/`).
 ## Signing
 
 Configure code-signing per platform (Authenticode on Windows, notarization on macOS) in
-your CI release workflow. Auto-update is not enabled in v0.1.x.
+your CI release workflow. Auto-update is not enabled in v0.2.6.

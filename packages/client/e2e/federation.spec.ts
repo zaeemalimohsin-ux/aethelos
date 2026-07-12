@@ -76,7 +76,11 @@ test.describe("federation seam", () => {
     expect(proposal.executed).toBe(false);
 
     await bridgeVoteProposal(pageChild, proposal.id, false);
-    await pageChild.waitForTimeout(1500);
+    await waitForPool(
+      pageChild,
+      (p) => p.proposals?.find((x) => x.id === proposal.id)?.executed === false,
+      15_000,
+    );
     const pool = await getPoolSummary(pageChild);
     expect(pool!.proposals!.find((p) => p.id === proposal.id)?.executed).toBe(false);
 
@@ -84,19 +88,17 @@ test.describe("federation seam", () => {
     await waitForPool(
       pageChild,
       (p) => {
-        const pr = p.proposals?.find((x) => x.kind === "bridge_transfer");
+        const pr = p.proposals?.find((x) => x.id === proposal.id);
         return pr?.executed === true;
       },
       60_000,
     );
 
     const childAfter = await getPoolSummary(pageChild);
-    const bridgeProposal = childAfter!.proposals!.find(
-      (p) => p.kind === "bridge_transfer",
-    );
+    const bridgeProposal = childAfter!.proposals!.find((p) => p.id === proposal.id);
     expect(bridgeProposal?.executed).toBe(true);
     const childEscrow = Number(childAfter!.superstructureEscrow?.[parentNs] ?? "0");
-    expect(childEscrow).toBeLessThan(100);
+    expect(childEscrow).toBe(75);
 
     await parentPeer.close();
     await childPeer.close();

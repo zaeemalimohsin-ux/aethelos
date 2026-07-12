@@ -197,7 +197,7 @@ describe("event log storage", () => {
       kp.privateKey,
     );
     const result = await importEventLog(JSON.stringify([g, forkA, forkB]), ns);
-    expect(result.imported).toBeGreaterThanOrEqual(2);
+    expect(result.imported).toBe(3);
     const loaded = await loadEvents(ns);
     expect(loaded.some((e) => e.id === forkA.id)).toBe(true);
     expect(loaded.some((e) => e.id === forkB.id)).toBe(true);

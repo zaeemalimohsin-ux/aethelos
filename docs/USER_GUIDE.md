@@ -66,4 +66,4 @@ memos. AethelOS is transparent by design. See [PRIVACY.md](./PRIVACY.md) for det
 
 **Diagnostics:** The app keeps a small local-only event buffer for troubleshooting. Nothing is sent to a server unless you export diagnostics from the Identity tab.
 
-**Build:** v0.2.5 — cite this when [reporting issues](./SUPPORT.md).
+**Build:** v0.2.6 — cite this when [reporting issues](./SUPPORT.md).

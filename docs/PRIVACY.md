@@ -7,7 +7,7 @@
 
 ## Hosted app (optional)
 
-The canonical URL `https://app.aethelos.org` is **not live** as of v0.2.5. The primary distribution path is the [Windows installer](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest): founders run the desktop app and share invite links globally (often via a temporary Cloudflare quick tunnel). When maintainers operate a hosted instance at `app.aethelos.org`, this notice applies to that instance as well.
+The canonical URL `https://app.aethelos.org` is **not live** as of v0.2.6. The primary distribution path is the [Windows installer](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest): founders run the desktop app and share invite links globally (often via a temporary Cloudflare quick tunnel). When maintainers operate a hosted instance at `app.aethelos.org`, this notice applies to that instance as well.
 
 Privacy questions: open a [GitHub issue](https://github.com/zaeemalimohsin-ux/aethelos/issues/new/choose) (label: privacy) or contact the address listed in the repository profile.
 

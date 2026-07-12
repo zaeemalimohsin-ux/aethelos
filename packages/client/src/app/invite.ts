@@ -14,6 +14,7 @@ import {
 } from "@aethelos/core";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
 import { isValidPublicShareUrl } from "./public-share-url.js";
+import { isDesktopApp } from "./local-node.js";
 
 export interface InvitePayload {
   v: 1;
@@ -106,6 +107,13 @@ export function resolveInviteLinkBase(options?: { publicShellUrl?: string }): st
 }
 
 export function buildInviteLink(payload: InvitePayload, linkBase?: string): string {
+  if (isDesktopApp()) {
+    const publicBase = linkBase?.trim();
+    if (!publicBase || !isValidPublicShareUrl(publicBase)) {
+      throw new Error("Public share URL required for desktop invite links");
+    }
+    return `${new URL(publicBase).origin}${HASH_PREFIX}${encodeInvite(payload)}`;
+  }
   const base =
     linkBase !== undefined
       ? resolveInviteLinkBase({ publicShellUrl: linkBase })

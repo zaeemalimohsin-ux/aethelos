@@ -115,8 +115,12 @@ export function installTestBridge(): void {
     },
 
     getConnectionStatus() {
-      const { relaySharing, tunnelStatus } = useStore.getState();
-      return { relaySharing, tunnelStatus };
+      const { relaySharing, tunnelStatus, shareUrl } = useStore.getState();
+      return { relaySharing, tunnelStatus, shareUrl };
+    },
+
+    getShareUrl() {
+      return useStore.getState().shareUrl;
     },
 
     getSyncStatus() {

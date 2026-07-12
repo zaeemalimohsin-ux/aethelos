@@ -16,7 +16,7 @@ AethelOS is open-source community software provided **"as is"** without warranty
 
 ## Age
 
-You must be **at least 13 years old** to create an identity and use the service.
+You must be **at least 13 years old** to create an identity and use the software.
 
 ## Not financial services
 

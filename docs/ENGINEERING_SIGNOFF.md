@@ -2,7 +2,7 @@
 
 Single entry point for distribution readiness and audit residuals. Supersedes [Pass 4 audit](./archive/CODEBASE_AUDIT_PASS4.md) and [Distribution scorecard](./archive/DISTRIBUTION_SCORECARD.md) for day-to-day sign-off.
 
-**Last updated:** 2026-07-12 (v0.2.5: desktop proof gate + shell hardening)
+**Last updated:** 2026-07-12 (v0.2.6: Windows EA — green desktop CI, invite fail-closed, doc alignment)
 
 ---
 
@@ -10,19 +10,19 @@ Single entry point for distribution readiness and audit residuals. Supersedes [P
 
 | Pillar | Ready? | Notes |
 |--------|--------|-------|
-| **Official Windows launch** | **Yes** | v0.2.5 — installer, auto share URL, signed invites, federation, tag E2E + desktop proof gates |
+| **Windows EA (software community)** | **Yes** | v0.2.6 — installer, public share URL, signed invites, federation, full tag CI chain |
 | Windows installer | **Yes** | [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) |
-| Global invite links (desktop) | **Yes** | Public share URL + signed invite links; joiners use any browser |
-| Merge + tag release CI | **Yes** | E2E tiers + bundle scans + Windows desktop proof; optional Authenticode when cert secrets set |
-| Hosted canonical URL | **Optional** | Desktop share path is primary; Fly/Render/HF for operators |
+| Global invite links (desktop) | **Yes** | Fail-closed public URL; no localhost invite fallback |
+| Merge + tag release CI | **Yes** | E2E tiers + bundle scans + desktop proof + cold invite E2E |
+| Hosted canonical URL | **Optional / not live** | `app.aethelos.org` down; desktop path is primary |
 
-**Overall:** **Ready for official global Windows distribution.**
+**Overall:** **Ready for Windows EA distribution** (not GA marketing until counsel review per TERMS).
 
 ## Executive summary (Pass 4)
 
 Pass 4 verified realistic user and operator failure modes. Several **P1 issues were fixed** (misleading vote math, silent reducer rejections, doc/UI lies, SW confirm(), modal focus, nginx headers, Tauri health-probe CSP).
 
-**Signs off** v0.2.5 for official global Windows distribution: signed invites, desktop public share URLs, federation, tag E2E + desktop proof gates, honest user docs.
+**Signs off** v0.2.6 for Windows EA: fail-closed invite links, green desktop CI path, federation, tag E2E + desktop proof gates, honest founder hosting docs.
 
 **Optional follow-ups (not launch blockers):** Authenticode cert in `WINDOWS_CERT_*` secrets, canonical `app.aethelos.org` DNS for operators who prefer a fixed browser entry.
 
@@ -54,7 +54,7 @@ Full Pass 4 detail: [archive/CODEBASE_AUDIT_PASS4.md](./archive/CODEBASE_AUDIT_P
 |-----------|-------|-------|
 | Desktop | 78 | Windows proof on tag; Tauri exit cleanup; Authenticode deferred |
 | Mobile / PWA | 73 | Share-url env-gated; Android optional in CI |
-| Web hosted | 78 | Nightly hosted-preflight on canonical URL |
+| Web hosted | 60 | `app.aethelos.org` not live; HF paused |
 | Security | 77 | Residuals documented |
 | P2P / sync | 84 | Tier 2c/2d + mesh tests |
 | Test / CI | 86 | Tiers 1–3 on merge; desktop proof on tag |
@@ -83,14 +83,28 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 
 **Product proof (2026-07-12, Windows, -SkipAndroid):** PASS — release exe → trycloudflare → share-url E2E.
 
+## v0.2.6 reassessment board (2026-07-12)
+
+| Agent | Verdict |
+|-------|---------|
+| Security review | **SHIP** |
+| Product proof | PASS (prior v0.2.5 local; v0.2.6 cold-path fix pending CI) |
+| Tauri / desktop | READY — fail-closed invites, harness cleanup |
+| Governance | ADEQUATE — dual-fork test tightened; expel-escrow unchanged |
+| Supply chain | ACCEPTABLE — esbuild lockfile ≤2 entries |
+| Legal / claims | EA-aligned — TERMS, GET_STARTED, PRODUCT caveats |
+| Bugbot | Pending rerun |
+| QA gate | Unit + federation-off PASS locally |
+| CI investigator | Pending tag `v0.2.6` run |
+
 ---
 
-## Ship status (v0.2.5)
+## Ship status (v0.2.6)
 
 | Path | Status |
 |------|--------|
-| **Official Windows launch** | **Ready** — v0.2.5 recommended for all founders worldwide |
-| Windows installer (GitHub Releases) | **v0.2.5** — federation on, signed chapter links, tag E2E + desktop proof before build |
+| **Windows EA** | **Ready** — v0.2.6 recommended for founders in software community release |
+| Windows installer (GitHub Releases) | **v0.2.6** — federation on, cold invite E2E on tag |
 | Merge CI (tiers 1–3) | **Green** — format:check + E2E tiers on every merge |
 | Tag release chain | **release-e2e-gate → release-desktop-gate → build-and-publish-windows** |
 | GHCR container publish | **Green** — `ghcr.io/zaeemalimohsin-ux/aethelos:latest` |

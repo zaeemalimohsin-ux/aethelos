@@ -6,7 +6,7 @@ Community ledger and governance on your devices. No bank, no platform operator h
 
 A local-first app for communities to hold value, make decisions together, and organise — with cryptographic identity and a shared, verifiable event log.
 
-**Founders:** [Download the Windows app](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest), start a community, and invite people from the Community tab. Invite links work globally — joiners open them in any browser.
+**Founders:** [Download the Windows app](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest), start a community, and invite people from the Community tab. Invite links work globally — joiners open them in any browser. Keep your PC on while hosting; your temporary public address may change after a restart.
 
 **Joiners:** Open the invite link someone sent you. No install required.
 

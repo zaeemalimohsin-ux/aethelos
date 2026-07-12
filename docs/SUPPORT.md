@@ -6,7 +6,7 @@
 
 ### What to include
 
-1. **App version** — Identity tab → App version (e.g. `0.2.5 / wire 1`)
+1. **App version** — Identity tab → App version (e.g. `0.2.6 / wire 1`)
 2. **Platform** — browser + OS, or Windows installer filename
 3. **Steps to reproduce** — what you did, what you expected, what happened
 4. **Screenshots** — if UI-related

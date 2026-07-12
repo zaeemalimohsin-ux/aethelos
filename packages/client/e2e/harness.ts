@@ -6,12 +6,9 @@ import {
   _android as android,
   devices,
 } from "@playwright/test";
-import { exec } from "child_process";
-import { promisify } from "util";
+import { spawn, ChildProcess } from "child_process";
 import * as path from "path";
 import * as fs from "fs";
-
-const execAsync = promisify(exec);
 
 export type Platform = "web" | "windows" | "android";
 
@@ -101,13 +98,31 @@ export class OmniHarness {
     }
 
     // Launch Tauri app with remote debugging port
-    const child = exec(`"${exePath}"`, {
+    const child: ChildProcess = spawn(exePath, [], {
       env: {
         ...process.env,
         WEBVIEW2_USER_DATA_FOLDER: userDataDir,
         WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port}`,
       },
+      detached: false,
+      stdio: "ignore",
     });
+
+    const killDesktop = async () => {
+      if (child.pid) {
+        try {
+          if (process.platform === "win32") {
+            spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
+              stdio: "ignore",
+            });
+          } else {
+            child.kill("SIGTERM");
+          }
+        } catch {
+          /* best effort */
+        }
+      }
+    };
 
     // Connect Playwright to the WebView2 instance with retries
     let browserContext;
@@ -143,7 +158,7 @@ export class OmniHarness {
       context,
       page,
       close: async () => {
-        child.kill();
+        await killDesktop();
         await browser.close();
       },
     };

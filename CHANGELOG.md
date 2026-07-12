@@ -12,6 +12,27 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ### Fixed
 
+## [0.2.6] - 2026-07-12
+
+### Added
+
+- **`start-e2e-stack.mjs`** — Playwright webServer waits for relay `8787/healthz` before E2E.
+- **`desktop-share-helpers.ts`** — shared `waitForDesktopPublicShare()` for cold-path desktop E2E.
+- **`event-log-fork-reducer.test.ts`** — dual-fork import policy (`imported === 3`).
+- **`check-esbuild-singleton.mjs`** — lockfile esbuild version guard (max 2 entries).
+- **Release `workflow_dispatch`** — manual rerun of tag release workflow.
+
+### Changed
+
+- **Desktop invite flow** — founders cannot generate localhost invite links; modal waits for public `shareUrl`.
+- **E2E hardening** — offline-outbox bridge-first assertions; federation escrow exact delta.
+- **EA docs** — Windows EA framing, founder hosting caveats, hosted URL honesty.
+
+### Fixed
+
+- **Desktop cold-path CI** — fail-closed invite links + port cleanup between proof and cold E2E.
+- **Harness** — `spawn` + process tree kill for Windows desktop peers.
+
 ## [0.2.5] - 2026-07-12
 
 ### Added

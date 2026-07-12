@@ -3,7 +3,7 @@
 **Open the app → start a community → invite people.**  
 **Or open an invite link someone sent you.**
 
-**Current release:** v0.2.5 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
+**Current release:** v0.2.6 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
 
 Communities scale by **linked chapters** (50 members per chapter); federation is enabled in standard production builds. See [PRODUCT.md](./PRODUCT.md) for responsibilities and limitations · [Privacy](./PRIVACY.md) · [Terms](./TERMS.md) · [Support](./SUPPORT.md)
 
@@ -19,6 +19,8 @@ Communities scale by **linked chapters** (50 members per chapter); federation is
 1. Install the [Windows app](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) — recommended for founders (desktop relay + global invite links).
 2. **Create a new identity** (confirm age + Terms) → save your recovery phrase → **Start a community**.
 3. On the **Community** tab, tap **Invite people** and send the link or QR to anyone, anywhere.
+
+Keep your PC on while others join. Your temporary public address may change when you restart the app.
 
 The app connects in the background. Operators can tune hosting under the **Connection** tab.
 

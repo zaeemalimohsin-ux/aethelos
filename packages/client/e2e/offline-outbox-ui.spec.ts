@@ -51,6 +51,15 @@ test.describe("offline outbox UI", () => {
     await onboardGenesis(page, "Offline Founder", "Offline Cell");
     await waitForSyncConnected(page);
     await page.evaluate(() => window.__aethelosTest?.disconnectSyncForTests?.());
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(
+            () => window.__aethelosTest?.getSyncStatus?.()?.overall ?? "online",
+          ),
+        { timeout: 10_000 },
+      )
+      .toBe("offline");
 
     await page.getByRole("button", { name: "Community" }).click();
     await page.getByLabel("Join code").fill("b".repeat(64));
@@ -87,6 +96,16 @@ test.describe("offline outbox UI", () => {
     await seedFullOutbox(page, namespaceId!);
     await page.reload({ waitUntil: "domcontentloaded" });
     await unlockIfNeeded(page);
+
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(
+            () => window.__aethelosTest?.getSyncStatus?.()?.outboxAtCap ?? false,
+          ),
+        { timeout: 30_000 },
+      )
+      .toBe(true);
 
     await expect(page.getByRole("button", { name: "Community" })).toBeVisible({
       timeout: 30_000,

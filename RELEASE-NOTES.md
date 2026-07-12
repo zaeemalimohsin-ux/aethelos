@@ -1,29 +1,29 @@
-# AethelOS v0.2.5 Release Notes
+# AethelOS v0.2.6 Release Notes
 
-Welcome to **AethelOS v0.2.5** — hardened Windows release for founding communities worldwide.
+Welcome to **AethelOS v0.2.6** — Windows EA release with green desktop CI and honest founder hosting guidance.
 
 ## Get started in 3 steps
 
 1. **Download** the Windows installer (`.exe` or `.msi`) below
 2. **Create identity** → **Start a community**
-3. **Invite people** from the Community tab — share the link or QR; joiners open it in any browser on phone or desktop
+3. **Invite people** from the Community tab — share the link or QR; joiners open it in any browser
 
-The desktop app starts your connection point automatically. Invite links use your public share URL so people anywhere can join.
+Your PC must stay on while others join. The public address may change after you restart the app.
 
-## What's new in v0.2.5
+## What's new in v0.2.6
 
-- **Desktop proof on every tag** — release CI runs Windows product proof before publishing installers
-- **Tauri exit cleanup** — quitting the app stops relay, app-server, and tunnel sidecars
-- **Faster cold start** — public share URL resolves in the background instead of blocking startup
-- **Proof script fixes** — automation matches current UI copy ("Get public address", "Public reach is ready")
-- **Governance tests** — multi-hop expulsion escrow chain coverage
-- **Docs/legal alignment** — TERMS, privacy, and sign-off updated for Windows-first distribution
+- **Green desktop CI** — cold-path invite E2E passes; invite links never fall back to localhost
+- **E2E stack health** — federation tiers wait for relay health before tests run
+- **Offline outbox hardening** — bridge-first sync assertions reduce flakes
+- **EA documentation** — aligned tunnel/hosting expectations across user and operator docs
+- **Release workflow** — `workflow_dispatch` for manual reruns; shipping bundle scan on publish job
 
-## v0.2.4 highlights (still included)
+## v0.2.5 highlights (still included)
 
-- Invite links wait for your public share URL before generating
-- Signed chapter links for federation
-- Full E2E gate on every release tag before the installer builds
+- Desktop proof on every tag
+- Tauri exit cleanup and tunnel hardening
+- Multi-hop expulsion escrow tests
+- Federation E2E escrow assertions
 
 ---
 

@@ -17,6 +17,7 @@ import { Field } from "../design/components/Field.js";
 import { Modal } from "../design/components/Modal.js";
 import { QRCode } from "../components/QRCode.js";
 import { buildInviteLink } from "../app/invite.js";
+import { isValidPublicShareUrl } from "../app/public-share-url.js";
 import { isDesktopApp } from "../app/local-node.js";
 import { shortKey, formatPts, isValidPublicKeyHex } from "../app/format.js";
 import {
@@ -472,6 +473,23 @@ function InviteCard({
     void (async () => {
       if (isDesktopApp()) {
         await ensureDesktopShare();
+        const deadline = Date.now() + 180_000;
+        while (Date.now() < deadline && !cancelled) {
+          const state = useStore.getState();
+          if (state.shareUrl && isValidPublicShareUrl(state.shareUrl)) break;
+          if (state.tunnelStatus === "failed") break;
+          if (!state.relaySharing) {
+            await useStore.getState().setRelaySharing(true);
+          }
+          await new Promise((r) => setTimeout(r, 2000));
+          await ensureDesktopShare();
+        }
+        if (cancelled) return;
+        const publicUrl = useStore.getState().shareUrl;
+        if (!publicUrl || !isValidPublicShareUrl(publicUrl)) {
+          setInviteSignError(true);
+          return;
+        }
       }
       if (cancelled) return;
       const relays = controller.getInviteRelayUrls();

@@ -2,8 +2,8 @@
   "name": "aethelos",
   "private": true,
   "type": "module",
-  "version": "0.2.5",
-  "description": "AethelOS — substrate of daily community life without external authority",
+  "version": "0.2.6",
+  "description": "AethelOS â€” substrate of daily community life without external authority",
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm -r test",

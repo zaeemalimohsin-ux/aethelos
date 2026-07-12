@@ -15,7 +15,9 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 | **3 — Publish path** | CI `docker-founder` → Playwright `founder-docker` | Same-origin `/ws` via nginx on port 8080 | Every merge |
 | **4 — Windows product proof** | `pnpm proof:product` | Desktop installer, live tunnel share URL, `share-url-mobile` Playwright | Release sign-off (Windows); **required on every tag** via `release-desktop-gate` |
 
-**GHA tier 4 (tag releases):** `release-desktop-gate` runs `proof-product.ps1 -SkipAndroid -SkipDevDesktop -SkipStaticGates` before the Windows installer job. Weekly `product-proof.yml` remains for full maintainer sign-off with static gates.
+**GHA tier 4 (tag releases):** `release-desktop-gate` runs `proof-product.ps1 -SkipAndroid -SkipDevDesktop -SkipStaticGates`, then `desktop-invite-cold.spec.ts` (`AETHELOS_DESKTOP_E2E=1`), before the Windows installer job. Weekly `product-proof.yml` remains for full maintainer sign-off with static gates.
+
+**Proof vs shipping binary:** Product proof may use `AETHELOS_PROOF_BUILD=1` (test bridge present). The publish job builds a shipping MSI without the test bridge and runs `scan-no-test-bridge` on bundled static assets.
 
 ### Tier 4 Android prerequisites (Windows)
 
@@ -38,7 +40,7 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 | `pnpm test:e2e --project=chromium` | Local vite + `dev:relay` product flows (federation on) | Local + CI `e2e` job |
 | `pnpm test:e2e:federation-off` | Vite dev, federation off (`VITE_E2E=1`, `VITE_ENABLE_FEDERATION=0`); includes `onboarding.spec.ts` and `edge-cases-onboarding.spec.ts` | Every merge (CI `e2e` job) |
 | `pnpm test:e2e:federation-on` | Vite dev, federation on (`VITE_E2E=1`, `VITE_ENABLE_FEDERATION=1`); same `testMatch` as federation-off — proves onboarding/philosophy copy under production flag | Every merge (CI `e2e` job, after federation-off) |
-| Nightly `hosted-preflight` | Canonical `https://app.aethelos.org` health + hosted admission E2E | `nightly-integration` workflow (sole nightly job) |
+| Nightly `hosted-preflight` | Canonical `https://app.aethelos.org` (optional — **not live** as of v0.2.6) | `nightly-integration` workflow |
 | Weekly `product-proof` | Full Windows `pnpm proof:product` | `.github/workflows/product-proof.yml` |
 | CI `docker-founder` | Same-origin `/ws` publish stack (nginx) + mobile founder/joiner admission | Ubuntu CI — **required** publish-path proof |
 | Playwright `share-url-mobile` | Live public tunnel URLs | Env-gated (`AETHELOS_SHARE_URL`); `proof:product` on Windows |

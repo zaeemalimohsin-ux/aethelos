@@ -6,7 +6,12 @@ declare global {
       getPoolSummary: () => PoolSummary | null;
       getMyKey: () => string;
       getNamespaceId: () => string | null;
-      getConnectionStatus: () => { relaySharing: boolean; tunnelStatus: string };
+      getConnectionStatus: () => {
+        relaySharing: boolean;
+        tunnelStatus: string;
+        shareUrl?: string | null;
+      };
+      getShareUrl: () => string | null;
       getSyncStatus: () => {
         overall: "online" | "connecting" | "offline";
         relays: { url: string; status: string }[];

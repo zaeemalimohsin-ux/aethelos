@@ -49,9 +49,9 @@ export default defineConfig({
     dockerStack || shareUrlProof || hostedUrl
       ? undefined
       : {
-          command: 'npx concurrently "vite" "pnpm --filter @aethelos/relay dev"',
+          command: "node ../../scripts/start-e2e-stack.mjs",
           port: 5173,
-          reuseExistingServer: !process.env.CI,
+          reuseExistingServer: !process.env.CI && !process.env.AETHELOS_FRESH_E2E,
           env: {
             VITE_E2E: "1",
             VITE_ENABLE_FEDERATION: "1",
