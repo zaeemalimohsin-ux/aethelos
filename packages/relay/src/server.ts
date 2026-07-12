@@ -282,8 +282,9 @@ export function createRelayServer(opts: RelayOptions = {}): RelayServer {
 export async function startRelayServer(opts: RelayOptions = {}): Promise<RelayServer> {
   const server = createRelayServer(opts);
   const listenPort = opts.port ?? 0;
+  const listenHost = process.env["RELAY_LISTEN_HOST"] ?? "0.0.0.0";
   await new Promise<void>((resolve) => {
-    server.httpServer.listen(listenPort, resolve);
+    server.httpServer.listen(listenPort, listenHost, resolve);
   });
   const addr = server.httpServer.address();
   if (addr && typeof addr === "object") {

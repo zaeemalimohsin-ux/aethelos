@@ -77,11 +77,17 @@ export class OmniHarness {
   private static async launchWindows(): Promise<PeerDevice> {
     const port = this.nextDebugPort++;
 
-    // NOTE: This requires the Tauri executable to be built in debug mode
-    const exePath = path.resolve(
-      process.cwd(),
-      "../client-tauri/src-tauri/target/debug/aethelos-desktop.exe",
-    );
+    const tauriTarget = path.resolve(process.cwd(), "../client-tauri/src-tauri/target");
+    const releaseExe = path.join(tauriTarget, "release/aethelos-desktop.exe");
+    const debugExe = path.join(tauriTarget, "debug/aethelos-desktop.exe");
+    const preferRelease =
+      process.env.AETHELOS_DESKTOP_E2E === "1" && fs.existsSync(releaseExe);
+    const exePath = preferRelease ? releaseExe : debugExe;
+    if (!fs.existsSync(exePath)) {
+      throw new Error(
+        `Tauri executable not found at ${exePath} — build desktop before running PLATFORM=windows E2E`,
+      );
+    }
 
     const userDataDir = path.resolve(process.cwd(), `../.temp/tauri-profile-${port}`);
 

@@ -132,28 +132,25 @@ async function cmdFly() {
   await downloadFlyctl();
   if (!flyAuthed()) {
     log(
-      "Fly auth: real Edge tab (saved logins) + headed Playwright (scripts/.operator-screenshots/)...",
+      "Fly auth via headed Playwright (one browser window — scripts/.operator-browser-profile/)...",
     );
     const { child, url } = await captureFlyAuthUrl();
-    openEdge(url);
     try {
       await flyAuthViaBrowser(url, { timeoutMs: 1_200_000 });
     } catch (e) {
-      warn("Playwright flow:", e.message);
-      log("Complete Fly login in Edge if a tab is still open...");
-    }
-    if (!(await waitForFlyAuth())) {
+      warn("Playwright OAuth:", e.message);
+      throw new Error(
+        "Fly auth failed. Run: pnpm operator:browser-smoke — then retry with OPERATOR_AUTH=google",
+      );
+    } finally {
       try {
         child.kill();
       } catch {
         /* ignore */
       }
-      throw new Error("Fly auth not completed within 20 minutes");
     }
-    try {
-      child.kill();
-    } catch {
-      /* ignore */
+    if (!flyAuthed()) {
+      throw new Error("Fly auth not completed — flyctl auth whoami still fails");
     }
   }
   ghSecretSet("FLY_API_TOKEN", createDeployToken());
@@ -225,6 +222,10 @@ const handlers = {
   fly: cmdFly,
   "fly-edge": cmdFlyEdge,
   "fly-wait": cmdFlyWait,
+  "browser-smoke": async () => {
+    const { browserSmokeTest } = await import("./operator-browser.mjs");
+    await browserSmokeTest();
+  },
   tunnel: cmdTunnel,
   preflight: () => cmdPreflight(process.argv[3]),
   "open-tabs": cmdOpenTabs,

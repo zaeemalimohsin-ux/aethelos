@@ -152,7 +152,7 @@ async function waitForTunnelReady(page, timeoutMs = 180_000) {
 }
 
 async function ensurePublicMailbox(page) {
-  const ready = page.getByText(/Share link is ready/);
+  const ready = page.getByText(/Public reach is ready/);
   if (await ready.isVisible().catch(() => false)) return;
 
   try {

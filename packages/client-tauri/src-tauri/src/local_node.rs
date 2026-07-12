@@ -27,6 +27,7 @@ struct LocalNodeState {
     app_server_child: Option<Child>,
     tunnel_child: Option<Child>,
     public_url: Option<String>,
+    public_url_slot: std::sync::Arc<Mutex<Option<String>>>,
     cloudflared_available: bool,
 }
 
@@ -219,12 +220,24 @@ fn wait_for_public_url(
     slot.lock().ok().and_then(|g| g.clone())
 }
 
+fn resolve_public_url(state: &LocalNodeState) -> Option<String> {
+    if let Some(url) = state.public_url.clone() {
+        return Some(url);
+    }
+    state
+        .public_url_slot
+        .lock()
+        .ok()
+        .and_then(|guard| guard.clone())
+}
+
 fn build_status(state: &LocalNodeState) -> LocalNodeStatus {
+    let public_url = resolve_public_url(state);
     LocalNodeStatus {
         local_url: LOCAL_WS.to_string(),
-        public_url: state.public_url.clone(),
+        public_url: public_url.clone(),
         running: state.relay_child.is_some(),
-        tunnel_ready: state.public_url.is_some(),
+        tunnel_ready: public_url.is_some(),
         cloudflared_available: state.cloudflared_available,
         startup_error: None,
     }
@@ -234,6 +247,7 @@ fn spawn_relay(node: &Path, script: &Path) -> Result<Child, String> {
     Command::new(node)
         .arg(script)
         .env("PORT", RELAY_PORT.to_string())
+        .env("RELAY_LISTEN_HOST", "127.0.0.1")
         .stdout(Stdio::null())
         .stderr(Stdio::piped())
         .spawn()
@@ -327,18 +341,26 @@ pub fn start_local_node(app: Option<&tauri::AppHandle>) -> Result<LocalNodeStatu
         tunnel_handle = Some(child);
     }
 
-    let deadline = Instant::now() + Duration::from_millis(TUNNEL_WAIT_MS);
-    let public_url = if cloudflared_available {
-        wait_for_public_url(&public_url_slot, deadline)
-    } else {
-        None
-    };
+    if cloudflared_available {
+        let slot = public_url_slot.clone();
+        let deadline = Instant::now() + Duration::from_millis(TUNNEL_WAIT_MS);
+        thread::spawn(move || {
+            if let Some(url) = wait_for_public_url(&slot, deadline) {
+                if let Ok(mut guard) = NODE.lock() {
+                    if let Some(ref mut state) = *guard {
+                        state.public_url = Some(url);
+                    }
+                }
+            }
+        });
+    }
 
     let node_state = LocalNodeState {
         relay_child: Some(relay_child),
         app_server_child,
         tunnel_child: tunnel_handle,
-        public_url: public_url.clone(),
+        public_url: None,
+        public_url_slot,
         cloudflared_available,
     };
     let status = build_status(&node_state);

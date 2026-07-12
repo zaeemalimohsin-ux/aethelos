@@ -135,6 +135,6 @@ pnpm verify:release
 
 Runs typecheck, unit tests, user-doc grep, and local E2E. CI also runs `docker-founder` (same-origin publish stack). On Windows, `pnpm proof:product` exercises desktop share URL + mobile tunnel E2E + release installer.
 
-Tag **v0.2.1** (or the current root `package.json` version) before distribution. Run [publisher preflight](#publisher-preflight-before-sharing-your-url) on the public URL.
+Tag **v0.2.5** (or the current root `package.json` version) before distribution. Run [publisher preflight](#publisher-preflight-before-sharing-your-url) on the public URL.
 
 Full sign-off on Windows: `pnpm proof:product`.

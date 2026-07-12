@@ -12,6 +12,27 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ### Fixed
 
+## [0.2.5] - 2026-07-12
+
+### Added
+
+- **Release desktop gate** — Windows `release-desktop-gate` job runs product proof before installer publish on every tag.
+- **Desktop invite cold-path E2E** — `desktop-invite-cold.spec.ts` (env-gated) asserts public invite URLs without visiting Connection first.
+- **Multi-hop expulsion escrow test** — `expel-escrow-chain.test.ts` for A←B←C federation chains.
+- **Dual-fork import test** — documents accepted residual in event-log import.
+
+### Changed
+
+- **Tauri shell** — sidecar cleanup on exit; relay binds `127.0.0.1` in desktop spawn; non-blocking tunnel startup.
+- **Proof scripts** — UI string matchers aligned with ShareLinkPanel and tunnel status copy.
+- **Federation E2E** — bridge_transfer escrow delta assertions; federation-off tier includes `onboarding-join`.
+- **Release CI** — `format:check` in tag E2E gate.
+
+### Fixed
+
+- **Docs/legal** — ENGINEERING_SIGNOFF v0.2.5, TERMS scope for downloadable software, stale version strings.
+- **devUrl** — Tauri dev URL uses `127.0.0.1` to match Vite host.
+
 ## [0.2.4] - 2026-07-12
 
 ### Added

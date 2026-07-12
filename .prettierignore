@@ -5,5 +5,8 @@ target
 .android-avd
 packages/client-tauri/src-tauri/resources
 packages/client-tauri/src-tauri/gen
+scripts/.operator-browser-profile/
+scripts/.operator-browser-profile-smoke/
+scripts/.operator-screenshots/
 pnpm-lock.yaml
 *.md

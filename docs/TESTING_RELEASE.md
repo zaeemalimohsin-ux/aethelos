@@ -13,9 +13,9 @@ Automated gate: `pnpm verify:release` (typecheck, unit tests, user-doc jargon ch
 | **2c — Sync mesh** | `pnpm --filter @aethelos/client test -- tests/sync-mesh.test.ts` | Headless multi-engine convergence | Every merge (CI `build-and-test`) |
 | **2d — Sync partition** | `pnpm --filter @aethelos/client test -- tests/sync-partition.test.ts` | Partition recovery (Vitest) | Every merge (CI `build-and-test`) |
 | **3 — Publish path** | CI `docker-founder` → Playwright `founder-docker` | Same-origin `/ws` via nginx on port 8080 | Every merge |
-| **4 — Windows product proof** | `pnpm proof:product` | Desktop installer, live tunnel share URL, `share-url-mobile` Playwright | Release sign-off (Windows) |
+| **4 — Windows product proof** | `pnpm proof:product` | Desktop installer, live tunnel share URL, `share-url-mobile` Playwright | Release sign-off (Windows); **required on every tag** via `release-desktop-gate` |
 
-**GHA tier 4 (default):** `product-proof.yml` runs `-SkipAndroid -SkipDevDesktop` — release build + share URL + mobile E2E. Full dev desktop path remains local maintainer sign-off.
+**GHA tier 4 (tag releases):** `release-desktop-gate` runs `proof-product.ps1 -SkipAndroid -SkipDevDesktop -SkipStaticGates` before the Windows installer job. Weekly `product-proof.yml` remains for full maintainer sign-off with static gates.
 
 ### Tier 4 Android prerequisites (Windows)
 

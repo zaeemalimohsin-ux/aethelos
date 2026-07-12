@@ -628,6 +628,7 @@ function InviteCard({
               </div>
               <div className="field">
                 <textarea
+                  data-testid="invite-link"
                   className="textarea mono"
                   rows={3}
                   readOnly
@@ -737,7 +738,11 @@ function SubCellLinkageBanner({ pool }: { pool: PoolState }) {
       <strong>Link to parent:</strong> {parent.parentCellName}. Share a signed chapter
       link with the parent Head, or paste the parent&apos;s signed join link below.
       <div className="row" style={{ marginTop: "var(--sp-2)" }}>
-        <Button size="sm" variant="secondary" onClick={() => void returnToParentChapter()}>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => void returnToParentChapter()}
+        >
           Return to parent chapter
         </Button>
         {pool.head === myKey ? (

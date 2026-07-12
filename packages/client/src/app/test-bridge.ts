@@ -15,6 +15,7 @@ import {
   type GovernanceParameter,
   type PoolState,
   type ProposalKind,
+  points,
 } from "@aethelos/core";
 
 import { useStore, setForceJoinProbeForTests } from "./store.js";
@@ -52,6 +53,13 @@ function poolSummary(pool: PoolState) {
     commons: formatPointsAmount(pool.commons),
 
     parameters: { ...pool.parameters },
+
+    superstructureEscrow: Object.fromEntries(
+      Object.entries(pool.superstructureEscrow ?? {}).map(([k, v]) => [
+        k,
+        formatPointsAmount(v),
+      ]),
+    ),
 
     childCells: pool.childCells ?? [],
 
@@ -272,6 +280,21 @@ export function installTestBridge(): void {
         pad += 1;
       }
       useStore.setState({ pool: { ...pool, members } });
+      return true;
+    },
+
+    seedSuperstructureEscrowForTests(remoteId: string, amount: string) {
+      const pool = useStore.getState().pool;
+      if (!pool) return false;
+      useStore.setState({
+        pool: {
+          ...pool,
+          superstructureEscrow: {
+            ...(pool.superstructureEscrow ?? {}),
+            [remoteId]: points(amount),
+          },
+        },
+      });
       return true;
     },
 

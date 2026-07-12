@@ -60,7 +60,7 @@ async function readFromCdp(mode) {
       for (const page of ctx.pages()) {
         if (mode === "dev" && !/localhost:517[34]/.test(page.url())) continue;
         await ensurePublicMailbox(page).catch(async () => {
-          const getLink = page.getByRole("button", { name: /Get share link/i });
+          const getLink = page.getByRole("button", { name: /Get public address/i });
           if (await getLink.isVisible().catch(() => false)) {
             await getLink.click().catch(() => {});
             await page.waitForTimeout(5000);
@@ -71,7 +71,7 @@ async function readFromCdp(mode) {
           const value = (await textarea.inputValue()).trim();
           if (isValidPublicShareUrl(value)) return value;
         }
-        const getLink = page.getByRole("button", { name: /Get share link/i });
+        const getLink = page.getByRole("button", { name: /Get public address/i });
         if (await getLink.isVisible().catch(() => false)) {
           await getLink.click().catch(() => {});
         }

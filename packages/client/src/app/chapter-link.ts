@@ -77,10 +77,9 @@ export function chapterLinkCanonicalBody(
   });
 }
 
-async function signChapterLink<T extends ChildChapterLinkPayload | ParentChapterLinkPayload>(
-  payload: T,
-  keyPair: KeyPair,
-): Promise<T & { sig: string }> {
+async function signChapterLink<
+  T extends ChildChapterLinkPayload | ParentChapterLinkPayload,
+>(payload: T, keyPair: KeyPair): Promise<T & { sig: string }> {
   if (payload.signer !== keyPair.publicKeyHex) {
     throw new Error("signer_mismatch");
   }

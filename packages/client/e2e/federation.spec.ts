@@ -53,6 +53,17 @@ test.describe("federation seam", () => {
       await linkParentChild(browser);
 
     await pageChild.evaluate(
+      ({ parentNs }) => {
+        window.__aethelosTest?.seedSuperstructureEscrowForTests(parentNs, "100");
+      },
+      { parentNs },
+    );
+    const beforeEscrow = Number(
+      (await getPoolSummary(pageChild))!.superstructureEscrow?.[parentNs] ?? "0",
+    );
+    expect(beforeEscrow).toBe(100);
+
+    await pageChild.evaluate(
       async ({ parentNs, childHead }) => {
         await window.__aethelosTest?.bridgeEscrow(parentNs, childHead, "25");
       },
@@ -78,6 +89,14 @@ test.describe("federation seam", () => {
       },
       60_000,
     );
+
+    const childAfter = await getPoolSummary(pageChild);
+    const bridgeProposal = childAfter!.proposals!.find(
+      (p) => p.kind === "bridge_transfer",
+    );
+    expect(bridgeProposal?.executed).toBe(true);
+    const childEscrow = Number(childAfter!.superstructureEscrow?.[parentNs] ?? "0");
+    expect(childEscrow).toBeLessThan(100);
 
     await parentPeer.close();
     await childPeer.close();
@@ -198,7 +217,9 @@ test.describe("federation seam", () => {
     await pageChild.getByRole("button", { name: "Proposals" }).click();
     await pageChild.getByText("Link chapters").click();
     await pageChild.getByLabel("Signed parent join link").fill(parentJoinLink!);
-    await pageChild.getByRole("button", { name: "Propose join from signed link" }).click();
+    await pageChild
+      .getByRole("button", { name: "Propose join from signed link" })
+      .click();
     await waitForPool(pageChild, (p) => p.proposalCount >= 1);
     await pageChild.getByRole("button", { name: "Approve" }).first().click();
     const parentNs = (await getPoolSummary(pageParent))!.namespaceId;

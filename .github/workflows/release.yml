@@ -42,6 +42,7 @@ jobs:
           pnpm --filter @aethelos/core build
           pnpm typecheck
           pnpm lint:eslint
+          pnpm format:check
           node scripts/check-script-encoding.mjs
           pnpm test
           node scripts/check-user-docs.mjs
@@ -74,8 +75,42 @@ jobs:
           path: packages/client/playwright-report/
           retention-days: 7
 
-  build-and-publish-windows:
+  release-desktop-gate:
+    runs-on: windows-latest
     needs: release-e2e-gate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Windows desktop product proof
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/proof-product.ps1 -SkipAndroid -SkipDevDesktop -SkipStaticGates
+
+      - name: Desktop invite cold path E2E
+        if: success()
+        env:
+          AETHELOS_DESKTOP_E2E: "1"
+        run: |
+          pnpm --filter @aethelos/client exec playwright install chromium
+          pnpm --filter @aethelos/client exec playwright test e2e/desktop-invite-cold.spec.ts
+
+  build-and-publish-windows:
+    needs: [release-e2e-gate, release-desktop-gate]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4

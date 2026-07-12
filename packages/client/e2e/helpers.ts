@@ -36,6 +36,7 @@ export interface PoolSummary {
   parameters: Record<string, number>;
   childCells: string[];
   parentSuperstructures: string[];
+  superstructureEscrow?: Record<string, string>;
   pendingInviteCount: number;
   proposalCount: number;
   fractures?: string[];

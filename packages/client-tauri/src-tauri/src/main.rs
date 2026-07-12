@@ -59,6 +59,11 @@ fn main() {
             local_node_status,
             write_share_url_file,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running AethelOS desktop");
+        .build(tauri::generate_context!())
+        .expect("error while running AethelOS desktop")
+        .run(|_app_handle, event| {
+            if let tauri::RunEvent::Exit = event {
+                let _ = local_node::stop_local_node();
+            }
+        });
 }

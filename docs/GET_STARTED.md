@@ -3,7 +3,7 @@
 **Open the app → start a community → invite people.**  
 **Or open an invite link someone sent you.**
 
-**Current release:** v0.2.4 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
+**Current release:** v0.2.5 ([latest release](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest))
 
 Communities scale by **linked chapters** (50 members per chapter); federation is enabled in standard production builds. See [PRODUCT.md](./PRODUCT.md) for responsibilities and limitations · [Privacy](./PRIVACY.md) · [Terms](./TERMS.md) · [Support](./SUPPORT.md)
 
@@ -44,7 +44,7 @@ See [USER_GUIDE.md](./USER_GUIDE.md) for everyday use.
 | Problem | Fix |
 |---------|-----|
 | Can't create a community | Use a **hosted install**, the **desktop app**, or enter a **connection point** on the Start a community screen |
-| Lost device / new phone | Recovery phrase restores **identity only** — rejoin with your **invite link** or **import an event log** export. Export your event log periodically from another device as a backup. |
+| Lost device / new phone | Recovery phrase restores **identity only** — rejoin with your **invite link** or **import an event log** export. Export your event log periodically from another device as a backup. **Importing two conflicting forks from different exports can merge both branches** — prefer a single canonical export from a trusted device. |
 | Stuck offline | Wait a moment; actions queue and send when back online |
 | Invite link doesn't open | Ask the sender for a fresh link from **Invite people** |
 
