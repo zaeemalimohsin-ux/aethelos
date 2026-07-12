@@ -26,7 +26,7 @@ All notable changes to AethelOS are documented here. The format is based on
 - **Traceability** — P3.2 matrix lists `expel-escrow-chain` and `event-log-fork-reducer` tests; dual-fork marked addressed in v0.2.6.
 - **Federation E2E** — bridge escrow decreases after approved `bridge_transfer` (exact delta not asserted; reducer timing varies).
 - **Release CI** — `pnpm audit --audit-level high` and sidecar checksum check on tag gate; `cargo check --locked` before desktop publish.
-- **Desktop release build** — `tauri build -- --locked`; `check-version-sync` includes `Cargo.lock` package version.
+- **Desktop release build** — `tauri build -- --locked`; npm `0.2.6.1` with Cargo/Tauri bundle semver `0.2.6` (Rust semver is three-part only).
 
 ### Fixed
 

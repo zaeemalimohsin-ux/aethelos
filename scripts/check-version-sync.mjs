@@ -40,36 +40,49 @@ function readCargoLockPackageVersion(packageName) {
   return match[1];
 }
 
+function cargoVersionForRelease(npmVersion) {
+  const parts = npmVersion.split(".");
+  if (parts.length === 4 && parts.every((p) => /^\d+$/.test(p))) {
+    return `${parts[0]}.${parts[1]}.${parts[2]}`;
+  }
+  return npmVersion;
+}
+
 const expected = readJsonVersion("package.json");
+const cargoExpected = cargoVersionForRelease(expected);
 const checks = [
-  ["packages/client/package.json", readJsonVersion("packages/client/package.json")],
-  ["packages/core/package.json", readJsonVersion("packages/core/package.json")],
-  ["packages/relay/package.json", readJsonVersion("packages/relay/package.json")],
+  ["packages/client/package.json", readJsonVersion("packages/client/package.json"), expected],
+  ["packages/core/package.json", readJsonVersion("packages/core/package.json"), expected],
+  ["packages/relay/package.json", readJsonVersion("packages/relay/package.json"), expected],
   [
     "packages/client-tauri/package.json",
     readJsonVersion("packages/client-tauri/package.json"),
-  ],
-  [
-    "packages/client-tauri/src-tauri/Cargo.toml",
-    readCargoVersion("packages/client-tauri/src-tauri/Cargo.toml"),
+    expected,
   ],
   [
     "packages/client-tauri/src-tauri/tauri.conf.json",
     readTauriVersion("packages/client-tauri/src-tauri/tauri.conf.json"),
+    cargoExpected,
+  ],
+  [
+    "packages/client-tauri/src-tauri/Cargo.toml",
+    readCargoVersion("packages/client-tauri/src-tauri/Cargo.toml"),
+    cargoExpected,
   ],
   [
     "packages/client-tauri/src-tauri/Cargo.lock (aethelos-desktop)",
     readCargoLockPackageVersion("aethelos-desktop"),
+    cargoExpected,
   ],
 ];
 
-const mismatches = checks.filter(([, version]) => version !== expected);
+const mismatches = checks.filter(([, version, want]) => version !== want);
 if (mismatches.length > 0) {
-  console.error(`Expected version ${expected} everywhere. Mismatches:`);
+  console.error(`Expected npm version ${expected} (Cargo ${cargoExpected}). Mismatches:`);
   for (const [label, version] of mismatches) {
     console.error(`  ${label}: ${version}`);
   }
   process.exit(1);
 }
 
-console.log(`Version sync OK (${expected})`);
+console.log(`Version sync OK (npm ${expected}, cargo ${cargoExpected})`);
