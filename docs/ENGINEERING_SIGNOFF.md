@@ -2,7 +2,71 @@
 
 Single entry point for distribution readiness and audit residuals. Supersedes [Pass 4 audit](./archive/CODEBASE_AUDIT_PASS4.md) and [Distribution scorecard](./archive/DISTRIBUTION_SCORECARD.md) for day-to-day sign-off.
 
-**Last updated:** 2026-07-12 (v0.2.6.2 world-ship readiness — Windows EA patch approved)
+**Last updated:** 2026-07-12 (v0.2.6.3 Windows ship hardening — relay revoke + Docker CI + tag gate)
+
+---
+
+## Windows ship hardening matrix (2026-07-12, v0.2.6.3)
+
+Local verification on Windows (commits through `205d542`):
+
+| Gate | Result | Notes |
+|------|--------|-------|
+| `check-script-encoding` | **PASS** | |
+| `format:check` | **PASS** | |
+| `typecheck` | **PASS** | |
+| `check-version-sync` | **PASS** | npm `0.2.6.3` / Cargo `0.2.6` |
+| `check-changelog-release` | **PASS** | after `0.2.6.3` entry |
+| `check-user-docs` | **PASS** | |
+| `check-sidecar-checksums` | **PASS** | |
+| `pnpm test` | **PASS** | client 145, core 144, relay 12 |
+| `pnpm test:e2e:federation-off` | **PASS** | 24/24 |
+| `pnpm test:e2e:federation-on` | **PASS** | 27/27 |
+| Chromium E2E (`AETHELOS_FRESH_E2E=1`, `CI=1`) | **PASS** | 86 passed, 2 skipped |
+| `desktop-invite-cold.spec.ts` | **PASS** | `AETHELOS_DESKTOP_E2E=1` |
+| `desktop-restart-relay.spec.ts` | **PASS** | after `revokeRelay` session cleanup (`271fcee`) |
+| `tauri.spec.ts` | **PASS** | Windows desktop genesis |
+| `federation-cap` at-cap button | **PASS** | in chromium suite (86/86) |
+| `pnpm proof:product` (release path, Android) | **IN PROGRESS** | run 1 of 3; dev path retrying |
+| Merge CI `docker-founder` | **PENDING** | fix: `.dockerignore` un-ignore `client-tauri/package.json` (`205d542`) |
+
+### App fixes in v0.2.6.3 (ship-worthy)
+
+1. **`revokeRelay` clears `sessionRelays`** — stale trycloudflare `/ws` URLs no longer appear in signed invite payloads after tunnel rotation.
+2. **`ensureOnline` uses `localNodeStatus()`** — desktop public URL respects rotation override (restart / E2E bridge).
+3. **Tag gate** — `desktop-restart-relay.spec.ts` added to `release-desktop-gate`.
+4. **At-cap E2E** — disabled `Member limit reached` button at 50 members.
+5. **Docker publish** — workspace-complete Docker build context for `pnpm deploy`.
+
+### Manual charters (cannot automate — operator sign-off)
+
+| Charter | Status | Oracle / notes |
+|---------|--------|----------------|
+| **Real PC reboot** | **MANUAL** | Install `0.2.6.3` → invite → reboot → new invite → joiner connects; relay host matches shell URL |
+| **Upgrade** | **MANUAL** | `0.2.6.2` → `0.2.6.3` in-place; identity preserved; version shows `0.2.6.3` |
+| **SmartScreen** | **MANUAL** | Fresh GitHub download; “Run anyway”; checksum matches `checksums.txt` |
+| **iPhone Safari** | **MANUAL** | Founder invite → open in Safari (not in-app browser); admission completes |
+
+### Subagent loop (inline, post-fix wave)
+
+| Agent | Verdict | Notes |
+|-------|---------|-------|
+| **Bugbot** | **NO_BLOCKERS** | `revokeRelay` + `ensureOnline` fixes are minimal; idempotent sync; E2E green |
+| **Security review** | **SHIP** | Author-scoped revoke unchanged; test bridge gated in release builds |
+| **CI investigator** | **PENDING** | `docker-founder` fix pushed `205d542`; e2e/tauri-check green on prior runs |
+| **Product proof** | **PENDING** | 3× consecutive PASS required |
+| **Legal / claims** | **EA_ALIGNED** | No GA claims |
+| **Mobile joiner** | **MEDIUM+** | share-url + WebKit infra; Android in local proof |
+| **Founder ops** | **MEDIUM+** | P0 relay-in-invite fix verified by `desktop-restart-relay` E2E |
+| **Support** | **MEDIUM–HIGH** | SUPPORT runbooks present |
+| **Threat / scale** | **documented residuals** | unchanged |
+
+### Release decision
+
+| Outcome | Action |
+|---------|--------|
+| Automated gates green + proof 3× | **Tag `v0.2.6.3`** + full tag CI |
+| `docker-founder` still red | Block tag until green (publish path) |
 
 ---
 

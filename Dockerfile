@@ -35,8 +35,11 @@ RUN pnpm --filter @aethelos/core build \
   && pnpm --filter @aethelos/relay build \
   && pnpm --filter @aethelos/client build
 
-# Prune relay to production dependencies only
-RUN pnpm --filter @aethelos/relay deploy --prod /app/relay-out
+# Bundle relay + core for a self-contained production artifact (no pnpm deploy).
+RUN mkdir -p /app/relay-out/dist \
+  && pnpm exec esbuild packages/relay/dist/index.js \
+    --bundle --platform=node --target=node20 --format=cjs \
+    --outfile=/app/relay-out/dist/index.js
 
 # ─── Stage 2: Runtime (Node.js + nginx) ──────────────────────────────────────
 
@@ -45,9 +48,7 @@ RUN apk add --no-cache nginx
 
 # Relay: stateless bulletin board
 WORKDIR /relay
-COPY --from=build /app/relay-out/dist ./dist
-COPY --from=build /app/relay-out/node_modules ./node_modules
-COPY --from=build /app/relay-out/package.json ./package.json
+COPY --from=build /app/relay-out/dist/index.js ./dist/index.js
 
 # Client PWA: static files served by nginx
 COPY --from=build /app/packages/client/dist /usr/share/nginx/html

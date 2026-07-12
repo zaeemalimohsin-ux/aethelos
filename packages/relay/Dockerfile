@@ -11,7 +11,7 @@ COPY packages/core/package.json packages/core/
 COPY packages/relay/package.json packages/relay/
 COPY packages/client/package.json packages/client/
 COPY packages/client-tauri/package.json packages/client-tauri/
-RUN pnpm install --frozen-lockfile --filter @aethelos/relay... --filter @aethelos/core...
+RUN pnpm install --frozen-lockfile --filter @aethelos/relay... --filter @aethelos/core... --filter @aethelos/client...
 
 # Copy sources and build.
 COPY packages/core packages/core
@@ -20,15 +20,16 @@ RUN pnpm --filter @aethelos/core build \
   && test -f packages/core/dist/index.d.ts \
   && pnpm --filter @aethelos/relay build
 
-# Prune to production dependencies.
-RUN pnpm --filter @aethelos/relay deploy --prod /app/relay-out
+# Bundle relay + core for a self-contained production artifact (no pnpm deploy).
+RUN mkdir -p /app/relay-out/dist \
+  && pnpm exec esbuild packages/relay/dist/index.js \
+    --bundle --platform=node --target=node20 --format=cjs \
+    --outfile=/app/relay-out/dist/index.js
 
 FROM node:20-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /relay
-COPY --from=build /app/relay-out/dist ./dist
-COPY --from=build /app/relay-out/node_modules ./node_modules
-COPY --from=build /app/relay-out/package.json ./package.json
+COPY --from=build /app/relay-out/dist/index.js ./dist/index.js
 
 EXPOSE 8787
 USER node
