@@ -19,7 +19,10 @@ export interface PeerDevice {
 }
 
 export class OmniHarness {
-  private static platform: Platform = (process.env.PLATFORM as Platform) || "web";
+  private static currentPlatform(): Platform {
+    return (process.env.PLATFORM as Platform) || "web";
+  }
+
   private static nextDebugPort =
     9222 + parseInt(process.env.TEST_WORKER_INDEX || "0", 10) * 10;
 
@@ -27,7 +30,7 @@ export class OmniHarness {
    * Launch a new peer on the selected platform.
    */
   static async launchPeer(browser: Browser): Promise<PeerDevice> {
-    switch (this.platform) {
+    switch (this.currentPlatform()) {
       case "web":
         return this.launchWeb(browser);
       case "windows":
@@ -35,7 +38,7 @@ export class OmniHarness {
       case "android":
         return this.launchAndroid();
       default:
-        throw new Error(`Unsupported platform: ${this.platform}`);
+        throw new Error(`Unsupported platform: ${this.currentPlatform()}`);
     }
   }
 
