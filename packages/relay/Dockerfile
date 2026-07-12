@@ -9,6 +9,8 @@ WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/core/package.json packages/core/
 COPY packages/relay/package.json packages/relay/
+COPY packages/client/package.json packages/client/
+COPY packages/client-tauri/package.json packages/client-tauri/
 RUN pnpm install --frozen-lockfile --filter @aethelos/relay... --filter @aethelos/core...
 
 # Copy sources and build.
@@ -19,7 +21,7 @@ RUN pnpm --filter @aethelos/core build \
   && pnpm --filter @aethelos/relay build
 
 # Prune to production dependencies.
-RUN pnpm --filter @aethelos/relay deploy --prod /relay-out
+RUN pnpm --filter @aethelos/relay deploy --legacy --prod /relay-out
 
 FROM node:20-alpine AS runtime
 ENV NODE_ENV=production

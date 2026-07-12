@@ -36,7 +36,7 @@ RUN pnpm --filter @aethelos/core build \
   && pnpm --filter @aethelos/client build
 
 # Prune relay to production dependencies only
-RUN pnpm --filter @aethelos/relay deploy --prod /relay-out
+RUN pnpm --filter @aethelos/relay deploy --legacy --prod /relay-out
 
 # ─── Stage 2: Runtime (Node.js + nginx) ──────────────────────────────────────
 
