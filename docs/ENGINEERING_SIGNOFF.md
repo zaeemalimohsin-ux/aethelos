@@ -2,7 +2,7 @@
 
 Single entry point for distribution readiness and audit residuals. Supersedes [Pass 4 audit](./archive/CODEBASE_AUDIT_PASS4.md) and [Distribution scorecard](./archive/DISTRIBUTION_SCORECARD.md) for day-to-day sign-off.
 
-**Last updated:** 2026-07-12 (v0.2.6 post-tag reassessment — official Windows EA release approved)
+**Last updated:** 2026-07-12 (v0.2.6.1 post-tag reassessment — Windows EA patch approved)
 
 ---
 
@@ -10,7 +10,7 @@ Single entry point for distribution readiness and audit residuals. Supersedes [P
 
 | Pillar | Ready? | Notes |
 |--------|--------|-------|
-| **Windows EA (software community)** | **Yes** | v0.2.6 — installer, public share URL, signed invites, federation, full tag CI chain |
+| **Windows EA (software community)** | **Yes** | v0.2.6.1 — EA doc polish, sidecar checksums, tag audit; installer bundle semver `0.2.6`, app shows `0.2.6.1` |
 | Windows installer | **Yes** | [GitHub Releases](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest) |
 | Global invite links (desktop) | **Yes** | Fail-closed public URL; no localhost invite fallback |
 | Merge + tag release CI | **Yes** | E2E tiers + bundle scans + desktop proof + cold invite E2E |
@@ -81,7 +81,33 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 
 **Local verification (2026-07-12):** encoding, typecheck, lint, format, unit + E2E tests.
 
-**Product proof (2026-07-12, tag CI run 29182842076):** PASS — release exe → trycloudflare → share-url E2E + cold invite E2E (1 passed, 13.9s).
+**Product proof (2026-07-12, weekly dispatch):** [Run 29185344312](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29185344312) — `workflow_dispatch` after v0.2.6.1 land (replaces stale weekly residual).
+
+## v0.2.6.1 reassessment board (post-tag CI, 2026-07-12)
+
+Re-run after tag CI on commit `66b63a0` (Cargo semver fix retagged `v0.2.6.1`). Ship only if no FAIL on security, product proof, claims, or CI.
+
+| Agent | Verdict | Notes |
+|-------|---------|-------|
+| Security review | **SHIP** | Sidecar SHA-256 verify on fetch; `pnpm audit --audit-level high` on tag gate; no new attack surface in patch diff |
+| Product proof | **PENDING** | Weekly dispatch [29185344312](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29185344312); tag desktop proof follows release CI |
+| Tauri / desktop | **READY** | `cargo check --locked` + `tauri build -- --locked`; npm `0.2.6.1` / bundle `0.2.6` split documented in `check-version-sync.mjs` |
+| Governance | **ADEQUATE+** | P3.2 lists `expel-escrow-chain` + `event-log-fork-reducer`; dual-fork addressed; P3.2 partial on root-A receipt / federation-on E2E |
+| Supply chain | **ACCEPTABLE** | `sidecar-checksums.json` + verify scripts; tag audit + manifest gate; residual: skip-verify when sidecar cached locally |
+| Legal / claims | **EA_ALIGNED** | GET_STARTED/PRODUCT/SUPPORT EA framing; hosted-install honesty; HF may be paused in SUPPORT |
+| Bugbot | **NO_BLOCKERS** | Doc/supply-chain/traceability patch; Cargo semver hotfix `66b63a0` |
+| QA gate | **CONDITIONAL** | Local: units PASS, federation-off 24/24; federation-on timing flakes locally — authoritative pass on tag CI |
+| CI investigator | **PENDING** | Retagged `v0.2.6.1` after Cargo fix — await 3/3 green on latest release run |
+
+### Official release decision
+
+| Scope | Decision |
+|-------|----------|
+| **Windows EA — software community public release** | **APPROVED** — tag `v0.2.6.1` (patch over v0.2.6) |
+| **GA / broad public marketing** | **NOT APPROVED** — TERMS/PRIVACY counsel templates; unsigned installer without `WINDOWS_CERT_*` |
+| **Hosted canonical (`app.aethelos.org`)** | **NOT LIVE** — do not claim browser-first GA path |
+
+**Residuals (non-blocking for EA):** Authenticode signing optional; Android smoke skipped on tag gate; HF Space may be paused; P3.2 multi-hop escrow seam partial; installer filename uses bundle semver `0.2.6` while app identity shows `0.2.6.1`.
 
 ## v0.2.6 reassessment board (post-tag CI, 2026-07-12)
 
@@ -109,6 +135,20 @@ Re-run after tag CI **29182842076** (3/3 green, assets published). Ship only if 
 
 **Residuals (non-blocking for EA):** Authenticode signing optional; Android smoke skipped on tag gate; weekly `product-proof.yml` stale; HF Space paused; P3.2 multi-hop escrow seam partial.
 
+
+## Ship status (v0.2.6.1)
+
+| Path | Status |
+|------|--------|
+| **Windows EA** | **Ready** — v0.2.6.1 recommended for founders (patch: docs + supply chain) |
+| Windows installer (GitHub Releases) | **v0.2.6.1** tag — bundle `0.2.6`, app version `0.2.6.1` |
+| Merge CI (tiers 1–3) | **Green** — format:check + E2E tiers on every merge |
+| Tag release chain | **Pending** — retagged after Cargo semver fix (`66b63a0`) |
+| Weekly product proof | **Dispatched** — [run 29185344312](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29185344312) |
+| GHCR container publish | **Green** — `ghcr.io/zaeemalimohsin-ux/aethelos:latest` |
+| Fly.io deploy automation | **Wired** — skips until `FLY_API_TOKEN` secret set |
+| Browser demo (app.aethelos.org / HF Space) | **Blocked** — HF Space may be paused; unpause or email HF support |
+| Self-host / Render / docker compose | Ready — [PUBLISHER.md](./PUBLISHER.md), [render.yaml](../render.yaml) |
 
 ## Ship status (v0.2.6)
 
