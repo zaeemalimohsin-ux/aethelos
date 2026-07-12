@@ -152,8 +152,16 @@ if (installers.length === 0) {
   process.exit(1);
 }
 
+const npmVersion = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
+
+function releaseInstallerName(fileName) {
+  return fileName.replace(/^(AethelOS_)\d+\.\d+(?:\.\d+)?(_)/, `$1${npmVersion}$2`);
+}
+
 for (const src of installers) {
-  const dest = join(outDir, src.split(/[/\\]/).pop());
+  const fileName = src.split(/[/\\]/).pop();
+  const releaseName = releaseInstallerName(fileName);
+  const dest = join(outDir, releaseName);
   cpSync(src, dest);
   const mb = (statSync(dest).size / (1024 * 1024)).toFixed(1);
   console.log("");

@@ -1,29 +1,47 @@
-# AethelOS v0.2.6.1 Release Notes
+# AethelOS v0.2.6.2 Release Notes
 
-Welcome to **AethelOS v0.2.6.1** — patch release with EA doc polish, supply-chain hardening, and traceability fixes on top of v0.2.6.
+Welcome to **AethelOS v0.2.6.2** — world-ship readiness patch: fixes stale invite relays after desktop restart, adds support runbooks, WebKit CI, installer rename, and in-app tunnel disclosure.
 
-## Get started in 3 steps
+**Windows Early Access** — software community release (not general availability).
 
-1. **Download** the Windows installer (`.exe` or `.msi`) below
-2. **Create identity** → **Start a community**
-3. **Invite people** from the Community tab — share the link or QR; joiners open it in any browser
+## Download
 
-Your PC must stay on while others join. The public address may change after you restart the app.
+- [GitHub Releases — latest](https://github.com/zaeemalimohsin-ux/aethelos/releases/latest)
+- Verify downloads with `checksums.txt` on the release page.
 
-## What's new in v0.2.6.1
+Installers are named `AethelOS_0.2.6.2_x64-setup.exe` / `.msi` (bundle semver remains `0.2.6`; Identity tab shows `0.2.6.2`).
 
-- **EA documentation** — clear Windows Early Access framing; honest hosted-install and HF Space guidance
-- **Supply chain** — pinned sidecar checksums verified on download; dependency audit on tag CI
-- **Cargo lock discipline** — desktop release builds use `--locked`; version sync checks `Cargo.lock`
-- **Traceability** — P3.2 matrix and dual-fork sign-off aligned with v0.2.6 tests
-- **Federation E2E** — escrow decreases after approved bridge when amounts are seeded in test
+## What's new in v0.2.6.2
 
-## v0.2.6 highlights (still included)
+### Founder ops (P0 fix)
 
-- Green desktop CI — cold-path invite E2E; invite links never fall back to localhost
-- Fail-closed invite flow and desktop proof on every tag
-- Federation-on shipping bundle and multi-hop expulsion tests
+- **Fresh invite relays after restart** — when your temporary public address changes, signed invite links now include the matching connection point instead of a stale tunnel URL from before restart.
 
----
+### Support and docs
 
-[Full changelog](./CHANGELOG.md) · [Get started](./docs/GET_STARTED.md)
+- **SUPPORT.md** — SmartScreen / unsigned installer, tunnel troubleshooting, upgrade steps, version mismatch FAQ.
+- **GET_STARTED.md** — upgrading, growing past 50 members, mobile joiner tips.
+
+### In-app UX
+
+- Plain-language notice that invite links use a temporary Cloudflare tunnel that changes on restart.
+- **Member limit reached** — invite button disabled at capacity with guidance to spawn a linked chapter.
+
+### Engineering
+
+- WebKit (iPhone 13) share-url project on merge CI.
+- Sidecar SHA-256 verified on cache hit; checksum manifest gate on merge CI.
+- Published installer filenames include full npm patch version.
+
+## Upgrading from v0.2.6.1
+
+Run the new installer **over** your existing install (do not uninstall). Confirm **Identity → App version** shows `0.2.6.2`. Send **fresh invite links** after upgrading if you had shared links before a restart.
+
+## Known limitations (EA)
+
+- Installers are not Authenticode-signed (SmartScreen warning).
+- `app.aethelos.org` is not live; HF Space demo may be paused.
+- Founders must keep PC on; tunnel URL is ephemeral.
+- GA / broad consumer marketing not approved — see [ENGINEERING_SIGNOFF.md](docs/ENGINEERING_SIGNOFF.md).
+
+See [CHANGELOG.md](CHANGELOG.md) for full history.

@@ -35,6 +35,10 @@ if (tauri) {
 
 for (const target of targets) {
   if (existsSync(target.path)) {
+    if (checksums.cloudflared.version === VERSION) {
+      await verifySha256(target.path, checksums.cloudflared.sha256);
+      console.log("Verified SHA-256 for cached cloudflared");
+    }
     console.log("cloudflared already present:", target.path);
     continue;
   }

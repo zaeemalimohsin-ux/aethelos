@@ -36,6 +36,11 @@ for (const key of ["node", "cloudflared"]) {
   }
 }
 
+if (!manifest.node.exeSha256 || !/^[a-f0-9]{64}$/.test(manifest.node.exeSha256)) {
+  console.error("Invalid exeSha256 for node in sidecar-checksums.json");
+  process.exit(1);
+}
+
 console.log(
   `Sidecar checksum manifest OK (node ${nodeVersion}, cloudflared ${cloudflaredVersion})`,
 );

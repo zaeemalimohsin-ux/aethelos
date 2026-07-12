@@ -19,7 +19,9 @@ export function ShareLinkPanel({ compact = false }: { compact?: boolean }) {
     >
       <p className="hint" style={{ marginBottom: "var(--sp-2)" }}>
         <strong>Public app address (for operators)</strong> — open on another device to
-        reach this host.
+        reach this host. This address uses a temporary internet tunnel (Cloudflare) so
+        people outside your home network can open the app; it changes when you restart the
+        desktop app.
       </p>
       {shareUrl ? (
         <>

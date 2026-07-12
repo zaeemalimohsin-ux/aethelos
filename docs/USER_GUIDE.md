@@ -48,12 +48,14 @@ See [GET_STARTED.md](./GET_STARTED.md) for start and join flows.
 
 See [GET_STARTED.md](./GET_STARTED.md) for inviting and joining.
 
+**Mobile joiners:** ask them to open your link in **Safari** (iPhone) or Chrome (Android), not inside another app’s built-in browser. They should keep the tab open until admission completes.
+
 After vouching, the app opens Proposals and highlights the admission vote. Use **Vote to admit** on the Community card if you return later.
 
 ## 6. Staying resilient
 
 - The header shows **Connected**, **Syncing…**, or **Offline**. Actions queue offline and send when you're back.
-- **App update?** When a new version is ready, use **Reload now** on the banner at the top.
+- **App update?** When a new version is ready, use **Reload now** on the banner at the top. Windows founders: install the latest `.exe` over the old one — see [GET_STARTED.md](./GET_STARTED.md) § Upgrading.
 - **Lost device or new phone:** see [GET_STARTED.md](./GET_STARTED.md) § Need help?
 - **Operators:** **Connection tab** for connection endpoints and hosting.
 
@@ -66,4 +68,4 @@ memos. AethelOS is transparent by design. See [PRIVACY.md](./PRIVACY.md) for det
 
 **Diagnostics:** The app keeps a small local-only event buffer for troubleshooting. Nothing is sent to a server unless you export diagnostics from the Identity tab.
 
-**Build:** v0.2.6 — cite this when [reporting issues](./SUPPORT.md).
+**Build:** v0.2.6.2 — cite this when [reporting issues](./SUPPORT.md).

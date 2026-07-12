@@ -38,6 +38,11 @@ export default defineConfig({
       use: { ...devices["Pixel 5"] },
     },
     {
+      name: "webkit",
+      testMatch: shareUrlSpecs,
+      use: { ...devices["iPhone 13"] },
+    },
+    {
       name: "hosted",
       testMatch: hostedAdmissionSpecs,
       use: {

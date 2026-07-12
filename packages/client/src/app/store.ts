@@ -70,6 +70,7 @@ import {
 import {
   httpsToWssRelayUrl,
   tunnelStatusFromLocalNode,
+  syncDesktopTunnelRelay,
   type TunnelStatus,
 } from "./active-relays.js";
 import { sameOriginRelayUrl, isPublishableRelayUrl } from "./bootstrap-relays.js";
@@ -184,6 +185,7 @@ interface AppStore {
   /** Desktop: public app URL for phone founding (Connection tab). */
   shareUrl: string | null;
   ensureDesktopShare(): Promise<void>;
+  syncDesktopRelayContribution(publicHttpsUrl?: string): Promise<void>;
   setRelaySharing(on: boolean): Promise<void>;
   recoverCommunityFromEventLog(json: string): Promise<{
     ok: boolean;
@@ -213,6 +215,29 @@ function desktopStartupErrorMessage(node: LocalNodeStatus | null): string | null
 function syncShareUrlFile(shareUrl: string | null): void {
   if (!isDesktopApp()) return;
   void writeShareUrlFile(shareUrl);
+}
+
+async function applyDesktopShareFromNode(
+  get: () => AppStore,
+  set: (partial: Partial<AppStore>) => void,
+  status: LocalNodeStatus | null,
+  onlinePublicUrl?: string | null,
+): Promise<void> {
+  const publicUrl = onlinePublicUrl ?? status?.publicUrl ?? null;
+  const tunnelStatus = tunnelStatusFromLocalNode(
+    status?.running ?? false,
+    publicUrl ?? undefined,
+    status?.cloudflaredAvailable,
+  );
+  if (publicUrl) {
+    set({ shareUrl: publicUrl, tunnelStatus });
+    syncShareUrlFile(publicUrl);
+  } else {
+    set({ tunnelStatus });
+  }
+  if (get().relaySharing && publicUrl && get().controller && get().pool && get().myKey) {
+    await get().syncDesktopRelayContribution(publicUrl);
+  }
 }
 
 function resolveInviteRelays(invite: InvitePayload): string[] {
@@ -265,24 +290,53 @@ export const useStore = create<AppStore>((set, get) => ({
 
   async ensureDesktopShare() {
     if (!isDesktopApp()) return;
-    if (get().shareUrl) return;
+    const status = await localNodeStatus();
+    const cached = get().shareUrl;
+    if (cached && status?.publicUrl && cached === status.publicUrl) {
+      if (get().relaySharing) {
+        await get().syncDesktopRelayContribution(status.publicUrl);
+      }
+      return;
+    }
     const online = await ensureOnline({ desktopOnly: true });
     if (!online.ok) {
-      const status = await localNodeStatus();
+      const startupMsg = desktopStartupErrorMessage(status);
       get().toast(
-        desktopStartupErrorMessage(status) ??
+        startupMsg ??
           "Can't connect from this computer. Open the Connection tab for details.",
         "error",
       );
       set({ tunnelStatus: "failed" });
       return;
     }
-    const shareUrl = online.publicUrl ?? null;
-    set({
-      shareUrl,
-      tunnelStatus: online.tunnelStatus,
-    });
-    if (shareUrl) syncShareUrlFile(shareUrl);
+    await applyDesktopShareFromNode(get, set, status, online.publicUrl);
+  },
+
+  async syncDesktopRelayContribution(publicHttpsUrl) {
+    if (!isDesktopApp()) return;
+    const controller = get().controller;
+    const pool = get().pool;
+    const myKey = get().myKey;
+    if (!controller || !pool || !myKey || !get().relaySharing) return;
+
+    let httpsUrl = publicHttpsUrl?.trim();
+    if (!httpsUrl) {
+      const status = await localNodeStatus();
+      httpsUrl = status?.publicUrl ?? get().shareUrl ?? undefined;
+    }
+    if (!httpsUrl) return;
+
+    await syncDesktopTunnelRelay(
+      {
+        revokeRelay: (url) => controller.revokeRelay(url),
+        contributeRelay: (url) => controller.contributeRelay(url),
+        getCommunityRelays: () => controller.state?.communityRelays ?? [],
+      },
+      myKey,
+      httpsUrl,
+      pool.communityRelayAuthors ?? {},
+    );
+    persistSession(get);
   },
 
   async init() {
@@ -1050,6 +1104,23 @@ async function startNode(
       status?.publicUrl,
       status?.cloudflaredAvailable,
     );
+    if (status?.publicUrl) {
+      set({
+        controller,
+        pool: controller.state,
+        linkedPools: controller.getLinkedPools(),
+        sync: controller.getSyncStatus(),
+        relaySharing,
+        tunnelStatus,
+        shareUrl: status.publicUrl,
+        phase: "ready",
+      });
+      syncShareUrlFile(status.publicUrl);
+      if (relaySharing) {
+        await get().syncDesktopRelayContribution(status.publicUrl);
+      }
+      return;
+    }
   }
   set({
     controller,

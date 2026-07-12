@@ -143,6 +143,38 @@ export function installTestBridge(): void {
       await useStore.getState().ensureDesktopShare();
     },
 
+    async syncDesktopRelayContribution(publicHttpsUrl?: string) {
+      await useStore.getState().syncDesktopRelayContribution(publicHttpsUrl);
+    },
+
+    getCommunityRelays() {
+      return useStore.getState().pool?.communityRelays ?? [];
+    },
+
+    async rotateDesktopTunnelUrlForTests(newHttpsUrl: string) {
+      const { setDesktopPublicUrlOverrideForTests } = await import("./local-node.js");
+      setDesktopPublicUrlOverrideForTests(newHttpsUrl);
+      useStore.setState({ shareUrl: newHttpsUrl });
+      const { writeShareUrlFile } = await import("./local-node.js");
+      await writeShareUrlFile(newHttpsUrl);
+      await useStore.getState().ensureDesktopShare();
+    },
+
+    decodeInviteFromLink(link: string) {
+      const marker = "#/join?d=";
+      const idx = link.indexOf(marker);
+      if (idx < 0) return null;
+      const encoded = link.slice(idx + marker.length).split(/[#&?\s]/)[0] ?? "";
+      try {
+        const pad = encoded.length % 4 === 0 ? "" : "=".repeat(4 - (encoded.length % 4));
+        const b64 = encoded.replace(/-/g, "+").replace(/_/g, "/") + pad;
+        const json = decodeURIComponent(escape(atob(b64)));
+        return JSON.parse(json) as { relays?: string[]; ns?: string };
+      } catch {
+        return null;
+      }
+    },
+
     async getLocalNodeStatus() {
       const { localNodeStatus } = await import("./local-node.js");
       return localNodeStatus();

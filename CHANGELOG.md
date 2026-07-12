@@ -12,6 +12,26 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ### Fixed
 
+## [0.2.6.2] - 2026-07-12
+
+### Added
+
+- **`syncDesktopRelayContribution`** — desktop founders refresh community relay URLs when the quick tunnel rotates after restart; invite signing syncs before payload build.
+- **WebKit CI** — Playwright `webkit` project (iPhone 13) for share-url specs on merge CI.
+- **Support runbooks** — SmartScreen, tunnel troubleshooting, upgrade path, version mismatch, mobile joiner tips in `SUPPORT.md` / `GET_STARTED.md`.
+- **In-app tunnel disclosure** — plain-language Cloudflare quick-tunnel notice in invite modal and Connection share panel.
+- **`desktop-restart-relay.spec.ts`** — Windows E2E simulates tunnel URL rotation via test bridge.
+
+### Changed
+
+- **Installer publish names** — `build-release.mjs` renames artifacts to include npm patch version (e.g. `AethelOS_0.2.6.2_x64-setup.exe`).
+- **Sidecar cache verify** — `fetch-node-sidecar.mjs` / `fetch-cloudflared.mjs` verify SHA-256 on cache hit; `check-sidecar-checksums.mjs` on merge CI.
+- **At-cap invite UX** — primary invite button disabled when chapter is at capacity.
+
+### Fixed
+
+- **Stale invite relay after desktop restart** — `ensureDesktopShare` refreshes when `publicUrl` changes; ledger revokes old trycloudflare relays before contributing the new `/ws` URL.
+
 ## [0.2.6.1] - 2026-07-12
 
 ### Added

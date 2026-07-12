@@ -490,6 +490,7 @@ function InviteCard({
           setInviteSignError(true);
           return;
         }
+        await useStore.getState().syncDesktopRelayContribution(publicUrl);
       }
       if (cancelled) return;
       const relays = controller.getInviteRelayUrls();
@@ -558,11 +559,12 @@ function InviteCard({
       <Button
         variant="secondary"
         block
+        disabled={atCap}
         onClick={() => {
           setShowLink(true);
         }}
       >
-        Invite people
+        {atCap ? "Member limit reached" : "Invite people"}
       </Button>
       <p
         className="hint"
@@ -637,6 +639,11 @@ function InviteCard({
             </p>
           ) : inviteLink ? (
             <>
+              <p className="hint" style={{ marginBottom: "var(--sp-3)" }}>
+                Invite links use a temporary public address (Cloudflare quick tunnel) so
+                people can reach your computer from the internet. If you restart the app,
+                generate a fresh link — old links may stop working.
+              </p>
               <p className="muted" style={{ marginBottom: "var(--sp-3)" }}>
                 {displayName ? `${displayName} invites you to ` : "Join "}
                 <strong>{pool.cellName}</strong>. Send this link or QR:

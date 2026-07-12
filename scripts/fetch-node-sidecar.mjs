@@ -19,6 +19,10 @@ const outDir = join(root, "packages/client-tauri/src-tauri/resources/node/win-x6
 const nodeExe = join(outDir, "node.exe");
 
 if (existsSync(nodeExe)) {
+  if (checksums.node.version === NODE_VERSION && checksums.node.exeSha256) {
+    await verifySha256(nodeExe, checksums.node.exeSha256);
+    console.log("Verified SHA-256 for cached node sidecar");
+  }
   console.log("Node sidecar already present:", nodeExe);
   process.exit(0);
 }

@@ -21,6 +21,10 @@ declare global {
       disconnectSyncForTests: () => void;
       setRelaySharing: (on: boolean) => Promise<void>;
       ensureDesktopShare: () => Promise<void>;
+      syncDesktopRelayContribution: (publicHttpsUrl?: string) => Promise<void>;
+      getCommunityRelays: () => string[];
+      rotateDesktopTunnelUrlForTests: (newHttpsUrl: string) => Promise<void>;
+      decodeInviteFromLink: (link: string) => { relays?: string[]; ns?: string } | null;
       getLocalNodeStatus: () => Promise<{
         localUrl: string;
         publicUrl?: string;

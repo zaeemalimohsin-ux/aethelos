@@ -4,6 +4,8 @@ import {
   httpsToWssRelayUrl,
   isLocalOnlyRelayUrl,
   relayUrlsForInvite,
+  isEphemeralTunnelRelayUrl,
+  syncDesktopTunnelRelay,
 } from "../src/app/active-relays.js";
 
 describe("mergeActiveRelays", () => {
@@ -89,6 +91,39 @@ describe("httpsToWssRelayUrl", () => {
     expect(httpsToWssRelayUrl("https://abc.trycloudflare.com/path")).toBe(
       "wss://abc.trycloudflare.com/ws",
     );
+  });
+});
+
+describe("isEphemeralTunnelRelayUrl", () => {
+  it("detects trycloudflare community relay URLs", () => {
+    expect(isEphemeralTunnelRelayUrl("wss://abc.trycloudflare.com/ws")).toBe(true);
+    expect(isEphemeralTunnelRelayUrl("wss://relay.example.org/ws")).toBe(false);
+  });
+});
+
+describe("syncDesktopTunnelRelay", () => {
+  it("revokes stale ephemeral relays and contributes the new tunnel wss URL", async () => {
+    const relays = ["wss://old.trycloudflare.com/ws"];
+    const revoked: string[] = [];
+    const contributed: string[] = [];
+    const sync = {
+      revokeRelay: async (url: string) => {
+        revoked.push(url);
+        const idx = relays.indexOf(url);
+        if (idx >= 0) relays.splice(idx, 1);
+      },
+      contributeRelay: async (url: string) => {
+        contributed.push(url);
+        relays.push(url);
+      },
+      getCommunityRelays: () => [...relays],
+    };
+    await syncDesktopTunnelRelay(sync, "mykey", "https://new.trycloudflare.com/path", {
+      "wss://old.trycloudflare.com/ws": "mykey",
+    });
+    expect(revoked).toEqual(["wss://old.trycloudflare.com/ws"]);
+    expect(contributed).toEqual(["wss://new.trycloudflare.com/ws"]);
+    expect(relays).toEqual(["wss://new.trycloudflare.com/ws"]);
   });
 });
 

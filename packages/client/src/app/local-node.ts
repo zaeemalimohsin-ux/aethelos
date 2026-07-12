@@ -35,11 +35,22 @@ export async function stopLocalNode(): Promise<void> {
   }
 }
 
+let desktopPublicUrlOverrideForTests: string | null = null;
+
+/** E2E-only: simulate quick-tunnel URL rotation without restarting the desktop app. */
+export function setDesktopPublicUrlOverrideForTests(url: string | null): void {
+  desktopPublicUrlOverrideForTests = url?.trim() || null;
+}
+
 export async function localNodeStatus(): Promise<LocalNodeStatus | null> {
   if (!isDesktopApp()) return null;
   try {
     const { invoke } = await import("@tauri-apps/api/core");
-    return await invoke<LocalNodeStatus>("local_node_status");
+    const status = await invoke<LocalNodeStatus>("local_node_status");
+    if (desktopPublicUrlOverrideForTests && status) {
+      return { ...status, publicUrl: desktopPublicUrlOverrideForTests };
+    }
+    return status;
   } catch {
     return null;
   }

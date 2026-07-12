@@ -62,6 +62,45 @@ export function httpsToWssRelayUrl(httpsUrl: string): string {
   return parsed.toString();
 }
 
+/** Quick-tunnel community relay URLs rotate when the desktop app restarts. */
+export function isEphemeralTunnelRelayUrl(relayUrl: string): boolean {
+  try {
+    const normalized = relayUrl.replace(/^ws:/, "http:").replace(/^wss:/, "https:");
+    const host = new URL(normalized).hostname.toLowerCase();
+    return host.endsWith(".trycloudflare.com") || host === "trycloudflare.com";
+  } catch {
+    return false;
+  }
+}
+
+export interface DesktopTunnelRelaySync {
+  revokeRelay(url: string): Promise<void>;
+  contributeRelay(url: string): Promise<void>;
+  getCommunityRelays(): string[];
+}
+
+/** Revoke stale quick-tunnel relays we authored and publish the current public /ws URL. */
+export async function syncDesktopTunnelRelay(
+  sync: DesktopTunnelRelaySync,
+  myKey: string,
+  publicHttpsUrl: string,
+  authors: Record<string, string> = {},
+): Promise<void> {
+  const newWss = httpsToWssRelayUrl(publicHttpsUrl);
+  for (const relayUrl of sync.getCommunityRelays()) {
+    if (
+      authors[relayUrl] === myKey &&
+      isEphemeralTunnelRelayUrl(relayUrl) &&
+      relayUrl !== newWss
+    ) {
+      await sync.revokeRelay(relayUrl);
+    }
+  }
+  if (!sync.getCommunityRelays().includes(newWss)) {
+    await sync.contributeRelay(newWss);
+  }
+}
+
 export type TunnelStatus = "idle" | "ready" | "local_only" | "failed";
 
 export function tunnelStatusFromLocalNode(

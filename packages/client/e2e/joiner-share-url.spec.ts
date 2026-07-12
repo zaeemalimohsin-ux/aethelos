@@ -1,5 +1,5 @@
 import dns from "node:dns";
-import { test, expect, chromium, devices } from "@playwright/test";
+import { test, expect, chromium, webkit, devices } from "@playwright/test";
 import {
   createIdentity,
   startCommunity,
@@ -14,6 +14,19 @@ import {
 } from "./helpers.js";
 
 const shareUrl = process.env.AETHELOS_SHARE_URL?.trim();
+
+function mobileDevice(projectName: string) {
+  return projectName === "webkit" ? devices["iPhone 13"] : devices["Pixel 5"];
+}
+
+async function launchShareBrowser(projectName: string, host: string, ip: string) {
+  if (projectName === "webkit") {
+    return webkit.launch();
+  }
+  return chromium.launch({
+    args: [`--host-resolver-rules=MAP ${host} ${ip}`],
+  });
+}
 
 async function resolveTunnelHost(host: string, maxMs = 60_000): Promise<string> {
   const resolver = new dns.promises.Resolver();
@@ -36,16 +49,15 @@ test.describe("share-url founder and joiner", () => {
 
   test("joiner syncs and converges to two members over public share URL", async () => {
     test.setTimeout(360_000);
+    const projectName = test.info().project.name;
 
     const host = new URL(shareUrl!).hostname;
     const ip = await resolveTunnelHost(host);
-    const browser = await chromium.launch({
-      args: [`--host-resolver-rules=MAP ${host} ${ip}`],
-    });
+    const browser = await launchShareBrowser(projectName, host, ip);
 
     try {
-      const ctxFounder = await browser.newContext({ ...devices["Pixel 5"] });
-      const ctxJoiner = await browser.newContext({ ...devices["Pixel 5"] });
+      const ctxFounder = await browser.newContext({ ...mobileDevice(projectName) });
+      const ctxJoiner = await browser.newContext({ ...mobileDevice(projectName) });
       const founder = await ctxFounder.newPage();
       const joiner = await ctxJoiner.newPage();
 
