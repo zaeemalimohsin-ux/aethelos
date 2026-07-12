@@ -65,7 +65,7 @@ Full Pass 4 detail: [archive/CODEBASE_AUDIT_PASS4.md](./archive/CODEBASE_AUDIT_P
 
 | Metric | Value |
 |--------|-------|
-| **Composite (10 dims, excl. i18n)** | **79.6** |
+| **Composite (10 dims, excl. i18n)** | **79.0** |
 | **Target** | **≥ 75** |
 | **Verdict** | **PASS** |
 
