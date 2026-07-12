@@ -85,7 +85,7 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 
 ## v0.2.6.2 reassessment board (pre-tag local, 2026-07-12)
 
-Confidence floors after weak-point remediation. Tag CI pending on `v0.2.6.2`.
+Confidence floors after weak-point remediation. Tag CI **3/3 green** on [run 29189737878](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29189737878).
 
 | Dimension | Confidence | Notes |
 |-----------|------------|-------|
