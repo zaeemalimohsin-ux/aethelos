@@ -51,9 +51,17 @@ function cargoVersionForRelease(npmVersion) {
 const expected = readJsonVersion("package.json");
 const cargoExpected = cargoVersionForRelease(expected);
 const checks = [
-  ["packages/client/package.json", readJsonVersion("packages/client/package.json"), expected],
+  [
+    "packages/client/package.json",
+    readJsonVersion("packages/client/package.json"),
+    expected,
+  ],
   ["packages/core/package.json", readJsonVersion("packages/core/package.json"), expected],
-  ["packages/relay/package.json", readJsonVersion("packages/relay/package.json"), expected],
+  [
+    "packages/relay/package.json",
+    readJsonVersion("packages/relay/package.json"),
+    expected,
+  ],
   [
     "packages/client-tauri/package.json",
     readJsonVersion("packages/client-tauri/package.json"),
