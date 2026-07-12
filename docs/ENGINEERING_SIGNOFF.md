@@ -88,14 +88,14 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 | Agent | Verdict |
 |-------|---------|
 | Security review | **SHIP** |
-| Product proof | PASS (prior v0.2.5 local; v0.2.6 cold-path fix pending CI) |
-| Tauri / desktop | READY — fail-closed invites, harness cleanup |
-| Governance | ADEQUATE — dual-fork test tightened; expel-escrow unchanged |
-| Supply chain | ACCEPTABLE — esbuild lockfile ≤2 entries |
-| Legal / claims | EA-aligned — TERMS, GET_STARTED, PRODUCT caveats |
-| Bugbot | Pending rerun |
-| QA gate | Unit + federation-off PASS locally |
-| CI investigator | Pending tag `v0.2.6` run |
+| Product proof | **PASS** — tag CI run 29182842076 (release exe + cold invite E2E) |
+| Tauri / desktop | **READY** — fail-closed invites, harness PLATFORM fix |
+| Governance | **ADEQUATE** — dual-fork test tightened; expel-escrow unchanged |
+| Supply chain | **ACCEPTABLE** — esbuild lockfile ≤2 entries |
+| Legal / claims | **EA-aligned** — TERMS, GET_STARTED, PRODUCT caveats |
+| Bugbot | Skipped (subagent unavailable) |
+| QA gate | **PASS** — unit + federation tiers green on tag CI |
+| CI investigator | **3/3 green** — run 29182842076 published `AethelOS_0.2.6_x64-setup.exe` |
 
 ---
 
@@ -106,7 +106,7 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 | **Windows EA** | **Ready** — v0.2.6 recommended for founders in software community release |
 | Windows installer (GitHub Releases) | **v0.2.6** — federation on, cold invite E2E on tag |
 | Merge CI (tiers 1–3) | **Green** — format:check + E2E tiers on every merge |
-| Tag release chain | **release-e2e-gate → release-desktop-gate → build-and-publish-windows** |
+| Tag release chain | **Green** — run 29182842076: e2e + desktop + publish |
 | GHCR container publish | **Green** — `ghcr.io/zaeemalimohsin-ux/aethelos:latest` |
 | Fly.io deploy automation | **Wired** — skips until `FLY_API_TOKEN` secret set |
 | Browser demo (app.aethelos.org / HF Space) | **Blocked** — HF Space PAUSED; unpause or email HF support |
