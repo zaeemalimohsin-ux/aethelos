@@ -2,7 +2,7 @@
 
 Single entry point for distribution readiness and audit residuals. Supersedes [Pass 4 audit](./archive/CODEBASE_AUDIT_PASS4.md) and [Distribution scorecard](./archive/DISTRIBUTION_SCORECARD.md) for day-to-day sign-off.
 
-**Last updated:** 2026-07-12 (v0.2.6: Windows EA — green desktop CI, invite fail-closed, doc alignment)
+**Last updated:** 2026-07-12 (v0.2.6 post-tag reassessment — official Windows EA release approved)
 
 ---
 
@@ -81,23 +81,34 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 
 **Local verification (2026-07-12):** encoding, typecheck, lint, format, unit + E2E tests.
 
-**Product proof (2026-07-12, Windows, -SkipAndroid):** PASS — release exe → trycloudflare → share-url E2E.
+**Product proof (2026-07-12, tag CI run 29182842076):** PASS — release exe → trycloudflare → share-url E2E + cold invite E2E (1 passed, 13.9s).
 
-## v0.2.6 reassessment board (2026-07-12)
+## v0.2.6 reassessment board (post-tag CI, 2026-07-12)
 
-| Agent | Verdict |
-|-------|---------|
-| Security review | **SHIP** |
-| Product proof | **PASS** — tag CI run 29182842076 (release exe + cold invite E2E) |
-| Tauri / desktop | **READY** — fail-closed invites, harness PLATFORM fix |
-| Governance | **ADEQUATE** — dual-fork test tightened; expel-escrow unchanged |
-| Supply chain | **ACCEPTABLE** — esbuild lockfile ≤2 entries |
-| Legal / claims | **EA-aligned** — TERMS, GET_STARTED, PRODUCT caveats |
-| Bugbot | Skipped (subagent unavailable) |
-| QA gate | **PASS** — unit + federation tiers green on tag CI |
-| CI investigator | **3/3 green** — run 29182842076 published `AethelOS_0.2.6_x64-setup.exe` |
+Re-run after tag CI **29182842076** (3/3 green, assets published). Ship only if no FAIL on security, product proof, claims, or CI.
 
----
+| Agent | Verdict | Notes |
+|-------|---------|-------|
+| Security review | **SHIP** | Invite fail-closed; `buildInviteLink` throws without public URL; test bridge gated (`PROD` + `scan-no-test-bridge` on ship bundle); proof/shipping split enforced |
+| Product proof | **PASS** | `PRODUCT PROOF: PASS` on release path; mobile share-url E2E 2/2; cold invite E2E 1/1 |
+| Tauri / desktop | **READY** | Release exe + relay sidecar; tunnel via bundled cloudflared; harness reads `PLATFORM` at launch |
+| Governance | **ADEQUATE** | Dual-fork import `imported === 3`; expel-escrow partial (root receipt gap); P3.2 matrix stale |
+| Supply chain | **ACCEPTABLE** | Frozen lockfile; esbuild ≤2; publish scans; gaps: sidecar checksums, audit not on tag path |
+| Legal / claims | **EA_ALIGNED** | No false GA; tunnel/hosting caveats; counsel templates; add EA label to GET_STARTED/PRODUCT for wider marketing |
+| Bugbot | **NO_BLOCKERS** | Harness `PLATFORM` timing bug fixed in `4abdff5`; no ship-stopping defects in v0.2.6 diff |
+| QA gate | **ALL_TIERS_PASS** | Unit 144+143+12; chromium 84 (+1 flaky retry); federation-off 24; federation-on 27; bundle scans green |
+| CI investigator | **3/3 GREEN** | [Run 29182842076](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29182842076) — setup.exe + MSI + checksums |
+
+### Official release decision
+
+| Scope | Decision |
+|-------|----------|
+| **Windows EA — software community public release** | **APPROVED** — tag `v0.2.6` on GitHub Releases |
+| **GA / broad public marketing** | **NOT APPROVED** — TERMS/PRIVACY are counsel-review templates; unsigned installer without `WINDOWS_CERT_*` |
+| **Hosted canonical (`app.aethelos.org`)** | **NOT LIVE** — do not claim browser-first GA path |
+
+**Residuals (non-blocking for EA):** Authenticode signing optional; Android smoke skipped on tag gate; weekly `product-proof.yml` stale; HF Space paused; P3.2 multi-hop escrow seam partial.
+
 
 ## Ship status (v0.2.6)
 
