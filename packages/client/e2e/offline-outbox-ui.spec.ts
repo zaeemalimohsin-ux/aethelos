@@ -88,9 +88,8 @@ test.describe("offline outbox UI", () => {
   test("sync indicator shows Queue full when outbox is at cap", async ({ page }) => {
     test.setTimeout(90_000);
     await onboardGenesis(page, "Cap Founder", "Cap Cell");
-    const namespaceId = await page.evaluate(
-      () => window.__aethelosTest?.getNamespaceId?.() ?? null,
-    );
+    const pool = await waitForPool(page, (p) => Boolean(p.namespaceId));
+    const namespaceId = pool.namespaceId;
     expect(namespaceId).toBeTruthy();
 
     await seedFullOutbox(page, namespaceId!);
