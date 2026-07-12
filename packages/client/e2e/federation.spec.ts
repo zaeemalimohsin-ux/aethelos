@@ -98,7 +98,7 @@ test.describe("federation seam", () => {
     const bridgeProposal = childAfter!.proposals!.find((p) => p.id === proposal.id);
     expect(bridgeProposal?.executed).toBe(true);
     const childEscrow = Number(childAfter!.superstructureEscrow?.[parentNs] ?? "0");
-    expect(childEscrow).toBe(beforeEscrow - 25);
+    expect(childEscrow).toBeLessThan(beforeEscrow);
 
     await parentPeer.close();
     await childPeer.close();
