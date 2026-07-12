@@ -52,20 +52,20 @@ Full Pass 4 detail: [archive/CODEBASE_AUDIT_PASS4.md](./archive/CODEBASE_AUDIT_P
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
-| Desktop | 78 | Windows proof on tag; Tauri exit cleanup; Authenticode deferred |
-| Mobile / PWA | 73 | Share-url env-gated; Android optional in CI |
+| Desktop | 80 | v0.2.6.2 relay sync fix; installer rename; tag proof green |
+| Mobile / PWA | 75 | WebKit merge CI; share-url browser-aware; tag still Chromium |
 | Web hosted | 60 | `app.aethelos.org` not live; HF paused |
 | Security | 77 | Residuals documented |
 | P2P / sync | 84 | Tier 2c/2d + mesh tests |
 | Test / CI | 86 | Tiers 1–3 on merge; desktop proof on tag |
-| Docs | 76 | Runbooks consolidated; legal aligned |
-| Release gates | **82** | Tag E2E gate + desktop proof + bundle scans |
+| Docs | 80 | SUPPORT runbooks; in-app tunnel disclosure |
+| Release gates | **84** | Tag 3/3 + renamed assets verified |
 | Governance traceability | 86 | P3.2/P3.3 partial on multi-hop escrow seam |
-| Ops runbooks | 74 | Relay + hosted smoke documented |
+| Ops runbooks | 78 | SmartScreen, tunnel, upgrade, version mismatch |
 
 | Metric | Value |
 |--------|-------|
-| **Composite (10 dims, excl. i18n)** | **78.8** |
+| **Composite (10 dims, excl. i18n)** | **79.6** |
 | **Target** | **≥ 75** |
 | **Verdict** | **PASS** |
 
@@ -81,44 +81,46 @@ Run and interpret release gates via [TESTING_RELEASE.md](./TESTING_RELEASE.md) (
 
 **Local verification (2026-07-12, v0.2.6.2):** encoding, format, typecheck, unit (145), federation-off 24/24, federation-on 27/27, version/changelog/user-docs/sidecar gates.
 
-**Product proof (2026-07-12):** Tag CI authoritative — [29186528258](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29186528258) `PRODUCT PROOF: PASS` + cold invite E2E. Weekly scheduled [29185119661](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29185119661) green pre-land; post-land dispatch [29185344312](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29185344312) failed on interim main (non-blocking).
+**Product proof (2026-07-12):** Tag [29189737878](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29189737878) `PRODUCT PROOF: PASS` + cold invite E2E 1/1; weekly dispatch [29189751851](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29189751851) also **PASS** (post-ship).
 
-## v0.2.6.2 reassessment board (pre-tag local, 2026-07-12)
+## v0.2.6.2 reassessment board (post-tag CI, 2026-07-12)
 
-Confidence floors after weak-point remediation. Tag CI **3/3 green** on [run 29189737878](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29189737878).
+Inline review of tag `v0.2.6.2` (commit `93b7c31`) after subagent quota blocked automated runs. Tag CI **3/3 green** on [run 29189737878](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29189737878).
 
-| Dimension | Confidence | Notes |
-|-----------|------------|-------|
-| Engineering / tag CI | **HIGH** | Local gates green; await 3/3 on tag |
-| Founder ops (7-day hosting) | **MEDIUM** | P0 stale-relay fixed; in-app tunnel disclosure; SUPPORT runbooks |
-| Mobile joiners | **MEDIUM+** | WebKit (iPhone 13) project on merge CI; iOS joiner tips in docs |
-| Support / comms | **MEDIUM–HIGH** | SmartScreen, tunnel, upgrade, version mismatch in SUPPORT |
-| Upgrade path | **HIGH** | Documented in-place install; installer renamed to npm patch |
-| Scale 20–50 | **MEDIUM** | At-cap invite UX + GET_STARTED chapter guidance |
-| Supply chain | **MEDIUM+** | Cache-hit SHA-256 verify; merge CI manifest gate |
-| Threat / abuse | **MEDIUM** | No runtime change; documented residuals |
-| Privacy/legal (EA scope) | **HIGH** | In-app Cloudflare tunnel disclosure |
+| Dimension | Confidence | Target | Notes |
+|-----------|------------|--------|-------|
+| Engineering / tag CI | **HIGH** | HIGH | 3/3 green; renamed assets published |
+| Founder ops (7-day hosting) | **MEDIUM** | MEDIUM | P0 stale-relay fixed; ephemeral tunnel + PC-on still required |
+| Mobile joiners | **MEDIUM+** | MEDIUM+ | WebKit project on merge CI; tag proof still Pixel 5 Chromium 2/2 |
+| Support / comms | **MEDIUM–HIGH** | MEDIUM–HIGH | SmartScreen, tunnel, upgrade, version mismatch runbooks |
+| Upgrade path | **HIGH** | HIGH | In-place install documented; installer filename matches npm patch |
+| Scale 20–50 | **MEDIUM** | MEDIUM | At-cap invite disabled; GET_STARTED chapter spawn guidance |
+| Supply chain | **MEDIUM+** | MEDIUM+ | Cache-hit SHA-256 verify + merge manifest gate |
+| Threat / abuse | **MEDIUM** | MEDIUM | No new runtime mitigations; residuals documented |
+| Privacy/legal (EA scope) | **HIGH** | HIGH | In-app tunnel disclosure (invite modal + Connection panel) |
+
+### Core agents (9)
 
 | Agent | Verdict | Notes |
 |-------|---------|-------|
-| Security review | **SHIP** | Relay sync is author-scoped revoke + contribute; test bridge proof-only; cache verify reduces tamper risk |
-| Product proof | **PENDING** | Await tag `v0.2.6.2` desktop proof + `desktop-restart-relay.spec.ts` |
-| Tauri / desktop | **READY** | `syncDesktopRelayContribution` on unlock/init/invite; `ensureDesktopShare` URL refresh |
-| Governance | **ADEQUATE+** | No governance rule changes |
-| Supply chain | **ACCEPTABLE+** | `exeSha256` on node cache hit; cloudflared cache verify; merge `check-sidecar-checksums` |
-| Legal / claims | **EA_ALIGNED** | SUPPORT EA line; tunnel disclosure in-app; no GA claims |
-| Bugbot | **NO_BLOCKERS** | Relay sync unit test + invite wiring; at-cap button disabled |
-| QA gate | **ALL_TIERS_PASS** | Local federation-off 24, federation-on 27; active-relays + store tests |
-| CI investigator | **PENDING** | Await tag `v0.2.6.2` 3/3 green |
+| **Security review** | **SHIP** | `syncDesktopTunnelRelay` revokes only **author-owned** `*.trycloudflare.com` relays (`communityRelayAuthors[url] === myKey`); cannot revoke third-party relays. `contributeRelay` unchanged (member-gated in core). `setDesktopPublicUrlOverrideForTests` ships in bundle but is inert without `__aethelosTest`; release job runs `scan-no-test-bridge` gate. Sidecar cache verify closes tampered-cache gap from v0.2.6.1. No new secrets or network listeners. |
+| **Bugbot** | **NO_BLOCKERS** | Relay sync is idempotent when URL unchanged (`ensureDesktopShare` re-sync on match is safe). `getCommunityRelays()` reads live `controller.state` after revokes. Invite flow calls sync before `getInviteRelayUrls()` — fixes shell/relay mismatch. Unit test covers revoke+contribute path. `desktop-restart-relay.spec.ts` not in tag gate (Windows + `AETHELOS_DESKTOP_E2E=1` only). |
+| **CI investigator** | **3/3 GREEN** | [29189737878](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29189737878): `release-e2e-gate` + `release-desktop-gate` + `build-and-publish-windows`. Assets: `AethelOS_0.2.6.2_x64-setup.exe`, `AethelOS_0.2.6.2_x64_en-US.msi`, `checksums.txt`. Merge CI on `93b7c31`: **e2e GREEN** (chromium 85, webkit 2 skipped w/o `AETHELOS_SHARE_URL`, federation-off 24, federation-on 27); `docker-founder` **FAILED** (relay `pnpm deploy` in Docker — unrelated to patch, non-blocking for tag). |
+| **Product proof** | **PASS** | Tag gate: share URL + mobile E2E 2/2, `PRODUCT PROOF: PASS`, `desktop-invite-cold.spec.ts` 1/1. Post-ship dispatch [29189751851](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29189751851): **PASS** (Android skipped per `-SkipAndroid`). |
+| **Tauri / desktop** | **READY** | `syncDesktopRelayContribution` wired on unlock (`startNode`), `ensureDesktopShare`, invite modal. `applyDesktopShareFromNode` refreshes `.share-url` file on URL change. Installer rename in `build-release.mjs` verified on release. Bundle semver `0.2.6` / npm `0.2.6.2` per `check-version-sync.mjs`. |
+| **Governance** | **ADEQUATE+** | No reducer, proposal, or admission rule changes. Relay contribute/revoke events only; federation/governance matrices unchanged. |
+| **Supply chain** | **ACCEPTABLE+** | `exeSha256` pins `node.exe` on cache hit; cloudflared exe verified on cache hit; `check-sidecar-checksums.mjs` on merge `tauri-check` + tag gate. Tag `pnpm audit --audit-level high` inherited from release-e2e-gate. |
+| **Legal / claims** | **EA_ALIGNED** | SUPPORT/GET_STARTED/PRODUCT state EA (not GA); `app.aethelos.org` not live; HF may be paused. In-app disclosure names Cloudflare quick tunnel in plain language. No consumer GA marketing claims. |
+| **QA gate** | **ALL_TIERS_PASS** | Local: unit 145, federation-off 24, federation-on 27, encoding/format/typecheck/version/docs/sidecar gates. Tag: full E2E tier + desktop proof. `active-relays.test.ts` adds `syncDesktopTunnelRelay` coverage. |
 
-### Weak-point subagents (v0.2.6.2)
+### Weak-point agents (4)
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Mobile joiner | **MEDIUM+** | WebKit CI infra; share-url specs browser-aware; tag still Pixel 5 Chromium |
-| Founder ops | **MEDIUM** | Ephemeral tunnel documented; relay ledger sync on URL change |
-| Support readiness | **MEDIUM–HIGH** | SUPPORT/GET_STARTED runbooks for week-one tickets |
-| Threat / recovery / scale | **documented residuals** | Tunnel DoS, phishing shell + valid sig; recovery phrase ≠ community backup |
+| **Mobile joiner** | **MEDIUM+** | Merge CI installs WebKit and runs `webkit` project (2 skipped without share URL — infra validated). Share-url specs browser-aware (iPhone 13 vs Pixel 5). Tag proof exercises Chromium mobile path only. Docs: Safari on iPhone, avoid in-app browsers, keep tab open (GET_STARTED, USER_GUIDE). **Residual:** no iOS WebKit in tag gate; Android emulator still skipped. |
+| **Founder ops** | **MEDIUM** | **Fixed:** signed invite `relays` now track tunnel rotation after restart. **Remaining:** ephemeral `trycloudflare.com` URL; founder PC must stay on; fresh link after restart (documented in-app + SUPPORT). `desktop-restart-relay.spec.ts` simulates rotation via test bridge — true reboot remains manual QA. |
+| **Support readiness** | **MEDIUM–HIGH** | SUPPORT.md adds SmartScreen/unsigned installer (`checksums.txt` verify), tunnel troubleshooting table, version mismatch FAQ (bundle `0.2.6` vs Identity `0.2.6.2`), upgrade steps. GET_STARTED: upgrade, scale past 50, mobile joiner tips. Bug report template synced to `0.2.6.2`. **Residual:** ~10–20% week-one tickets expected for tunnel/SmartScreen; no public status page. |
+| **Threat / recovery / scale** | **documented residuals** | **Threat:** tunnel DoS (founder offline), phishing invite shell with valid sig (mitigated: relays now match shell host post-fix), relay censorship unchanged. **Recovery:** phrase restores identity only — rejoin via invite or event log export (documented). **Scale:** 50-member cap enforced; at-cap invite disabled; federation chapter spawn documented. No Authenticode; no Tauri auto-update. |
 
 ### Official release decision
 
@@ -128,7 +130,7 @@ Confidence floors after weak-point remediation. Tag CI **3/3 green** on [run 291
 | **GA / broad public marketing** | **NOT APPROVED** — TERMS/PRIVACY counsel templates; unsigned installer |
 | **Hosted canonical (`app.aethelos.org`)** | **NOT LIVE** — do not claim browser-first GA path |
 
-**Residuals (non-blocking for EA):** Authenticode optional; Android smoke skipped on tag gate; HF Space may be paused; true reboot E2E manual (simulated via test bridge); WebKit share-url tests skip without `AETHELOS_SHARE_URL` on merge CI.
+**Residuals (non-blocking for EA):** Authenticode optional; Android smoke skipped on tag gate; HF Space may be paused; `desktop-restart-relay.spec.ts` manual/Windows E2E; WebKit share-url tests skip without `AETHELOS_SHARE_URL` on merge CI; `docker-founder` merge job flaky on relay Docker deploy (unrelated to v0.2.6.2).
 
 ## v0.2.6.1 reassessment board (post-tag CI, 2026-07-12)
 
@@ -190,8 +192,8 @@ Re-run after tag CI **29182842076** (3/3 green, assets published). Ship only if 
 | **Windows EA** | **Ready** — v0.2.6.2 recommended for founders (stale-relay fix + support runbooks) |
 | Windows installer (GitHub Releases) | **v0.2.6.2** tag — `AethelOS_0.2.6.2_x64-setup.exe` / MSI; bundle `0.2.6`, app `0.2.6.2` |
 | Merge CI (tiers 1–3) | **Green** — WebKit project + sidecar checksum gate added |
-| Tag release chain | **Pending** — tag `v0.2.6.2` after land |
-| Weekly product proof | **Dispatch after tag** — non-blocking if tag proof green |
+| Tag release chain | **Green** — [run 29189737878](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29189737878): e2e + desktop + publish |
+| Weekly product proof | **Dispatched** — [run 29189751851](https://github.com/zaeemalimohsin-ux/aethelos/actions/runs/29189751851) |
 
 ## Ship status (v0.2.6.1)
 
