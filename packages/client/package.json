@@ -1,6 +1,6 @@
 {
   "name": "@aethelos/client",
-  "version": "0.2.6",
+  "version": "0.2.6.1",
   "type": "module",
   "scripts": {
     "dev": "vite",

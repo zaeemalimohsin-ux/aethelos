@@ -1,6 +1,6 @@
-# AethelOS v0.2.6 Release Notes
+# AethelOS v0.2.6.1 Release Notes
 
-Welcome to **AethelOS v0.2.6** — Windows EA release with green desktop CI and honest founder hosting guidance.
+Welcome to **AethelOS v0.2.6.1** — patch release with EA doc polish, supply-chain hardening, and traceability fixes on top of v0.2.6.
 
 ## Get started in 3 steps
 
@@ -10,20 +10,19 @@ Welcome to **AethelOS v0.2.6** — Windows EA release with green desktop CI and 
 
 Your PC must stay on while others join. The public address may change after you restart the app.
 
-## What's new in v0.2.6
+## What's new in v0.2.6.1
 
-- **Green desktop CI** — cold-path invite E2E passes; invite links never fall back to localhost
-- **E2E stack health** — federation tiers wait for relay health before tests run
-- **Offline outbox hardening** — bridge-first sync assertions reduce flakes
-- **EA documentation** — aligned tunnel/hosting expectations across user and operator docs
-- **Release workflow** — `workflow_dispatch` for manual reruns; shipping bundle scan on publish job
+- **EA documentation** — clear Windows Early Access framing; honest hosted-install and HF Space guidance
+- **Supply chain** — pinned sidecar checksums verified on download; dependency audit on tag CI
+- **Cargo lock discipline** — desktop release builds use `--locked`; version sync checks `Cargo.lock`
+- **Traceability** — P3.2 matrix and dual-fork sign-off aligned with v0.2.6 tests
+- **Federation E2E** — escrow decreases after approved bridge when amounts are seeded in test
 
-## v0.2.5 highlights (still included)
+## v0.2.6 highlights (still included)
 
-- Desktop proof on every tag
-- Tauri exit cleanup and tunnel hardening
-- Multi-hop expulsion escrow tests
-- Federation E2E escrow assertions
+- Green desktop CI — cold-path invite E2E; invite links never fall back to localhost
+- Fail-closed invite flow and desktop proof on every tag
+- Federation-on shipping bundle and multi-hop expulsion tests
 
 ---
 

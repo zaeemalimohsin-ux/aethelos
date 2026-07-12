@@ -27,6 +27,19 @@ function readTauriVersion(relPath) {
   return data.version;
 }
 
+function readCargoLockPackageVersion(packageName) {
+  const text = readFileSync(
+    join(root, "packages/client-tauri/src-tauri/Cargo.lock"),
+    "utf8",
+  );
+  const re = new RegExp(`name = "${packageName}"\\s+version = "([^"]+)"`, "m");
+  const match = text.match(re);
+  if (!match) {
+    throw new Error(`Package ${packageName} not found in Cargo.lock`);
+  }
+  return match[1];
+}
+
 const expected = readJsonVersion("package.json");
 const checks = [
   ["packages/client/package.json", readJsonVersion("packages/client/package.json")],
@@ -43,6 +56,10 @@ const checks = [
   [
     "packages/client-tauri/src-tauri/tauri.conf.json",
     readTauriVersion("packages/client-tauri/src-tauri/tauri.conf.json"),
+  ],
+  [
+    "packages/client-tauri/src-tauri/Cargo.lock (aethelos-desktop)",
+    readCargoLockPackageVersion("aethelos-desktop"),
   ],
 ];
 

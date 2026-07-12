@@ -1,12 +1,14 @@
 # Getting support
 
+**Windows Early Access** — software community release. See [RELEASE-NOTES.md](../RELEASE-NOTES.md) for version history.
+
 ## Report a bug or request a feature
 
 **[Open an issue on GitHub](https://github.com/zaeemalimohsin-ux/aethelos/issues/new/choose)** (bug report or feature request templates).
 
 ### What to include
 
-1. **App version** — Identity tab → App version (e.g. `0.2.6 / wire 1`)
+1. **App version** — Identity tab → App version (e.g. `0.2.6.1 / wire 1`)
 2. **Platform** — browser + OS, or Windows installer filename
 3. **Steps to reproduce** — what you did, what you expected, what happened
 4. **Screenshots** — if UI-related
@@ -27,7 +29,7 @@ Do **not** file public issues for security bugs. See [SECURITY.md](../SECURITY.m
 
 ## Service status
 
-There is no public status page yet. Maintainers monitor nightly **hosted-preflight** in GitHub Actions. The managed browser demo is [thegritz-aethelos.hf.space](https://thegritz-aethelos.hf.space); app.aethelos.org requires operator DNS (see [PUBLISHER.md](./PUBLISHER.md)).
+There is no public status page yet. Maintainers monitor nightly **hosted-preflight** in GitHub Actions. The managed browser demo at [thegritz-aethelos.hf.space](https://thegritz-aethelos.hf.space) **may be paused** — see [PUBLISHER.md](./PUBLISHER.md) to unpause or self-host. The canonical URL `app.aethelos.org` is **not live**; it requires operator DNS (see [PUBLISHER.md](./PUBLISHER.md)).
 
 ## Product overview & limitations
 

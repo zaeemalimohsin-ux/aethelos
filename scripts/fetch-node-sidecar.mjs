@@ -2,15 +2,19 @@
 /**
  * Download portable Node.js for Windows x64 into Tauri resources (release builds).
  */
-import { createWriteStream, existsSync, mkdirSync, rmSync } from "node:fs";
+import { createWriteStream, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
+import { verifySha256 } from "./sidecar-verify.mjs";
 
 const NODE_VERSION = process.env.NODE_SIDECAR_VERSION ?? "20.18.1";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const checksums = JSON.parse(
+  readFileSync(join(root, "scripts/sidecar-checksums.json"), "utf8"),
+);
 const outDir = join(root, "packages/client-tauri/src-tauri/resources/node/win-x64");
 const nodeExe = join(outDir, "node.exe");
 
@@ -31,6 +35,15 @@ if (!res.ok) {
 
 const tmpZip = join(outDir, "node.zip");
 await pipeline(Readable.fromWeb(res.body), createWriteStream(tmpZip));
+
+if (checksums.node.version === NODE_VERSION) {
+  await verifySha256(tmpZip, checksums.node.sha256);
+  console.log("Verified SHA-256 for node sidecar zip");
+} else {
+  console.warn(
+    `No pinned SHA-256 for node ${NODE_VERSION}; update scripts/sidecar-checksums.json`,
+  );
+}
 
 console.log("Extracting node.exe...");
 

@@ -155,7 +155,7 @@ describe("event log storage", () => {
     expect(loaded.some((e) => e.id === orphan.id)).toBe(false);
   });
 
-  it("imports one branch of a dual-fork tip (accepted residual)", async () => {
+  it("imports both branches of a dual-fork tip", async () => {
     const kp = await generateKeyPair();
     const ns = "storage-dual-fork";
     const g = await signEvent(

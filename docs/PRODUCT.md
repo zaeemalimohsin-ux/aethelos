@@ -1,5 +1,7 @@
 # AethelOS — Product overview
 
+**Windows Early Access** — software community release (not general availability).
+
 Community ledger and governance on your devices. No bank, no platform operator holding your keys.
 
 ## What this is

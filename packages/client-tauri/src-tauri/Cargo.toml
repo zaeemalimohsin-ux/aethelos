@@ -1,6 +1,6 @@
 [package]
 name = "aethelos-desktop"
-version = "0.2.6"
+version = "0.2.6.1"
 description = "AethelOS desktop shell"
 edition = "2021"
 rust-version = "1.77"

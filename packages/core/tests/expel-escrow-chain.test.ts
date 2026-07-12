@@ -170,6 +170,6 @@ describe("multi-hop expulsion escrow chain", () => {
     });
     stateB = reduceEvents(nsB, eventsB);
     expect(stateB.proposals["bridge-up"]?.executed).toBe(true);
-    void headA;
+    expect(stateB.proposals["bridge-up"]?.data?.amount).toBe(escrowOnC.toString());
   });
 });

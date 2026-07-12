@@ -12,6 +12,26 @@ All notable changes to AethelOS are documented here. The format is based on
 
 ### Fixed
 
+## [0.2.6.1] - 2026-07-12
+
+### Added
+
+- **`sidecar-checksums.json`** — pinned SHA-256 for Node and cloudflared sidecar downloads.
+- **`check-sidecar-checksums.mjs`** — CI gate that manifest versions match env pins.
+- **Sidecar verify on fetch** — `fetch-node-sidecar.mjs` and `fetch-cloudflared.mjs` verify hashes after download.
+
+### Changed
+
+- **EA user docs** — Windows Early Access label; hosted-install honesty; HF Space may be paused.
+- **Traceability** — P3.2 matrix lists `expel-escrow-chain` and `event-log-fork-reducer` tests; dual-fork marked addressed in v0.2.6.
+- **Federation E2E** — bridge escrow decreases after approved `bridge_transfer` (exact delta not asserted; reducer timing varies).
+- **Release CI** — `pnpm audit --audit-level high` and sidecar checksum check on tag gate; `cargo check --locked` before desktop publish.
+- **Desktop release build** — `tauri build -- --locked`; `check-version-sync` includes `Cargo.lock` package version.
+
+### Fixed
+
+- **`expel-escrow-chain.test.ts`** — bridge proposal amount matches escrow after expel.
+
 ## [0.2.6] - 2026-07-12
 
 ### Added

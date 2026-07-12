@@ -29,6 +29,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Dependency audit
+        run: pnpm audit --audit-level high
+
+      - name: Sidecar checksum manifest
+        run: node scripts/check-sidecar-checksums.mjs
+
       - name: Version sync check
         run: node scripts/check-version-sync.mjs
 
@@ -149,6 +155,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Cargo lock check
+        run: cargo check --locked --manifest-path packages/client-tauri/src-tauri/Cargo.toml
 
       - name: Build Windows desktop release
         run: node scripts/build-release.mjs

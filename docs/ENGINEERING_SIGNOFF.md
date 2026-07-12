@@ -34,7 +34,7 @@ Full Pass 4 detail: [archive/CODEBASE_AUDIT_PASS4.md](./archive/CODEBASE_AUDIT_P
 
 | Area | Status |
 |------|--------|
-| Dual-fork causal validation on import | **Accepted residual** — import keeps both causal branches; documented in GET_STARTED recovery section |
+| Dual-fork causal validation on import | **Addressed in v0.2.6** — `event-log-fork-reducer.test.ts` keeps both causal branches (`imported === 3`); documented in GET_STARTED recovery section |
 | Relay sinceHash filter | Open (M3) |
 | Optimistic action toasts without reducer feedback | P2 partial |
 | SyncEngine ws errors silent | P2 documented |

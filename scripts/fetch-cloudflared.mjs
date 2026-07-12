@@ -4,15 +4,19 @@
  * Default: scripts/.bin/ (publisher tunnel scripts)
  * --tauri: packages/client-tauri/.../resources/cloudflared/win-x64/
  */
-import { createWriteStream, existsSync, mkdirSync } from "node:fs";
+import { createWriteStream, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
+import { verifySha256 } from "./sidecar-verify.mjs";
 
 const tauri = process.argv.includes("--tauri");
 const VERSION = process.env.CLOUDFLARED_VERSION ?? "2025.2.0";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const checksums = JSON.parse(
+  readFileSync(join(root, "scripts/sidecar-checksums.json"), "utf8"),
+);
 const targets = [];
 if (tauri) {
   targets.push({
@@ -44,6 +48,15 @@ for (const target of targets) {
   }
 
   await pipeline(Readable.fromWeb(res.body), createWriteStream(target.path));
+
+  if (checksums.cloudflared.version === VERSION) {
+    await verifySha256(target.path, checksums.cloudflared.sha256);
+    console.log("Verified SHA-256 for cloudflared");
+  } else {
+    console.warn(
+      `No pinned SHA-256 for cloudflared ${VERSION}; update scripts/sidecar-checksums.json`,
+    );
+  }
 
   if (!existsSync(target.path)) {
     throw new Error("cloudflared binary not found after download");
