@@ -486,6 +486,7 @@ export class NodeController {
       timestamp: Date.now(),
       payload: { type: "relay_revoke", url: trimmed },
     });
+    this.sessionRelays = this.sessionRelays.filter((relay) => relay !== trimmed);
     this.ignoredCommunityRelays.delete(trimmed);
     this.recompute();
   }

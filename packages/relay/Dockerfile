@@ -20,7 +20,7 @@ RUN pnpm --filter @aethelos/core build \
   && pnpm --filter @aethelos/relay build
 
 # Prune to production dependencies.
-RUN pnpm --filter @aethelos/relay deploy --legacy --prod /relay-out
+RUN pnpm --filter @aethelos/relay deploy --prod /relay-out
 
 FROM node:20-alpine AS runtime
 ENV NODE_ENV=production
