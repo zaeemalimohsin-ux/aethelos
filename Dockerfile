@@ -35,7 +35,7 @@ RUN pnpm --filter @aethelos/core build \
   && pnpm --filter @aethelos/client build
 
 # Prune relay to production dependencies only
-RUN pnpm --filter @aethelos/relay deploy --prod /relay-out
+RUN pnpm --filter @aethelos/relay deploy --prod /app/relay-out
 
 # ─── Stage 2: Runtime (Node.js + nginx) ──────────────────────────────────────
 
@@ -44,9 +44,9 @@ RUN apk add --no-cache nginx
 
 # Relay: stateless bulletin board
 WORKDIR /relay
-COPY --from=build /relay-out/dist ./dist
-COPY --from=build /relay-out/node_modules ./node_modules
-COPY --from=build /relay-out/package.json ./package.json
+COPY --from=build /app/relay-out/dist ./dist
+COPY --from=build /app/relay-out/node_modules ./node_modules
+COPY --from=build /app/relay-out/package.json ./package.json
 
 # Client PWA: static files served by nginx
 COPY --from=build /app/packages/client/dist /usr/share/nginx/html

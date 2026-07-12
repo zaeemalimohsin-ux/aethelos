@@ -20,14 +20,14 @@ RUN pnpm --filter @aethelos/core build \
   && pnpm --filter @aethelos/relay build
 
 # Prune to production dependencies.
-RUN pnpm --filter @aethelos/relay deploy --prod /relay-out
+RUN pnpm --filter @aethelos/relay deploy --prod /app/relay-out
 
 FROM node:20-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /relay
-COPY --from=build /relay-out/dist ./dist
-COPY --from=build /relay-out/node_modules ./node_modules
-COPY --from=build /relay-out/package.json ./package.json
+COPY --from=build /app/relay-out/dist ./dist
+COPY --from=build /app/relay-out/node_modules ./node_modules
+COPY --from=build /app/relay-out/package.json ./package.json
 
 EXPOSE 8787
 USER node
