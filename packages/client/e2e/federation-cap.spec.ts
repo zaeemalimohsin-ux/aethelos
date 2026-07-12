@@ -23,4 +23,18 @@ test.describe("federation at-cap UX", () => {
     });
     await expect(inviteCard.getByText(/linked chapters/i)).toBeVisible();
   });
+
+  test("invite button is disabled at 50 members", async ({ page }) => {
+    await onboardGenesis(page, "Founder", "Cap Button Cell");
+    await page.getByRole("button", { name: "Community" }).click();
+
+    const inflated = await page.evaluate(() => {
+      return window.__aethelosTest?.inflateMemberCountForTesting(50) ?? false;
+    });
+    expect(inflated).toBe(true);
+
+    const inviteButton = page.getByRole("button", { name: "Member limit reached" });
+    await expect(inviteButton).toBeVisible({ timeout: 10_000 });
+    await expect(inviteButton).toBeDisabled();
+  });
 });

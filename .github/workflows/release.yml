@@ -133,6 +133,15 @@ jobs:
           pnpm --filter @aethelos/client exec playwright install chromium
           pnpm --filter @aethelos/client exec playwright test e2e/desktop-invite-cold.spec.ts --retries=1
 
+      - name: Desktop restart relay sync E2E
+        if: success()
+        timeout-minutes: 25
+        env:
+          AETHELOS_DESKTOP_E2E: "1"
+          AETHELOS_FRESH_E2E: "1"
+        run: |
+          pnpm --filter @aethelos/client exec playwright test e2e/desktop-restart-relay.spec.ts --retries=1
+
   build-and-publish-windows:
     needs: [release-e2e-gate, release-desktop-gate]
     runs-on: windows-latest
